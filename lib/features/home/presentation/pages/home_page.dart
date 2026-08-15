@@ -7,11 +7,9 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
-import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/avatar_widget.dart';
 import '../../../../core/widgets/error_state.dart';
 import '../../../../core/widgets/stat_card.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../tips/presentation/bloc/tips_bloc.dart';
 import '../../../tips/presentation/bloc/wallet_cubit.dart';
@@ -27,14 +25,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    context.read<ProfileBloc>().add(const ProfileLoaded());
-    context.read<TipsBloc>().add(const TipsLoaded());
+    context.read<ProfileBloc>().add(const LoadProfile());
+    context.read<TipsBloc>().add(const LoadTips());
     context.read<WalletCubit>().loadWallet();
   }
 
   Future<void> _refresh() async {
-    context.read<ProfileBloc>().add(const ProfileLoaded());
-    context.read<TipsBloc>().add(const TipsLoaded());
+    context.read<ProfileBloc>().add(const LoadProfile());
+    context.read<TipsBloc>().add(const LoadTips());
     context.read<WalletCubit>().refreshWallet();
   }
 
@@ -258,7 +256,7 @@ class _StatsGrid extends StatelessWidget {
           return ErrorState(
             message: state.message,
             onRetry: () =>
-                context.read<TipsBloc>().add(const TipsLoaded()),
+                context.read<TipsBloc>().add(const LoadTips()),
           );
         }
         final isLoading = state is TipsLoading;
@@ -469,7 +467,7 @@ class _RecentTips extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: tips.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, i) {
                   final tip = tips[i];
                   return _TipRow(tip: tip);

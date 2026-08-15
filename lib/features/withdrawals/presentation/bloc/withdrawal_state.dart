@@ -21,9 +21,9 @@ class WithdrawalSuccess extends WithdrawalState {
   List<Object?> get props => [withdrawal];
 }
 
-class WithdrawalsLoaded extends WithdrawalState {
+class WithdrawalHistoryLoaded extends WithdrawalState {
   final List<Withdrawal> withdrawals;
-  const WithdrawalsLoaded(this.withdrawals);
+  const WithdrawalHistoryLoaded(this.withdrawals);
   @override
   List<Object?> get props => [withdrawals];
 }

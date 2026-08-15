@@ -9,11 +9,10 @@ import '../constants/api_endpoints.dart';
 /// Central Dio API client with auth headers, token refresh, and error mapping.
 class ApiClient {
   late final Dio _dio;
-  final SecureStorage _secureStorage;
+  final SecureStorage secureStorage;
   final Logger _logger = Logger();
 
-  ApiClient({required SecureStorage secureStorage})
-      : _secureStorage = secureStorage {
+  ApiClient({required this.secureStorage}) {
     _dio = Dio(
       BaseOptions(
         baseUrl: AppConstants.baseUrl,
@@ -27,7 +26,7 @@ class ApiClient {
       ),
     );
 
-    _dio.interceptors.add(_AuthInterceptor(_secureStorage, _dio, _logger));
+    _dio.interceptors.add(_AuthInterceptor(secureStorage, _dio, _logger));
 
     assert(() {
       // Only log in debug mode

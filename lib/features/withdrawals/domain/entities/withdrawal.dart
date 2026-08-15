@@ -6,7 +6,7 @@ part 'withdrawal.g.dart';
 enum WithdrawalStatus { requested, processing, completed, failed }
 
 @freezed
-class Withdrawal with _$Withdrawal {
+abstract class Withdrawal with _$Withdrawal {
   const factory Withdrawal({
     required String id,
     required String waiterId,

@@ -32,7 +32,7 @@ class TipsRemoteDataSourceImpl implements TipsRemoteDataSource {
     final res = await apiClient.get(
       ApiEndpoints.tips,
       queryParameters: {
-        if (filter != null) 'filter': filter,
+        'filter': ?filter,
         'page': page,
         'page_size': pageSize,
       },

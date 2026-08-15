@@ -5,7 +5,7 @@ part 'auth_response_model.freezed.dart';
 part 'auth_response_model.g.dart';
 
 @freezed
-class AuthResponseModel with _$AuthResponseModel {
+abstract class AuthResponseModel with _$AuthResponseModel {
   const factory AuthResponseModel({
     required String accessToken,
     required String refreshToken,
@@ -17,7 +17,7 @@ class AuthResponseModel with _$AuthResponseModel {
 }
 
 @freezed
-class UserModel with _$UserModel {
+abstract class UserModel with _$UserModel {
   const factory UserModel({
     required String id,
     required String email,

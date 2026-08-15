@@ -5,7 +5,7 @@ part 'wallet_model.freezed.dart';
 part 'wallet_model.g.dart';
 
 @freezed
-class WalletModel with _$WalletModel {
+abstract class WalletModel with _$WalletModel {
   const factory WalletModel({
     @JsonKey(name: 'waiter_id') required String waiterId,
     @JsonKey(name: 'available_balance') required int availableBalance,
@@ -19,7 +19,7 @@ class WalletModel with _$WalletModel {
 }
 
 @freezed
-class WalletTransactionModel with _$WalletTransactionModel {
+abstract class WalletTransactionModel with _$WalletTransactionModel {
   const factory WalletTransactionModel({
     required String id,
     required String type,

@@ -29,7 +29,7 @@ class _TipsPageState extends State<TipsPage> {
     super.initState();
     context
         .read<TipsBloc>()
-        .add(TipsLoaded(filter: _activeFilter));
+        .add(LoadTips(filter: _activeFilter));
   }
 
   void _setFilter(TipFilter f) {
@@ -93,7 +93,7 @@ class _TipsPageState extends State<TipsPage> {
                     message: state.message,
                     onRetry: () => context
                         .read<TipsBloc>()
-                        .add(TipsLoaded(filter: _activeFilter)),
+                        .add(LoadTips(filter: _activeFilter)),
                   );
                 }
                 if (state is TipsLoaded) {
@@ -108,7 +108,7 @@ class _TipsPageState extends State<TipsPage> {
                   return RefreshIndicator(
                     onRefresh: () async => context
                         .read<TipsBloc>()
-                        .add(TipsLoaded(filter: _activeFilter)),
+                        .add(LoadTips(filter: _activeFilter)),
                     child: _GroupedTipsList(tips: state.tips),
                   );
                 }

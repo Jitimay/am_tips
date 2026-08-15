@@ -6,7 +6,7 @@ part 'tip.g.dart';
 enum TipStatus { pending, processing, completed, failed, refunded, cancelled }
 
 @freezed
-class Tip with _$Tip {
+abstract class Tip with _$Tip {
   const factory Tip({
     required String id,
     required String waiterId,
@@ -27,7 +27,7 @@ class Tip with _$Tip {
 }
 
 @freezed
-class TipStats with _$TipStats {
+abstract class TipStats with _$TipStats {
   const factory TipStats({
     required int todayTotal,
     required int weekTotal,

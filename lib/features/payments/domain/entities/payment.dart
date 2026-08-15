@@ -8,7 +8,7 @@ enum PaymentStatus { pending, processing, completed, failed, refunded, cancelled
 enum PaymentMethodType { mobileMoney, card, bank }
 
 @freezed
-class Payment with _$Payment {
+abstract class Payment with _$Payment {
   const factory Payment({
     required String id,
     required String tipId,
@@ -29,7 +29,7 @@ class Payment with _$Payment {
 }
 
 @freezed
-class PaymentMethod with _$PaymentMethod {
+abstract class PaymentMethod with _$PaymentMethod {
   const factory PaymentMethod({
     required String id,
     required String name,
@@ -45,7 +45,7 @@ class PaymentMethod with _$PaymentMethod {
 }
 
 @freezed
-class PaymentResult with _$PaymentResult {
+abstract class PaymentResult with _$PaymentResult {
   const factory PaymentResult({
     required String paymentId,
     required PaymentStatus status,
@@ -61,7 +61,7 @@ class PaymentResult with _$PaymentResult {
 
 /// Fee breakdown shown to customer before paying.
 @freezed
-class TipFeeBreakdown with _$TipFeeBreakdown {
+abstract class TipFeeBreakdown with _$TipFeeBreakdown {
   const factory TipFeeBreakdown({
     required int tipAmount,
     required int platformFee,

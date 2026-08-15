@@ -1,5 +1,6 @@
 /// Application-level exceptions thrown from the data layer.
 /// These are mapped to [Failure] objects in repositories.
+library;
 
 class ServerException implements Exception {
   final String message;

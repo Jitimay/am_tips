@@ -5,7 +5,7 @@ part 'payment_model.freezed.dart';
 part 'payment_model.g.dart';
 
 @freezed
-class PaymentMethodModel with _$PaymentMethodModel {
+abstract class PaymentMethodModel with _$PaymentMethodModel {
   const factory PaymentMethodModel({
     required String id,
     required String name,
@@ -21,7 +21,7 @@ class PaymentMethodModel with _$PaymentMethodModel {
 }
 
 @freezed
-class PaymentResultModel with _$PaymentResultModel {
+abstract class PaymentResultModel with _$PaymentResultModel {
   const factory PaymentResultModel({
     @JsonKey(name: 'payment_id') required String paymentId,
     required String status,
@@ -36,7 +36,7 @@ class PaymentResultModel with _$PaymentResultModel {
 }
 
 @freezed
-class TipFeeBreakdownModel with _$TipFeeBreakdownModel {
+abstract class TipFeeBreakdownModel with _$TipFeeBreakdownModel {
   const factory TipFeeBreakdownModel({
     @JsonKey(name: 'tip_amount') required int tipAmount,
     @JsonKey(name: 'platform_fee') required int platformFee,

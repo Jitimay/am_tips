@@ -23,7 +23,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    context.read<ProfileBloc>().add(const ProfileLoaded());
+    context.read<ProfileBloc>().add(const LoadProfile());
   }
 
   @override
@@ -48,7 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
             return ErrorState(
               message: state.message,
               onRetry: () =>
-                  context.read<ProfileBloc>().add(const ProfileLoaded()),
+                  context.read<ProfileBloc>().add(const LoadProfile()),
             );
           }
           final profile = state is ProfileLoaded

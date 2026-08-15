@@ -58,7 +58,7 @@ Future<void> configureDependencies() async {
   // ── External ──────────────────────────────────────────────────────────────
   sl.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      aOptions: AndroidOptions(),
     ),
   );
   sl.registerLazySingleton<Connectivity>(() => Connectivity());

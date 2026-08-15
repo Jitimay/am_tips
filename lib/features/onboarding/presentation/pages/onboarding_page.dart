@@ -488,10 +488,7 @@ class _QrReadyStep extends StatelessWidget {
             label: 'View My QR Code',
             onPressed: () {
               context.read<OnboardingCubit>().markQrReady();
-              Future.delayed(
-                const Duration(milliseconds: 100),
-                () => context.go(AppRoutes.qr),
-              );
+              context.go(AppRoutes.qr);
             },
             variant: AppButtonVariant.outline,
           ),

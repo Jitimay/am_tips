@@ -36,7 +36,7 @@ class SettingsPage extends StatelessWidget {
                   value: state.isDarkMode,
                   onChanged: (v) =>
                       context.read<SettingsCubit>().toggleDarkMode(v),
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                 ),
                 const Divider(height: 1),
                 _SectionHeader('Notifications'),
@@ -52,7 +52,7 @@ class SettingsPage extends StatelessWidget {
                         .read<SettingsCubit>()
                         .saveNotificationPreferences();
                   },
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                 ),
                 SwitchListTile.adaptive(
                   title: const Text('Withdrawal updates'),
@@ -66,7 +66,7 @@ class SettingsPage extends StatelessWidget {
                         .read<SettingsCubit>()
                         .saveNotificationPreferences();
                   },
-                  activeColor: AppColors.primary,
+                  activeThumbColor: AppColors.primary,
                 ),
                 const Divider(height: 1),
                 _SectionHeader('Security'),

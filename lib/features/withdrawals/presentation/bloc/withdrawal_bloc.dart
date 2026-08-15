@@ -13,7 +13,7 @@ class WithdrawalBloc extends Bloc<WithdrawalEvent, WithdrawalState> {
   WithdrawalBloc({required this.withdrawalRepository})
       : super(const WithdrawalInitial()) {
     on<WithdrawalRequested>(_onRequested);
-    on<WithdrawalsLoaded>(_onLoaded);
+    on<WithdrawalHistoryRequested>(_onHistoryLoaded);
   }
 
   Future<void> _onRequested(
@@ -30,13 +30,14 @@ class WithdrawalBloc extends Bloc<WithdrawalEvent, WithdrawalState> {
     );
   }
 
-  Future<void> _onLoaded(
-      WithdrawalsLoaded event, Emitter<WithdrawalState> emit) async {
+  Future<void> _onHistoryLoaded(
+      WithdrawalHistoryRequested event,
+      Emitter<WithdrawalState> emit) async {
     emit(const WithdrawalLoading());
     final result = await withdrawalRepository.getWithdrawals();
     result.fold(
       (failure) => emit(WithdrawalError(failure.message)),
-      (list) => emit(WithdrawalsLoaded(list)),
+      (list) => emit(WithdrawalHistoryLoaded(list)),
     );
   }
 }

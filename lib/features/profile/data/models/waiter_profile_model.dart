@@ -5,7 +5,7 @@ part 'waiter_profile_model.freezed.dart';
 part 'waiter_profile_model.g.dart';
 
 @freezed
-class WaiterProfileModel with _$WaiterProfileModel {
+abstract class WaiterProfileModel with _$WaiterProfileModel {
   const factory WaiterProfileModel({
     required String id,
     @JsonKey(name: 'user_id') required String userId,
@@ -30,7 +30,7 @@ class WaiterProfileModel with _$WaiterProfileModel {
 }
 
 @freezed
-class PaymentAccountModel with _$PaymentAccountModel {
+abstract class PaymentAccountModel with _$PaymentAccountModel {
   const factory PaymentAccountModel({
     required String id,
     required String type,
@@ -44,7 +44,7 @@ class PaymentAccountModel with _$PaymentAccountModel {
 }
 
 @freezed
-class PublicWaiterProfileModel with _$PublicWaiterProfileModel {
+abstract class PublicWaiterProfileModel with _$PublicWaiterProfileModel {
   const factory PublicWaiterProfileModel({
     required String id,
     @JsonKey(name: 'full_name') required String fullName,

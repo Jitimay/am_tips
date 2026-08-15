@@ -5,7 +5,7 @@ part 'withdrawal_model.freezed.dart';
 part 'withdrawal_model.g.dart';
 
 @freezed
-class WithdrawalModel with _$WithdrawalModel {
+abstract class WithdrawalModel with _$WithdrawalModel {
   const factory WithdrawalModel({
     required String id,
     @JsonKey(name: 'waiter_id') required String waiterId,

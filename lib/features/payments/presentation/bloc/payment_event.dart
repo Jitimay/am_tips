@@ -6,8 +6,9 @@ abstract class PaymentEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class PaymentMethodsLoaded extends PaymentEvent {
-  const PaymentMethodsLoaded();
+/// Triggers fetching the available payment methods.
+class PaymentMethodsRequested extends PaymentEvent {
+  const PaymentMethodsRequested();
 }
 
 class PaymentInitiated extends PaymentEvent {

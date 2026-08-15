@@ -10,15 +10,17 @@ class WithdrawalRequested extends WithdrawalEvent {
   final int amount;
   final String currency;
   final String paymentAccountId;
+
   const WithdrawalRequested({
     required this.amount,
     required this.currency,
     required this.paymentAccountId,
   });
+
   @override
   List<Object?> get props => [amount, currency, paymentAccountId];
 }
 
-class WithdrawalsLoaded extends WithdrawalEvent {
-  const WithdrawalsLoaded();
+class WithdrawalHistoryRequested extends WithdrawalEvent {
+  const WithdrawalHistoryRequested();
 }

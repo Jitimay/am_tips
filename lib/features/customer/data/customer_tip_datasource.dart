@@ -75,7 +75,7 @@ class CustomerTipDataSourceImpl implements CustomerTipDataSource {
         'amount': amount,
         'currency': currency,
         'is_anonymous': isAnonymous,
-        if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
+        'idempotency_key': ?idempotencyKey,
       },
     );
     return TipModel.fromJson(res.data as Map<String, dynamic>);
@@ -109,8 +109,8 @@ class CustomerTipDataSourceImpl implements CustomerTipDataSource {
     await apiClient.post(
       ApiEndpoints.completeTip(tipId),
       data: {
-        if (rating != null) 'rating': rating,
-        if (message != null) 'message': message,
+        'rating': ?rating,
+        'message': ?message,
       },
     );
   }

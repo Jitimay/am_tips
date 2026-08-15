@@ -6,6 +6,8 @@ import '../../domain/entities/tip.dart';
 import '../../domain/entities/wallet.dart';
 import '../../domain/repositories/tips_repository.dart';
 import '../datasources/tips_remote_datasource.dart';
+import '../models/tip_model.dart';
+import '../models/wallet_model.dart';
 
 class TipsRepositoryImpl implements TipsRepository {
   final TipsRemoteDataSource remoteDataSource;

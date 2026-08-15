@@ -6,7 +6,7 @@ part 'wallet.g.dart';
 enum TransactionType { tipReceived, withdrawal, refund, adjustment }
 
 @freezed
-class Wallet with _$Wallet {
+abstract class Wallet with _$Wallet {
   const factory Wallet({
     required String waiterId,
     required int availableBalance,
@@ -20,7 +20,7 @@ class Wallet with _$Wallet {
 }
 
 @freezed
-class WalletTransaction with _$WalletTransaction {
+abstract class WalletTransaction with _$WalletTransaction {
   const factory WalletTransaction({
     required String id,
     required TransactionType type,

@@ -12,13 +12,13 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
   PaymentBloc({required this.paymentRepository})
       : super(const PaymentInitial()) {
-    on<PaymentMethodsLoaded>(_onMethodsLoaded);
+    on<PaymentMethodsRequested>(_onMethodsLoaded);
     on<PaymentInitiated>(_onInitiated);
     on<PaymentStatusChecked>(_onStatusChecked);
   }
 
   Future<void> _onMethodsLoaded(
-      PaymentMethodsLoaded event, Emitter<PaymentState> emit) async {
+      PaymentMethodsRequested event, Emitter<PaymentState> emit) async {
     emit(const PaymentLoading());
     final result = await paymentRepository.getPaymentMethods();
     result.fold(

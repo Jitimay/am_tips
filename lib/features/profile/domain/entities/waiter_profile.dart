@@ -4,7 +4,7 @@ part 'waiter_profile.freezed.dart';
 part 'waiter_profile.g.dart';
 
 @freezed
-class WaiterProfile with _$WaiterProfile {
+abstract class WaiterProfile with _$WaiterProfile {
   const factory WaiterProfile({
     required String id,
     required String userId,
@@ -28,7 +28,7 @@ class WaiterProfile with _$WaiterProfile {
 }
 
 @freezed
-class PaymentAccountInfo with _$PaymentAccountInfo {
+abstract class PaymentAccountInfo with _$PaymentAccountInfo {
   const factory PaymentAccountInfo({
     required String id,
     required String type,   // 'mobile_money' | 'bank' | 'card'
@@ -43,7 +43,7 @@ class PaymentAccountInfo with _$PaymentAccountInfo {
 
 /// Public-facing profile — safe to expose to customers.
 @freezed
-class PublicWaiterProfile with _$PublicWaiterProfile {
+abstract class PublicWaiterProfile with _$PublicWaiterProfile {
   const factory PublicWaiterProfile({
     required String id,
     required String fullName,

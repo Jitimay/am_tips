@@ -12,13 +12,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
   ProfileBloc({required this.profileRepository})
       : super(const ProfileInitial()) {
-    on<ProfileLoaded>(_onLoaded);
+    on<LoadProfile>(_onLoaded);
     on<ProfileUpdated>(_onUpdated);
     on<ProfileAvatarUpdated>(_onAvatarUpdated);
   }
 
   Future<void> _onLoaded(
-      ProfileLoaded event, Emitter<ProfileState> emit) async {
+      LoadProfile event, Emitter<ProfileState> emit) async {
     emit(const ProfileLoading());
     final result = await profileRepository.getProfile();
     result.fold(
@@ -55,7 +55,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final result = await profileRepository.uploadAvatar(event.filePath);
     result.fold(
       (failure) => emit(ProfileError(failure.message)),
-      (_) => add(const ProfileLoaded()),
+      (_) => add(const LoadProfile()),
     );
   }
 }

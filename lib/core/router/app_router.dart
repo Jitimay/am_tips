@@ -53,23 +53,23 @@ class AppRouter {
       // ── Auth ──────────────────────────────────────────────────────────────
       GoRoute(
         path: AppRoutes.splash,
-        builder: (_, __) => const SplashPage(),
+        builder: (_, _) => const SplashPage(),
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (_, __) => const LoginPage(),
+        builder: (_, _) => const LoginPage(),
       ),
       GoRoute(
         path: AppRoutes.register,
-        builder: (_, __) => const RegisterPage(),
+        builder: (_, _) => const RegisterPage(),
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,
-        builder: (_, __) => const ForgotPasswordPage(),
+        builder: (_, _) => const ForgotPasswordPage(),
       ),
       GoRoute(
         path: AppRoutes.onboarding,
-        builder: (_, __) => const OnboardingPage(),
+        builder: (_, _) => const OnboardingPage(),
       ),
 
       // ── Main shell ────────────────────────────────────────────────────────
@@ -79,13 +79,13 @@ class AppRouter {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.home,
-              builder: (_, __) => const HomePage(),
+              builder: (_, _) => const HomePage(),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.tips,
-              builder: (_, __) => const TipsPage(),
+              builder: (_, _) => const TipsPage(),
               routes: [
                 GoRoute(
                   path: ':id',
@@ -98,17 +98,17 @@ class AppRouter {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.qr,
-              builder: (_, __) => const QrPage(),
+              builder: (_, _) => const QrPage(),
             ),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.wallet,
-              builder: (_, __) => const WalletPage(),
+              builder: (_, _) => const WalletPage(),
               routes: [
                 GoRoute(
                   path: 'withdraw',
-                  builder: (_, __) => const WithdrawalPage(),
+                  builder: (_, _) => const WithdrawalPage(),
                 ),
               ],
             ),
@@ -116,11 +116,11 @@ class AppRouter {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.profile,
-              builder: (_, __) => const ProfilePage(),
+              builder: (_, _) => const ProfilePage(),
               routes: [
                 GoRoute(
                   path: 'edit',
-                  builder: (_, __) => const EditProfilePage(),
+                  builder: (_, _) => const EditProfilePage(),
                 ),
               ],
             ),
@@ -131,11 +131,11 @@ class AppRouter {
       // ── Standalone modal routes ───────────────────────────────────────────
       GoRoute(
         path: AppRoutes.notifications,
-        builder: (_, __) => const NotificationsPage(),
+        builder: (_, _) => const NotificationsPage(),
       ),
       GoRoute(
         path: AppRoutes.settings,
-        builder: (_, __) => const SettingsPage(),
+        builder: (_, _) => const SettingsPage(),
       ),
 
       // ── Public customer tipping flow ──────────────────────────────────────

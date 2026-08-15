@@ -5,6 +5,7 @@ import '../../../../core/network/network_info.dart';
 import '../../domain/entities/withdrawal.dart';
 import '../../domain/repositories/withdrawal_repository.dart';
 import '../datasources/withdrawal_remote_datasource.dart';
+import '../models/withdrawal_model.dart';
 
 class WithdrawalRepositoryImpl implements WithdrawalRepository {
   final WithdrawalRemoteDataSource remoteDataSource;

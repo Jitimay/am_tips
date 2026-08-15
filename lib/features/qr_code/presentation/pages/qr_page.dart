@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -38,9 +37,11 @@ class _QrPageState extends State<QrPage> {
       final boundary =
           _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) {
-        await Share.share(
-          'Scan my amTips QR to leave a tip!\n$url',
-          subject: 'Tip $waiterName on amTips',
+        await SharePlus.instance.share(
+          ShareParams(
+            text: 'Scan my amTips QR to leave a tip!\n$url',
+            subject: 'Tip $waiterName on amTips',
+          ),
         );
         return;
       }
@@ -53,13 +54,17 @@ class _QrPageState extends State<QrPage> {
       final dir = await getTemporaryDirectory();
       final file = await File('${dir.path}/amtips_qr.png').writeAsBytes(bytes);
 
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Scan to tip $waiterName on amTips!\n$url',
-        subject: 'amTips QR Code',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Scan to tip $waiterName on amTips!\n$url',
+          subject: 'amTips QR Code',
+        ),
       );
     } catch (e) {
-      await Share.share('Scan my amTips QR to leave a tip!\n$url');
+      await SharePlus.instance.share(
+        ShareParams(text: 'Scan my amTips QR to leave a tip!\n$url'),
+      );
     }
   }
 

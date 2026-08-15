@@ -11,13 +11,13 @@ class TipsBloc extends Bloc<TipsEvent, TipsState> {
   final TipsRepository tipsRepository;
 
   TipsBloc({required this.tipsRepository}) : super(const TipsInitial()) {
-    on<TipsLoaded>(_onTipsLoaded);
+    on<LoadTips>(_onTipsLoaded);
     on<TipsFilterChanged>(_onFilterChanged);
     on<TipDetailRequested>(_onDetailRequested);
     on<TipStatsRequested>(_onStatsRequested);
   }
 
-  Future<void> _onTipsLoaded(TipsLoaded event, Emitter<TipsState> emit) async {
+  Future<void> _onTipsLoaded(LoadTips event, Emitter<TipsState> emit) async {
     emit(const TipsLoading());
     final tipsResult = await tipsRepository.getTips(filter: event.filter);
     final statsResult = await tipsRepository.getTipStats();

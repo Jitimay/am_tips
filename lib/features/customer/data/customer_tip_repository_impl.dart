@@ -8,6 +8,8 @@ import '../../profile/domain/entities/waiter_profile.dart';
 import '../../tips/domain/entities/tip.dart';
 import '../domain/customer_tip_repository.dart';
 import 'customer_tip_datasource.dart';
+import '../../profile/data/models/waiter_profile_model.dart';
+import '../../tips/data/models/tip_model.dart';
 
 class CustomerTipRepositoryImpl implements CustomerTipRepository {
   final CustomerTipDataSource dataSource;

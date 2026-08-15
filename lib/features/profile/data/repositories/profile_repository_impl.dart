@@ -5,6 +5,7 @@ import '../../../../core/network/network_info.dart';
 import '../../domain/entities/waiter_profile.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_remote_datasource.dart';
+import '../models/waiter_profile_model.dart';
 
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileRemoteDataSource remoteDataSource;
@@ -37,11 +38,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure());
     try {
       final data = <String, dynamic>{
-        if (fullName != null) 'full_name': fullName,
-        if (restaurantName != null) 'restaurant_name': restaurantName,
-        if (city != null) 'city': city,
-        if (country != null) 'country': country,
-        if (personalMessage != null) 'personal_message': personalMessage,
+        'full_name': ?fullName,
+        'restaurant_name': ?restaurantName,
+        'city': ?city,
+        'country': ?country,
+        'personal_message': ?personalMessage,
       };
       final model = await remoteDataSource.updateProfile(data);
       return Right(model.toDomain());

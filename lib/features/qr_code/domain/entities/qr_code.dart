@@ -4,7 +4,7 @@ part 'qr_code.freezed.dart';
 part 'qr_code.g.dart';
 
 @freezed
-class QrCode with _$QrCode {
+abstract class QrCode with _$QrCode {
   const factory QrCode({
     required String waiterId,
     required String token,

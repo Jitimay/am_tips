@@ -159,7 +159,7 @@ class _TransactionsList extends StatelessWidget {
                 'Your incoming tips and withdrawals will appear here.',
           )
         else
-          ...transactions.map((tx) => _TxRow(tx: tx)).toList(),
+          ...transactions.map((tx) => _TxRow(tx: tx)),
       ],
     );
   }

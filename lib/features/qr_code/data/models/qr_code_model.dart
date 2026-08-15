@@ -5,7 +5,7 @@ part 'qr_code_model.freezed.dart';
 part 'qr_code_model.g.dart';
 
 @freezed
-class QrCodeModel with _$QrCodeModel {
+abstract class QrCodeModel with _$QrCodeModel {
   const factory QrCodeModel({
     @JsonKey(name: 'waiter_id') required String waiterId,
     required String token,

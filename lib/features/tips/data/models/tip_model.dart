@@ -5,7 +5,7 @@ part 'tip_model.freezed.dart';
 part 'tip_model.g.dart';
 
 @freezed
-class TipModel with _$TipModel {
+abstract class TipModel with _$TipModel {
   const factory TipModel({
     required String id,
     @JsonKey(name: 'waiter_id') required String waiterId,
@@ -27,7 +27,7 @@ class TipModel with _$TipModel {
 }
 
 @freezed
-class TipStatsModel with _$TipStatsModel {
+abstract class TipStatsModel with _$TipStatsModel {
   const factory TipStatsModel({
     @JsonKey(name: 'today_total') required int todayTotal,
     @JsonKey(name: 'week_total') required int weekTotal,

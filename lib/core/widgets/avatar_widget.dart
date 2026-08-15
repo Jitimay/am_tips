@@ -40,8 +40,8 @@ class AvatarWidget extends StatelessWidget {
                 width: radius * 2,
                 height: radius * 2,
                 fit: BoxFit.cover,
-                errorWidget: (_, __, ___) => _initialsWidget(),
-                placeholder: (_, __) => _initialsWidget(),
+                errorWidget: (context, url, error) => _initialsWidget(),
+                placeholder: (context, url) => _initialsWidget(),
               ),
             )
           : _initialsWidget(),

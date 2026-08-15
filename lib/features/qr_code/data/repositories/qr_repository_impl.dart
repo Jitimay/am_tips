@@ -5,6 +5,7 @@ import '../../../../core/network/network_info.dart';
 import '../../domain/entities/qr_code.dart';
 import '../../domain/repositories/qr_repository.dart';
 import '../datasources/qr_remote_datasource.dart';
+import '../models/qr_code_model.dart';
 
 class QrRepositoryImpl implements QrRepository {
   final QrRemoteDataSource remoteDataSource;

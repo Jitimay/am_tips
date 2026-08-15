@@ -6,9 +6,9 @@ abstract class TipsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class TipsLoaded extends TipsEvent {
+class LoadTips extends TipsEvent {
   final TipFilter filter;
-  const TipsLoaded({this.filter = TipFilter.all});
+  const LoadTips({this.filter = TipFilter.all});
   @override
   List<Object?> get props => [filter];
 }
