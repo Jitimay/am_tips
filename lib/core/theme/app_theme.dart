@@ -14,26 +14,29 @@ class AppTheme {
     colorScheme: const ColorScheme.light(
       primary: AppColors.primary,
       onPrimary: Colors.white,
-      primaryContainer: AppColors.primaryLight,
+      primaryContainer: AppColors.primarySurface,
+      onPrimaryContainer: AppColors.primary,
       secondary: AppColors.accent,
       onSecondary: Colors.white,
-      secondaryContainer: Color(0xFFCCF5EB),
+      secondaryContainer: AppColors.accentSurface,
       error: AppColors.error,
       onError: Colors.white,
       surface: AppColors.surface,
       onSurface: AppColors.textPrimary,
-      surfaceContainerHighest: AppColors.surfaceVariant,
-      outline: AppColors.divider,
+      surfaceContainerHighest: AppColors.background,
+      outline: AppColors.cardBorder,
     ),
     scaffoldBackgroundColor: AppColors.background,
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.surface,
       foregroundColor: AppColors.textPrimary,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: true,
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
       titleTextStyle: AppTextStyles.h3,
     ),
@@ -42,7 +45,7 @@ class AppTheme {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: AppColors.divider),
+        side: const BorderSide(color: AppColors.cardBorder),
       ),
       margin: EdgeInsets.zero,
     ),
@@ -80,14 +83,14 @@ class AppTheme {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.surfaceVariant,
+      fillColor: AppColors.background,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: AppColors.cardBorder),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.divider),
+        borderSide: const BorderSide(color: AppColors.cardBorder),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -101,32 +104,13 @@ class AppTheme {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.error, width: 1.5),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintStyle: AppTextStyles.bodyMedium
+          .copyWith(color: AppColors.textHint),
       labelStyle: AppTextStyles.labelMedium,
-      errorStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.error),
-    ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.surface,
-      selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textSecondary,
-      type: BottomNavigationBarType.fixed,
-      elevation: 8,
-    ),
-    snackBarTheme: SnackBarThemeData(
-      backgroundColor: AppColors.textPrimary,
-      contentTextStyle: AppTextStyles.bodyMedium.copyWith(
-        color: AppColors.textInverse,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      behavior: SnackBarBehavior.floating,
-    ),
-    chipTheme: ChipThemeData(
-      backgroundColor: AppColors.surfaceVariant,
-      selectedColor: AppColors.primary.withValues(alpha: 0.15),
-      labelStyle: AppTextStyles.labelSmall,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      errorStyle:
+          AppTextStyles.bodySmall.copyWith(color: AppColors.error),
     ),
     dividerTheme: const DividerThemeData(
       color: AppColors.divider,
@@ -135,6 +119,23 @@ class AppTheme {
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.primary,
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: AppColors.primarySurface,
+      selectedColor: AppColors.primary,
+      labelStyle: AppTextStyles.labelSmall,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20)),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    ),
+    snackBarTheme: SnackBarThemeData(
+      backgroundColor: AppColors.textPrimary,
+      contentTextStyle: AppTextStyles.bodyMedium
+          .copyWith(color: Colors.white),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10)),
+      behavior: SnackBarBehavior.floating,
     ),
     textTheme: const TextTheme(
       displayLarge: AppTextStyles.displayLarge,
@@ -158,6 +159,7 @@ class AppTheme {
     colorScheme: const ColorScheme.dark(
       primary: AppColors.primaryLight,
       onPrimary: Colors.white,
+      primaryContainer: AppColors.surfaceVariantDark,
       secondary: AppColors.accent,
       onSecondary: Colors.white,
       error: AppColors.error,
@@ -172,10 +174,12 @@ class AppTheme {
       backgroundColor: AppColors.surfaceDark,
       foregroundColor: AppColors.textPrimaryDark,
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: true,
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
       titleTextStyle: TextStyle(
         fontFamily: 'Poppins',
@@ -210,7 +214,7 @@ class AppTheme {
       fillColor: AppColors.surfaceVariantDark,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: AppColors.dividerDark),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -218,26 +222,25 @@ class AppTheme {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.5),
+        borderSide:
+            const BorderSide(color: AppColors.primaryLight, width: 1.5),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.error),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondaryDark),
-    ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: AppColors.surfaceDark,
-      selectedItemColor: AppColors.primaryLight,
-      unselectedItemColor: AppColors.textSecondaryDark,
-      type: BottomNavigationBarType.fixed,
-      elevation: 8,
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      hintStyle: AppTextStyles.bodyMedium
+          .copyWith(color: AppColors.textSecondaryDark),
     ),
     dividerTheme: const DividerThemeData(
       color: AppColors.dividerDark,
       thickness: 1,
       space: 1,
+    ),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(
+      color: AppColors.primaryLight,
     ),
   );
 }

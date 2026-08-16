@@ -4,7 +4,7 @@ import '../models/withdrawal_model.dart';
 
 abstract class WithdrawalRemoteDataSource {
   Future<WithdrawalModel> requestWithdrawal(Map<String, dynamic> data);
-  Future<List<WithdrawalModel>> getWithdrawals({int page, int pageSize});
+  Future<List<WithdrawalModel>> getWithdrawals({int page = 1, int pageSize = 20});
   Future<WithdrawalModel> getWithdrawal(String id);
 }
 

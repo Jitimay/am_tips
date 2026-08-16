@@ -3,7 +3,7 @@ import '../../../../core/network/api_client.dart';
 import '../models/notification_model.dart';
 
 abstract class NotificationRemoteDataSource {
-  Future<List<NotificationModel>> getNotifications({int page, int pageSize});
+  Future<List<NotificationModel>> getNotifications({int page = 1, int pageSize = 20});
   Future<void> markAsRead(String id);
   Future<void> markAllAsRead();
   Future<int> getUnreadCount();

@@ -6,7 +6,6 @@ class AppTextStyles {
 
   static const String _fontFamily = 'Poppins';
 
-  // ── Display ───────────────────────────────────────────────────────────────
   static const TextStyle displayLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 32,
@@ -23,7 +22,6 @@ class AppTextStyles {
     height: 1.25,
   );
 
-  // ── Headings ──────────────────────────────────────────────────────────────
   static const TextStyle h1 = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 24,
@@ -35,7 +33,7 @@ class AppTextStyles {
   static const TextStyle h2 = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 20,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
     height: 1.35,
   );
@@ -48,7 +46,6 @@ class AppTextStyles {
     height: 1.4,
   );
 
-  // ── Body ──────────────────────────────────────────────────────────────────
   static const TextStyle bodyLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
@@ -73,14 +70,12 @@ class AppTextStyles {
     height: 1.5,
   );
 
-  // ── Labels ────────────────────────────────────────────────────────────────
   static const TextStyle labelLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.4,
-    letterSpacing: 0.1,
   );
 
   static const TextStyle labelMedium = TextStyle(
@@ -89,7 +84,6 @@ class AppTextStyles {
     fontWeight: FontWeight.w600,
     color: AppColors.textPrimary,
     height: 1.4,
-    letterSpacing: 0.1,
   );
 
   static const TextStyle labelSmall = TextStyle(
@@ -98,10 +92,9 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
     height: 1.4,
-    letterSpacing: 0.5,
+    letterSpacing: 0.2,
   );
 
-  // ── Financial amount styles ────────────────────────────────────────────────
   static const TextStyle amountLarge = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 36,
@@ -127,7 +120,6 @@ class AppTextStyles {
     height: 1.3,
   );
 
-  // ── Button ────────────────────────────────────────────────────────────────
   static const TextStyle button = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 16,
@@ -143,13 +135,12 @@ class AppTextStyles {
     letterSpacing: 0.2,
   );
 
-  // ── Caption ───────────────────────────────────────────────────────────────
   static const TextStyle caption = TextStyle(
     fontFamily: _fontFamily,
     fontSize: 11,
     fontWeight: FontWeight.w400,
     color: AppColors.textHint,
     height: 1.4,
-    letterSpacing: 0.3,
+    letterSpacing: 0.2,
   );
 }

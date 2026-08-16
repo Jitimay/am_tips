@@ -2,65 +2,51 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/theme/app_colors.dart';
-import '../core/theme/app_text_styles.dart';
 
-/// Bottom navigation shell — wraps the 5 main tab branches.
+/// Bottom navigation shell — exactly matches the screenshot design.
+/// 5 tabs: Home | Tips | QR (center, elevated) | Wallet | Profile
 class AppShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   const AppShell({super.key, required this.navigationShell});
 
-  static const _destinations = [
-    _NavDest(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'Home'),
-    _NavDest(icon: Icons.payments_outlined, activeIcon: Icons.payments_rounded, label: 'Tips'),
-    _NavDest(icon: Icons.qr_code_outlined, activeIcon: Icons.qr_code_rounded, label: 'QR'),
-    _NavDest(icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet_rounded, label: 'Wallet'),
-    _NavDest(icon: Icons.person_outline_rounded, activeIcon: Icons.person_rounded, label: 'Profile'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: _AmTipsNavBar(
+      bottomNavigationBar: _AmTipsBottomNav(
         currentIndex: navigationShell.currentIndex,
         onTap: (index) => navigationShell.goBranch(
           index,
           initialLocation: index == navigationShell.currentIndex,
         ),
-        destinations: _destinations,
       ),
     );
   }
 }
 
-class _AmTipsNavBar extends StatelessWidget {
+class _AmTipsBottomNav extends StatelessWidget {
   final int currentIndex;
   final void Function(int) onTap;
-  final List<_NavDest> destinations;
 
-  const _AmTipsNavBar({
+  const _AmTipsBottomNav({
     required this.currentIndex,
     required this.onTap,
-    required this.destinations,
   });
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surface,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
         border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.dividerDark : AppColors.divider,
-          ),
+          top: BorderSide(color: AppColors.divider, width: 1),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 16,
-            offset: const Offset(0, -4),
+            color: Color(0x0A000000),
+            blurRadius: 12,
+            offset: Offset(0, -4),
           ),
         ],
       ),
@@ -69,78 +55,41 @@ class _AmTipsNavBar extends StatelessWidget {
         child: SizedBox(
           height: 64,
           child: Row(
-            children: List.generate(destinations.length, (index) {
-              final dest = destinations[index];
-              final isSelected = index == currentIndex;
-              // Make the QR button stand out
-              if (index == 2) {
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => onTap(index),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            gradient: AppColors.walletGradient,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color:
-                                    AppColors.primary.withValues(alpha: 0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.qr_code_rounded,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => onTap(index),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        isSelected ? dest.activeIcon : dest.icon,
-                        size: 22,
-                        color: isSelected
-                            ? AppColors.primary
-                            : (isDark
-                                ? AppColors.textSecondaryDark
-                                : AppColors.textSecondary),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        dest.label,
-                        style: AppTextStyles.caption.copyWith(
-                          color: isSelected
-                              ? AppColors.primary
-                              : (isDark
-                                  ? AppColors.textSecondaryDark
-                                  : AppColors.textSecondary),
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.w400,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
+            children: [
+              _NavItem(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home_rounded,
+                label: 'Home',
+                isSelected: currentIndex == 0,
+                onTap: () => onTap(0),
+              ),
+              _NavItem(
+                icon: Icons.access_time_outlined,
+                activeIcon: Icons.access_time_filled_rounded,
+                label: 'Tips',
+                isSelected: currentIndex == 1,
+                onTap: () => onTap(1),
+              ),
+              // Centre QR button — elevated pill
+              _QrNavItem(
+                isSelected: currentIndex == 2,
+                onTap: () => onTap(2),
+              ),
+              _NavItem(
+                icon: Icons.account_balance_wallet_outlined,
+                activeIcon: Icons.account_balance_wallet_rounded,
+                label: 'Wallet',
+                isSelected: currentIndex == 3,
+                onTap: () => onTap(3),
+              ),
+              _NavItem(
+                icon: Icons.person_outline_rounded,
+                activeIcon: Icons.person_rounded,
+                label: 'Profile',
+                isSelected: currentIndex == 4,
+                onTap: () => onTap(4),
+              ),
+            ],
           ),
         ),
       ),
@@ -148,13 +97,110 @@ class _AmTipsNavBar extends StatelessWidget {
   }
 }
 
-class _NavDest {
+/// Standard nav item with icon + label
+class _NavItem extends StatelessWidget {
   final IconData icon;
   final IconData activeIcon;
   final String label;
-  const _NavDest({
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _NavItem({
     required this.icon,
     required this.activeIcon,
     required this.label,
+    required this.isSelected,
+    required this.onTap,
   });
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        isSelected ? AppColors.primary : AppColors.textSecondary;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              color: color,
+              size: 22,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 10,
+                fontWeight:
+                    isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: color,
+              ),
+            ),
+            // Active indicator dot
+            const SizedBox(height: 2),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: isSelected ? 4 : 0,
+              height: isSelected ? 4 : 0,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Centre QR button — square with rounded corners, purple gradient
+class _QrNavItem extends StatelessWidget {
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _QrNavItem({required this.isSelected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Center(
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: AppColors.primaryGradient,
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.35),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Two-row QR icon dots to mimic QR look from screenshot
+                Icon(
+                  Icons.qr_code_2_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

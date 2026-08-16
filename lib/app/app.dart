@@ -36,7 +36,7 @@ class AmTipsApp extends StatelessWidget {
           create: (_) => sl<TipsBloc>(),
         ),
         BlocProvider<WalletCubit>(
-          create: (_) => WalletCubit(tipsRepository: sl()),
+          create: (_) => sl<WalletCubit>(),
         ),
         BlocProvider<QrCubit>(
           create: (_) => sl<QrCubit>(),

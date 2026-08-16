@@ -34,9 +34,11 @@ class _SplashPageState extends State<SplashPage>
     _controller.forward();
 
     // Trigger session check after a short brand moment
+    // TODO: remove bypass — go straight to home for UI testing
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (mounted) {
-        context.read<AuthBloc>().add(const SessionRestored());
+        context.go(AppRoutes.home);
+        // context.read<AuthBloc>().add(const SessionRestored());
       }
     });
   }
@@ -62,7 +64,7 @@ class _SplashPageState extends State<SplashPage>
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.primary,
+        backgroundColor: const Color(0xFF6C4EE8),
         body: Center(
           child: FadeTransition(
             opacity: _fadeAnim,

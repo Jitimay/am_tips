@@ -20,6 +20,7 @@ import '../../features/tips/data/datasources/tips_remote_datasource.dart';
 import '../../features/tips/data/repositories/tips_repository_impl.dart';
 import '../../features/tips/domain/repositories/tips_repository.dart';
 import '../../features/tips/presentation/bloc/tips_bloc.dart';
+import '../../features/tips/presentation/bloc/wallet_cubit.dart';
 
 import '../../features/qr_code/data/datasources/qr_remote_datasource.dart';
 import '../../features/qr_code/data/repositories/qr_repository_impl.dart';
@@ -113,6 +114,9 @@ Future<void> configureDependencies() async {
   );
   sl.registerFactory<TipsBloc>(
     () => TipsBloc(tipsRepository: sl<TipsRepository>()),
+  );
+  sl.registerFactory<WalletCubit>(
+    () => WalletCubit(tipsRepository: sl<TipsRepository>()),
   );
 
   // ── QR Code ───────────────────────────────────────────────────────────────
