@@ -8,6 +8,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/avatar_widget.dart';
 import '../../../../core/widgets/error_state.dart';
+import '../../../notifications/presentation/bloc/notification_bloc.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../tips/presentation/bloc/tips_bloc.dart';
 import '../../../tips/presentation/bloc/wallet_cubit.dart';
@@ -28,12 +29,14 @@ class _HomePageState extends State<HomePage> {
     context.read<ProfileBloc>().add(const LoadProfile());
     context.read<TipsBloc>().add(const LoadTips());
     context.read<WalletCubit>().loadWallet();
+    context.read<NotificationBloc>().add(const NotificationsLoaded());
   }
 
   Future<void> _refresh() async {
     context.read<ProfileBloc>().add(const LoadProfile());
     context.read<TipsBloc>().add(const LoadTips());
     context.read<WalletCubit>().refreshWallet();
+    context.read<NotificationBloc>().add(const NotificationsLoaded());
   }
 
   String _greeting() {
@@ -88,16 +91,15 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
         children: [
-          // Logo
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
+          // Logo — heart-in-square asset
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              'assets/images/am_tips.png',
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
             ),
-            child: const Icon(Icons.chat_bubble_rounded,
-                color: Colors.white, size: 20),
           ),
           const SizedBox(width: 10),
           Text(
@@ -108,43 +110,52 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const Spacer(),
-          // Notification bell with badge
-          Stack(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: const Icon(Icons.notifications_outlined,
-                    color: AppColors.textPrimary, size: 20),
-              ),
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: Text(
-                      '3',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
+          // Notification bell with real unread count
+          BlocBuilder<NotificationBloc, NotificationState>(
+            builder: (context, state) {
+              final unread = state is NotificationLoaded ? state.unreadCount : 0;
+              return GestureDetector(
+                onTap: () => context.push(AppRoutes.notifications),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.divider),
                       ),
+                      child: const Icon(Icons.notifications_outlined,
+                          color: AppColors.textPrimary, size: 20),
                     ),
-                  ),
+                    if (unread > 0)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          width: 16,
+                          height: 16,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              unread > 9 ? '9+' : '$unread',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-            ],
+              );
+            },
           ),
           const SizedBox(width: 8),
           // Profile icon
@@ -309,7 +320,7 @@ class _HomePageState extends State<HomePage> {
                     child: Opacity(
                       opacity: 0.08,
                       child: Icon(
-                        Icons.account_balance_wallet_rounded,
+                        Icons.waving_hand_rounded,
                         size: 120,
                         color: Colors.white,
                       ),

@@ -20,6 +20,8 @@ import '../../features/tips/presentation/pages/tips_page.dart';
 import '../../features/wallet/presentation/pages/wallet_page.dart';
 import '../../features/withdrawals/presentation/pages/withdrawal_page.dart';
 import '../../app/app_shell.dart';
+import '../di/injection.dart';
+import '../storage/secure_storage.dart';
 
 /// Route name constants — use these throughout the app.
 class AppRoutes {
@@ -45,10 +47,27 @@ class AppRoutes {
   static const customerProfile = '/t/:waiterId';
 }
 
+const _publicRoutes = {
+  AppRoutes.splash,
+  AppRoutes.login,
+  AppRoutes.register,
+  AppRoutes.forgotPassword,
+  AppRoutes.onboarding,
+};
+
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
+    redirect: (context, state) async {
+      final location = state.matchedLocation;
+      if (_publicRoutes.contains(location) || location.startsWith('/t/')) {
+        return null;
+      }
+      final hasSession = await sl<SecureStorage>().hasValidSession;
+      if (!hasSession) return AppRoutes.login;
+      return null;
+    },
     routes: [
       // ── Auth ──────────────────────────────────────────────────────────────
       GoRoute(

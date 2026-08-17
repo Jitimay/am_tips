@@ -1,3 +1,5 @@
+import 'app_secrets.dart';
+
 /// Central application constants for amTips.
 class AppConstants {
   AppConstants._();
@@ -5,6 +7,10 @@ class AppConstants {
   // App
   static const String appName = 'amTips';
   static const String appTagline = 'Tip the people who make your experience better.';
+
+  // Supabase — actual values live in app_secrets.dart (gitignored)
+  static const String supabaseUrl = AppSecrets.supabaseUrl;
+  static const String supabaseAnonKey = AppSecrets.supabaseAnonKey;
 
   // Base URLs – override via environment / build flavor
   static const String baseUrl = 'https://api.amtips.app/v1';

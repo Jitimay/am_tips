@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:logger/logger.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../constants/app_constants.dart';
 import '../errors/exceptions.dart';
@@ -26,7 +27,7 @@ class ApiClient {
       ),
     );
 
-    _dio.interceptors.add(_AuthInterceptor(secureStorage, _dio, _logger));
+    _dio.interceptors.add(_AuthInterceptor(_logger));
 
     assert(() {
       // Only log in debug mode
@@ -192,53 +193,18 @@ class ApiClient {
   }
 }
 
-/// Interceptor that injects the access token and handles token refresh.
+/// Interceptor that injects the Supabase session token.
 class _AuthInterceptor extends Interceptor {
-  final SecureStorage _secureStorage;
-  final Dio _dio;
   final Logger _logger;
-  bool _isRefreshing = false;
 
-  _AuthInterceptor(this._secureStorage, this._dio, this._logger);
+  _AuthInterceptor(this._logger);
 
   @override
-  void onRequest(
-      RequestOptions options, RequestInterceptorHandler handler) async {
-    final token = await _secureStorage.getAccessToken();
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    final token = Supabase.instance.client.auth.currentSession?.accessToken;
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
-  }
-
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401 && !_isRefreshing) {
-      _isRefreshing = true;
-      try {
-        final refreshToken = await _secureStorage.getRefreshToken();
-        if (refreshToken != null) {
-          final response = await _dio.post(
-            ApiEndpoints.refreshToken,
-            data: {'refresh_token': refreshToken},
-            options: Options(headers: {'Authorization': null}),
-          );
-          final newAccessToken = response.data['access_token'] as String;
-          await _secureStorage.saveAccessToken(newAccessToken);
-
-          // Retry the original request with new token
-          err.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-          final retryResponse = await _dio.fetch(err.requestOptions);
-          handler.resolve(retryResponse);
-          return;
-        }
-      } catch (e) {
-        _logger.e('Token refresh failed: $e');
-        await _secureStorage.clearAll();
-      } finally {
-        _isRefreshing = false;
-      }
-    }
-    handler.next(err);
   }
 }

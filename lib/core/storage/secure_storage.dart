@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../constants/app_constants.dart';
 
@@ -43,8 +44,7 @@ class SecureStorage {
   }
 
   Future<bool> get hasValidSession async {
-    final token = await getAccessToken();
-    return token != null && token.isNotEmpty;
+    return Supabase.instance.client.auth.currentSession != null;
   }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────

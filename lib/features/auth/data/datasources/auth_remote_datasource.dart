@@ -1,5 +1,6 @@
-import '../../../../core/constants/api_endpoints.dart';
-import '../../../../core/network/api_client.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../../core/errors/exceptions.dart';
 import '../models/auth_response_model.dart';
 
 abstract class AuthRemoteDataSource {
@@ -28,20 +29,24 @@ abstract class AuthRemoteDataSource {
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final ApiClient apiClient;
-
-  AuthRemoteDataSourceImpl({required this.apiClient});
+  final SupabaseClient _client = Supabase.instance.client;
 
   @override
   Future<AuthResponseModel> login({
     required String identifier,
     required String password,
   }) async {
-    final response = await apiClient.post(
-      ApiEndpoints.login,
-      data: {'identifier': identifier, 'password': password},
-    );
-    return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
+    try {
+      final res = await _client.auth.signInWithPassword(
+        email: identifier,
+        password: password,
+      );
+      return _toModel(res);
+    } on AuthException catch (e) {
+      throw AuthenticationException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString(), statusCode: null);
+    }
   }
 
   @override
@@ -51,32 +56,46 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String phone,
     required String password,
   }) async {
-    final response = await apiClient.post(
-      ApiEndpoints.register,
-      data: {
-        'full_name': fullName,
-        'email': email,
-        'phone': phone,
-        'password': password,
-      },
-    );
-    return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
+    try {
+      final res = await _client.auth.signUp(
+        email: email,
+        password: password,
+        data: {'full_name': fullName, 'phone': phone},
+      );
+      return _toModel(res);
+    } on AuthException catch (e) {
+      throw AuthenticationException(message: e.message);
+    } catch (e) {
+      throw ServerException(message: e.toString(), statusCode: null);
+    }
   }
 
   @override
   Future<void> logout() async {
-    await apiClient.post(ApiEndpoints.logout);
+    await _client.auth.signOut();
   }
 
   @override
   Future<AuthResponseModel> getCurrentUser() async {
-    final response = await apiClient.get(ApiEndpoints.profile);
-    return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
+    final session = _client.auth.currentSession;
+    final supaUser = _client.auth.currentUser;
+    if (session == null || supaUser == null) {
+      throw const AuthenticationException(message: 'No active session');
+    }
+    return AuthResponseModel(
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken ?? '',
+      user: _userModelFromSupabase(supaUser),
+    );
   }
 
   @override
   Future<void> forgotPassword({required String email}) async {
-    await apiClient.post(ApiEndpoints.forgotPassword, data: {'email': email});
+    try {
+      await _client.auth.resetPasswordForEmail(email);
+    } on AuthException catch (e) {
+      throw ServerException(message: e.message, statusCode: null);
+    }
   }
 
   @override
@@ -84,9 +103,37 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String token,
     required String newPassword,
   }) async {
-    await apiClient.post(
-      ApiEndpoints.resetPassword,
-      data: {'token': token, 'new_password': newPassword},
+    try {
+      await _client.auth.updateUser(UserAttributes(password: newPassword));
+    } on AuthException catch (e) {
+      throw ServerException(message: e.message, statusCode: null);
+    }
+  }
+
+  AuthResponseModel _toModel(AuthResponse res) {
+    final session = res.session;
+    final user = res.user;
+    if (session == null || user == null) {
+      throw const AuthenticationException(message: 'Authentication failed');
+    }
+    return AuthResponseModel(
+      accessToken: session.accessToken,
+      refreshToken: session.refreshToken ?? '',
+      user: _userModelFromSupabase(user),
+    );
+  }
+
+  UserModel _userModelFromSupabase(User user) {
+    final meta = user.userMetadata ?? {};
+    return UserModel(
+      id: user.id,
+      email: user.email ?? '',
+      phone: user.phone,
+      fullName: meta['full_name'] as String? ?? '',
+      avatarUrl: meta['avatar_url'] as String?,
+      isOnboardingComplete:
+          meta['is_onboarding_complete'] as bool? ?? false,
+      createdAt: DateTime.parse(user.createdAt),
     );
   }
 }
