@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:logger/logger.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../constants/app_constants.dart';
 import '../errors/exceptions.dart';
@@ -26,7 +26,7 @@ class ApiClient {
       ),
     );
 
-    _dio.interceptors.add(const _AuthInterceptor());
+    _dio.interceptors.add(_AuthInterceptor(secureStorage: secureStorage));
 
     assert(() {
       // Only log in debug mode
@@ -192,16 +192,30 @@ class ApiClient {
   }
 }
 
-/// Interceptor that injects the Supabase session token.
+/// Interceptor that injects the Firebase Auth ID token (or cached token).
 class _AuthInterceptor extends Interceptor {
-  const _AuthInterceptor();
+  final SecureStorage secureStorage;
+  const _AuthInterceptor({required this.secureStorage});
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    final token = Supabase.instance.client.auth.currentSession?.accessToken;
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
+  void onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    try {
+      final user = fb_auth.FirebaseAuth.instance.currentUser;
+      String? token;
+      if (user != null) {
+        token = await user.getIdToken();
+      }
+      token ??= await secureStorage.getAccessToken();
+      if (token != null && token.isNotEmpty) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
+    } catch (_) {
+      // Fallback silently if token resolution fails
     }
     handler.next(options);
   }
 }
+

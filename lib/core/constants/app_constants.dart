@@ -8,9 +8,13 @@ class AppConstants {
   static const String appName = 'amTips';
   static const String appTagline = 'Tip the people who make your experience better.';
 
-  // Supabase — actual values live in app_secrets.dart (gitignored)
+  // Supabase Storage — actual values live in app_secrets.dart (gitignored)
   static const String supabaseUrl = AppSecrets.supabaseUrl;
   static const String supabaseAnonKey = AppSecrets.supabaseAnonKey;
+  static const String supabaseStorageBucket = AppSecrets.supabaseStorageBucket;
+  static const String avatarsBucket = 'avatars';
+  static const String qrBucket = 'qr-codes';
+  static const String uploadsBucket = 'user-uploads';
 
   // Base URLs – override via environment / build flavor
   static const String baseUrl = 'https://api.amtips.app/v1';

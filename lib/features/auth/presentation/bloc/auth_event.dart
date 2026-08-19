@@ -33,6 +33,17 @@ class RegisterSubmitted extends AuthEvent {
   List<Object?> get props => [fullName, email, phone];
 }
 
+class SendEmailVerificationRequested extends AuthEvent {
+  const SendEmailVerificationRequested();
+}
+
+class CheckEmailVerificationStatus extends AuthEvent {
+  final String? email;
+  const CheckEmailVerificationStatus({this.email});
+  @override
+  List<Object?> get props => [email];
+}
+
 class LogoutRequested extends AuthEvent {
   const LogoutRequested();
 }

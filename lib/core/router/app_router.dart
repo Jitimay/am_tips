@@ -5,6 +5,7 @@ import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
+import '../../features/auth/presentation/pages/verify_email_page.dart';
 import '../../features/customer/pages/customer_payment_page.dart';
 import '../../features/customer/pages/customer_profile_page.dart';
 import '../../features/customer/pages/customer_success_page.dart';
@@ -30,6 +31,7 @@ class AppRoutes {
   static const splash = '/';
   static const login = '/login';
   static const register = '/register';
+  static const verifyEmail = '/verify-email';
   static const forgotPassword = '/forgot-password';
   static const onboarding = '/onboarding';
 
@@ -51,6 +53,7 @@ const _publicRoutes = {
   AppRoutes.splash,
   AppRoutes.login,
   AppRoutes.register,
+  AppRoutes.verifyEmail,
   AppRoutes.forgotPassword,
   AppRoutes.onboarding,
 };
@@ -81,6 +84,12 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.register,
         builder: (_, _) => const RegisterPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.verifyEmail,
+        builder: (_, state) => VerifyEmailPage(
+          email: state.extra as String?,
+        ),
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,

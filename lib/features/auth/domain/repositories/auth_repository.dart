@@ -15,6 +15,10 @@ abstract class AuthRepository {
     required String password,
   });
 
+  Future<Either<Failure, void>> sendEmailVerification();
+
+  Future<Either<Failure, bool>> checkEmailVerification();
+
   Future<Either<Failure, void>> logout();
 
   Future<Either<Failure, User>> getCurrentUser();

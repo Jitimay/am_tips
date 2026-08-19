@@ -5,8 +5,10 @@ import 'package:get_it/get_it.dart';
 import '../network/api_client.dart';
 import '../network/network_info.dart';
 import '../storage/secure_storage.dart';
+import '../storage/supabase_storage_service.dart';
 
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
+import '../../features/auth/data/datasources/firebase_auth_service.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
@@ -74,10 +76,16 @@ Future<void> configureDependencies() async {
   sl.registerLazySingleton<ApiClient>(
     () => ApiClient(secureStorage: sl<SecureStorage>()),
   );
+  sl.registerLazySingleton<SupabaseStorageService>(
+    () => SupabaseStorageService(),
+  );
 
   // ── Auth ──────────────────────────────────────────────────────────────────
+  sl.registerLazySingleton<FirebaseAuthService>(
+    () => FirebaseAuthService(),
+  );
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(),
+    () => AuthRemoteDataSourceImpl(authService: sl<FirebaseAuthService>()),
   );
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
@@ -90,7 +98,11 @@ Future<void> configureDependencies() async {
 
   // ── Profile ───────────────────────────────────────────────────────────────
   sl.registerLazySingleton<ProfileRemoteDataSource>(
-    () => ProfileRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+    () => ProfileRemoteDataSourceImpl(
+      apiClient: sl<ApiClient>(),
+      storageService: sl<SupabaseStorageService>(),
+      secureStorage: sl<SecureStorage>(),
+    ),
   );
   sl.registerLazySingleton<ProfileRepository>(
     () => ProfileRepositoryImpl(
@@ -101,6 +113,7 @@ Future<void> configureDependencies() async {
   sl.registerFactory<ProfileBloc>(
     () => ProfileBloc(profileRepository: sl<ProfileRepository>()),
   );
+
 
   // ── Tips ──────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<TipsRemoteDataSource>(

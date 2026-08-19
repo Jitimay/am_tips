@@ -1,7 +1,5 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
-import '../../../../core/errors/exceptions.dart';
 import '../models/auth_response_model.dart';
+import 'firebase_auth_service.dart';
 
 abstract class AuthRemoteDataSource {
   Future<AuthResponseModel> login({
@@ -9,12 +7,16 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
-  Future<AuthResponseModel?> register({
+  Future<AuthResponseModel> register({
     required String fullName,
     required String email,
     required String phone,
     required String password,
   });
+
+  Future<void> sendEmailVerification();
+
+  Future<bool> checkEmailVerification();
 
   Future<void> logout();
 
@@ -26,89 +28,62 @@ abstract class AuthRemoteDataSource {
     required String token,
     required String newPassword,
   });
+
+  Future<bool> isSessionValid();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final SupabaseClient _client = Supabase.instance.client;
+  final FirebaseAuthService authService;
+
+  AuthRemoteDataSourceImpl({FirebaseAuthService? authService})
+      : authService = authService ?? FirebaseAuthService();
 
   @override
   Future<AuthResponseModel> login({
     required String identifier,
     required String password,
   }) async {
-    try {
-      final res = await _client.auth.signInWithPassword(
-        email: identifier,
-        password: password,
-      );
-      return _toModel(res);
-    } on AuthException catch (e) {
-      throw AuthenticationException(message: e.message);
-    } catch (e) {
-      throw ServerException(message: e.toString(), statusCode: null);
-    }
+    return authService.login(email: identifier, password: password);
   }
 
-  /// Returns null when email confirmation is required (session will be null).
   @override
-  Future<AuthResponseModel?> register({
+  Future<AuthResponseModel> register({
     required String fullName,
     required String email,
     required String phone,
     required String password,
   }) async {
-    try {
-      final res = await _client.auth.signUp(
-        email: email,
-        password: password,
-        data: {
-          'full_name': fullName,
-          'phone': phone,
-        },
-      );
-
-      // session is null when email confirmation is required
-      if (res.session == null) {
-        return null; // signals "pending confirmation" to the repository
-      }
-
-      return _toModel(res);
-    } on AuthException catch (e) {
-      throw AuthenticationException(message: e.message);
-    } catch (e) {
-      throw ServerException(message: e.toString(), statusCode: null);
-    }
-  }
-
-  @override
-  Future<void> logout() async {
-    await _client.auth.signOut();
-  }
-
-  @override
-  Future<AuthResponseModel> getCurrentUser() async {
-    final session = _client.auth.currentSession;
-    final supaUser = _client.auth.currentUser;
-    if (session == null || supaUser == null) {
-      throw const AuthenticationException(message: 'No active session');
-    }
-    return AuthResponseModel(
-      accessToken: session.accessToken,
-      refreshToken: session.refreshToken ?? '',
-      user: _userModelFromSupabase(supaUser),
+    return authService.register(
+      fullName: fullName,
+      email: email,
+      phone: phone,
+      password: password,
     );
   }
 
   @override
+  Future<void> sendEmailVerification() async {
+    return authService.sendEmailVerification();
+  }
+
+  @override
+  Future<bool> checkEmailVerification() async {
+    return authService.checkEmailVerification();
+  }
+
+  @override
+  Future<void> logout() async {
+    return authService.signOut();
+  }
+
+  @override
+  Future<AuthResponseModel> getCurrentUser() async {
+    return authService.getCurrentUser();
+  }
+
+  @override
   Future<void> forgotPassword({required String email}) async {
-    try {
-      await _client.auth.resetPasswordForEmail(
-        email,
-        redirectTo: 'amtips://auth/callback',
-      );
-    } on AuthException catch (e) {
-      throw ServerException(message: e.message, statusCode: null);
-    }
+    return authService.sendPasswordResetEmail(email: email);
   }
 
   @override
@@ -116,37 +91,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String token,
     required String newPassword,
   }) async {
-    try {
-      await _client.auth.updateUser(UserAttributes(password: newPassword));
-    } on AuthException catch (e) {
-      throw ServerException(message: e.message, statusCode: null);
-    }
-  }
-
-  AuthResponseModel _toModel(AuthResponse res) {
-    final session = res.session;
-    final user = res.user;
-    if (session == null || user == null) {
-      throw const AuthenticationException(message: 'Authentication failed');
-    }
-    return AuthResponseModel(
-      accessToken: session.accessToken,
-      refreshToken: session.refreshToken ?? '',
-      user: _userModelFromSupabase(user),
+    return authService.confirmPasswordReset(
+      code: token,
+      newPassword: newPassword,
     );
   }
 
-  UserModel _userModelFromSupabase(User user) {
-    final meta = user.userMetadata ?? {};
-    return UserModel(
-      id: user.id,
-      email: user.email ?? '',
-      phone: user.phone,
-      fullName: meta['full_name'] as String? ?? '',
-      avatarUrl: meta['avatar_url'] as String?,
-      isOnboardingComplete:
-          meta['is_onboarding_complete'] as bool? ?? false,
-      createdAt: DateTime.parse(user.createdAt),
-    );
+  @override
+  Future<bool> isSessionValid() async {
+    final user = authService.currentUser;
+    if (user == null) return false;
+    return user.emailVerified;
   }
 }

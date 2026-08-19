@@ -27,6 +27,19 @@ class AuthenticationFailure extends Failure {
   const AuthenticationFailure({super.message = 'Authentication failed. Please log in again.'});
 }
 
+class EmailNotVerifiedFailure extends Failure {
+  final String email;
+
+  const EmailNotVerifiedFailure({
+    super.message = 'Please verify your email before continuing.',
+    required this.email,
+  });
+
+  @override
+  List<Object?> get props => [message, email];
+}
+
+
 class UnauthorizedFailure extends Failure {
   const UnauthorizedFailure({super.message = 'You are not authorized to perform this action.'});
 }

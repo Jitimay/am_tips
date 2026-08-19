@@ -41,6 +41,20 @@ class AuthenticationException implements Exception {
   String toString() => 'AuthenticationException: $message';
 }
 
+class EmailNotVerifiedException implements Exception {
+  final String message;
+  final String email;
+
+  const EmailNotVerifiedException({
+    this.message = 'Please verify your email before continuing.',
+    required this.email,
+  });
+
+  @override
+  String toString() => 'EmailNotVerifiedException: $message ($email)';
+}
+
+
 class UnauthorizedException implements Exception {
   final String message;
   const UnauthorizedException({this.message = 'Unauthorized.'});

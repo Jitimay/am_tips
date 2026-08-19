@@ -1,5 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../constants/app_constants.dart';
 
@@ -44,7 +44,9 @@ class SecureStorage {
   }
 
   Future<bool> get hasValidSession async {
-    return Supabase.instance.client.auth.currentSession != null;
+    final user = fb_auth.FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+    return user.emailVerified;
   }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -53,3 +55,4 @@ class SecureStorage {
     await _storage.deleteAll();
   }
 }
+

@@ -50,6 +50,8 @@ class _LoginPageState extends State<LoginPage> {
           } else {
             context.go(AppRoutes.onboarding);
           }
+        } else if (state is RegisterPendingConfirmation) {
+          context.go(AppRoutes.verifyEmail, extra: state.email);
         } else if (state is AuthFailure) {
           SnackBarUtils.showError(context, state.message);
         }

@@ -55,27 +55,7 @@ class _RegisterPageState extends State<RegisterPage> {
         if (state is Authenticated) {
           context.go(AppRoutes.onboarding);
         } else if (state is RegisterPendingConfirmation) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              title: const Text('Check your email'),
-              content: Text(
-                'We sent a confirmation link to ${state.email}.\n\nTap the link in the email to activate your account, then come back and log in.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    context.go(AppRoutes.login);
-                  },
-                  child: const Text('Go to Login'),
-                ),
-              ],
-            ),
-          );
+          context.go(AppRoutes.verifyEmail, extra: state.email);
         } else if (state is AuthFailure) {
           SnackBarUtils.showError(context, state.message);
         }

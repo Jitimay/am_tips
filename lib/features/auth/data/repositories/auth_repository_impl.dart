@@ -34,11 +34,18 @@ class AuthRepositoryImpl implements AuthRepository {
       );
       await _persistTokens(result);
       return Right(result.user.toDomain());
+    } on EmailNotVerifiedException catch (e) {
+      return Left(EmailNotVerifiedFailure(
+        message: e.message,
+        email: e.email,
+      ));
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ValidationException catch (e) {
       return Left(ValidationFailure(
-          message: e.message, fieldErrors: e.fieldErrors));
+        message: e.message,
+        fieldErrors: e.fieldErrors,
+      ));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on TimeoutException catch (e) {
@@ -46,8 +53,9 @@ class AuthRepositoryImpl implements AuthRepository {
     } on NetworkException catch (e) {
       return Left(NetworkFailure(message: e.message));
     } catch (e) {
-      return Left(ServerFailure(
-          message: 'Could not connect to amTips. Please try again.'));
+      return const Left(ServerFailure(
+        message: 'Could not connect to amTips. Please try again.',
+      ));
     }
   }
 
@@ -69,21 +77,15 @@ class AuthRepositoryImpl implements AuthRepository {
         password: password,
       );
 
-      // null means Supabase requires email confirmation before a session is issued
-      if (result == null) {
-        return Left(ServerFailure(
-          message: 'confirm your account',
-          statusCode: 202,
-        ));
-      }
-
       await _persistTokens(result);
       return Right(result.user.toDomain());
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ValidationException catch (e) {
       return Left(ValidationFailure(
-          message: e.message, fieldErrors: e.fieldErrors));
+        message: e.message,
+        fieldErrors: e.fieldErrors,
+      ));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } on TimeoutException catch (e) {
@@ -91,8 +93,45 @@ class AuthRepositoryImpl implements AuthRepository {
     } on NetworkException catch (e) {
       return Left(NetworkFailure(message: e.message));
     } catch (e) {
-      return Left(ServerFailure(
-          message: 'Could not connect to amTips. Please try again.'));
+      return const Left(ServerFailure(
+        message: 'Could not connect to amTips. Please try again.',
+      ));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> sendEmailVerification() async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+    try {
+      await remoteDataSource.sendEmailVerification();
+      return const Right(null);
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return const Left(ServerFailure(
+        message: 'Failed to send verification email. Please try again.',
+      ));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> checkEmailVerification() async {
+    if (!await networkInfo.isConnected) {
+      return const Left(NetworkFailure());
+    }
+    try {
+      final isVerified = await remoteDataSource.checkEmailVerification();
+      return Right(isVerified);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return const Left(ServerFailure(
+        message: 'Failed to check verification status.',
+      ));
     }
   }
 
@@ -114,14 +153,21 @@ class AuthRepositoryImpl implements AuthRepository {
     }
     try {
       final result = await remoteDataSource.getCurrentUser();
+      await _persistTokens(result);
       return Right(result.user.toDomain());
+    } on EmailNotVerifiedException catch (e) {
+      return Left(EmailNotVerifiedFailure(
+        message: e.message,
+        email: e.email,
+      ));
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {
-      return Left(ServerFailure(
-          message: 'Could not connect to amTips. Please try again.'));
+      return const Left(ServerFailure(
+        message: 'Could not connect to amTips. Please try again.',
+      ));
     }
   }
 
@@ -133,11 +179,14 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await remoteDataSource.forgotPassword(email: email);
       return const Right(null);
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {
-      return Left(ServerFailure(
-          message: 'Could not connect to amTips. Please try again.'));
+      return const Left(ServerFailure(
+        message: 'Could not connect to amTips. Please try again.',
+      ));
     }
   }
 
@@ -151,18 +200,25 @@ class AuthRepositoryImpl implements AuthRepository {
     }
     try {
       await remoteDataSource.resetPassword(
-          token: token, newPassword: newPassword);
+        token: token,
+        newPassword: newPassword,
+      );
       return const Right(null);
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
     } catch (e) {
-      return Left(ServerFailure(
-          message: 'Could not connect to amTips. Please try again.'));
+      return const Left(ServerFailure(
+        message: 'Could not connect to amTips. Please try again.',
+      ));
     }
   }
 
   @override
-  Future<bool> get isAuthenticated => secureStorage.hasValidSession;
+  Future<bool> get isAuthenticated async {
+    return remoteDataSource.isSessionValid();
+  }
 
   Future<void> _persistTokens(AuthResponseModel result) async {
     await secureStorage.saveAccessToken(result.accessToken);
