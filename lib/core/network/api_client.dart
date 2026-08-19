@@ -5,7 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../constants/app_constants.dart';
 import '../errors/exceptions.dart';
 import '../storage/secure_storage.dart';
-import '../constants/api_endpoints.dart';
 
 /// Central Dio API client with auth headers, token refresh, and error mapping.
 class ApiClient {
@@ -27,7 +26,7 @@ class ApiClient {
       ),
     );
 
-    _dio.interceptors.add(_AuthInterceptor(_logger));
+    _dio.interceptors.add(const _AuthInterceptor());
 
     assert(() {
       // Only log in debug mode
@@ -195,9 +194,7 @@ class ApiClient {
 
 /// Interceptor that injects the Supabase session token.
 class _AuthInterceptor extends Interceptor {
-  final Logger _logger;
-
-  _AuthInterceptor(this._logger);
+  const _AuthInterceptor();
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {

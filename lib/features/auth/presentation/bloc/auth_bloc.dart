@@ -62,7 +62,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
     );
     result.fold(
-      (failure) => emit(AuthFailure(message: failure.message)),
+      (failure) {
+        // statusCode 202 = email confirmation required (Supabase default)
+        if (failure.statusCode == 202 ||
+            failure.message.contains('confirm your account')) {
+          emit(RegisterPendingConfirmation(email: event.email));
+        } else {
+          emit(AuthFailure(message: failure.message));
+        }
+      },
       (user) => emit(Authenticated(user: user)),
     );
   }

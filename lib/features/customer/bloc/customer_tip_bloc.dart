@@ -21,6 +21,7 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
   int? _amount;
   String? _currency;
   String? _tipId;
+  Tip? _currentTip;
 
   CustomerTipBloc({required this.repository})
       : super(const CustomerTipInitial()) {
@@ -105,6 +106,7 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
       (failure) async => emit(CustomerTipError(failure.message)),
       (tip) async {
         _tipId = tip.id;
+        _currentTip = tip;
         final paymentKey = _uuid.v4();
         final paymentResult = await repository.initiatePayment(
           tipId: tip.id,
@@ -130,18 +132,17 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
       (_) {},
       (status) async {
         if (status == TipStatus.completed) {
-          // Re-fetch tip for display
-          final tipResult = await repository.initiateTip(
-            waiterId: _waiterId!,
-            amount: _amount!,
-            currency: _currency ?? AppConstants.defaultCurrency,
-            isAnonymous: true,
-          );
-          tipResult.fold(
-            (_) {},
-            (tip) => emit(
-                CustomerTipSuccess(tip: tip, profile: _profile!)),
-          );
+          final completedTip = (_currentTip ??
+                  Tip(
+                    id: _tipId!,
+                    waiterId: _waiterId!,
+                    amount: _amount ?? 0,
+                    currency: _currency ?? AppConstants.defaultCurrency,
+                    status: TipStatus.completed,
+                    createdAt: DateTime.now(),
+                  ))
+              .copyWith(status: TipStatus.completed);
+          emit(CustomerTipSuccess(tip: completedTip, profile: _profile!));
         } else if (status == TipStatus.failed ||
             status == TipStatus.cancelled) {
           emit(const CustomerTipError(

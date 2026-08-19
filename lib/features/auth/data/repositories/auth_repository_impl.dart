@@ -41,8 +41,13 @@ class AuthRepositoryImpl implements AuthRepository {
           message: e.message, fieldErrors: e.fieldErrors));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
-    } on NetworkException {
-      return const Left(NetworkFailure());
+    } on TimeoutException catch (e) {
+      return Left(TimeoutFailure(message: e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(
+          message: 'Could not connect to amTips. Please try again.'));
     }
   }
 
@@ -63,15 +68,31 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: phone,
         password: password,
       );
+
+      // null means Supabase requires email confirmation before a session is issued
+      if (result == null) {
+        return Left(ServerFailure(
+          message: 'confirm your account',
+          statusCode: 202,
+        ));
+      }
+
       await _persistTokens(result);
       return Right(result.user.toDomain());
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ValidationException catch (e) {
       return Left(ValidationFailure(
           message: e.message, fieldErrors: e.fieldErrors));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
-    } on NetworkException {
-      return const Left(NetworkFailure());
+    } on TimeoutException catch (e) {
+      return Left(TimeoutFailure(message: e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message));
+    } catch (e) {
+      return Left(ServerFailure(
+          message: 'Could not connect to amTips. Please try again.'));
     }
   }
 
@@ -80,7 +101,7 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await remoteDataSource.logout();
     } catch (_) {
-      // Best-effort — clear local tokens regardless
+      // Best-effort — always clear local tokens
     }
     await secureStorage.clearAll();
     return const Right(null);
@@ -98,6 +119,9 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(
+          message: 'Could not connect to amTips. Please try again.'));
     }
   }
 
@@ -111,6 +135,9 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(
+          message: 'Could not connect to amTips. Please try again.'));
     }
   }
 
@@ -128,6 +155,9 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(
+          message: 'Could not connect to amTips. Please try again.'));
     }
   }
 

@@ -35,9 +35,9 @@ class AppConstants {
   static const String settingsBox = 'settings_box';
 
   // Network timeouts (ms)
-  static const int connectTimeout = 30000;
-  static const int receiveTimeout = 30000;
-  static const int sendTimeout = 30000;
+  static const int connectTimeout = 10000;
+  static const int receiveTimeout = 10000;
+  static const int sendTimeout = 10000;
 
   // Pagination
   static const int defaultPageSize = 20;

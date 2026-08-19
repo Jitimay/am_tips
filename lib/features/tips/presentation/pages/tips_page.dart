@@ -85,10 +85,10 @@ class _TipsPageState extends State<TipsPage> {
           Expanded(
             child: BlocBuilder<TipsBloc, TipsState>(
               builder: (context, state) {
-                if (state is TipsLoading) {
+                if (state is TipsLoading && state.tips.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                if (state is TipsError) {
+                if (state is TipsError && state.tips.isEmpty) {
                   return ErrorState(
                     message: state.message,
                     onRetry: () => context
@@ -96,8 +96,9 @@ class _TipsPageState extends State<TipsPage> {
                         .add(LoadTips(filter: _activeFilter)),
                   );
                 }
-                if (state is TipsLoaded) {
-                  if (state.tips.isEmpty) {
+                if (state is TipsLoaded || state is TipDetailLoaded || state.tips.isNotEmpty) {
+                  final tips = state.tips;
+                  if (tips.isEmpty) {
                     return EmptyState(
                       icon: Icons.payments_outlined,
                       title: 'No tips yet',
@@ -109,7 +110,7 @@ class _TipsPageState extends State<TipsPage> {
                     onRefresh: () async => context
                         .read<TipsBloc>()
                         .add(LoadTips(filter: _activeFilter)),
-                    child: _GroupedTipsList(tips: state.tips),
+                    child: _GroupedTipsList(tips: tips),
                   );
                 }
                 return const SizedBox();

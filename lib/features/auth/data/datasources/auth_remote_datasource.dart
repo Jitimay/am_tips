@@ -9,7 +9,7 @@ abstract class AuthRemoteDataSource {
     required String password,
   });
 
-  Future<AuthResponseModel> register({
+  Future<AuthResponseModel?> register({
     required String fullName,
     required String email,
     required String phone,
@@ -49,8 +49,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  /// Returns null when email confirmation is required (session will be null).
   @override
-  Future<AuthResponseModel> register({
+  Future<AuthResponseModel?> register({
     required String fullName,
     required String email,
     required String phone,
@@ -60,8 +61,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final res = await _client.auth.signUp(
         email: email,
         password: password,
-        data: {'full_name': fullName, 'phone': phone},
+        data: {
+          'full_name': fullName,
+          'phone': phone,
+        },
       );
+
+      // session is null when email confirmation is required
+      if (res.session == null) {
+        return null; // signals "pending confirmation" to the repository
+      }
+
       return _toModel(res);
     } on AuthException catch (e) {
       throw AuthenticationException(message: e.message);
@@ -92,7 +102,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> forgotPassword({required String email}) async {
     try {
-      await _client.auth.resetPasswordForEmail(email);
+      await _client.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'amtips://auth/callback',
+      );
     } on AuthException catch (e) {
       throw ServerException(message: e.message, statusCode: null);
     }

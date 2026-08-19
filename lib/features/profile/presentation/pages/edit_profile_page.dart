@@ -26,6 +26,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _countryController;
   late final TextEditingController _messageController;
 
+  String? _localAvatarPath;
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +57,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final image = await picker.pickImage(
         source: ImageSource.gallery, imageQuality: 80, maxWidth: 512);
     if (image != null && mounted) {
+      setState(() => _localAvatarPath = image.path);
       context
           .read<ProfileBloc>()
           .add(ProfileAvatarUpdated(image.path));
@@ -112,6 +115,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 ? _nameController.text
                                 : 'You',
                             imageUrl: profile?.avatarUrl,
+                            localFilePath: _localAvatarPath,
                             radius: 44,
                             onTap: _pickAvatar,
                           ),

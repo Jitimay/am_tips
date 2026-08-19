@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -183,9 +184,10 @@ class _HomePageState extends State<HomePage> {
   Widget _buildGreetingCard(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        final profile = state is ProfileLoaded ? state.profile : null;
-        final firstName =
-            profile?.fullName.split(' ').first ?? 'there';
+        final profile = state.profile;
+        final firstName = (profile != null && profile.fullName.trim().isNotEmpty)
+            ? profile.fullName.trim().split(' ').first
+            : 'there';
         final restaurant = profile?.restaurantName ?? '';
         final city = profile?.city ?? '';
         final rating = profile?.averageRating ?? 0.0;
@@ -297,13 +299,12 @@ class _HomePageState extends State<HomePage> {
       builder: (context, tipsState) {
         return BlocBuilder<WalletCubit, WalletState>(
           builder: (context, walletState) {
-            final stats =
-                tipsState is TipsLoaded ? tipsState.stats : null;
+            final stats = tipsState.stats;
             final wallet =
                 walletState is WalletLoaded ? walletState.wallet : null;
-            final currency = stats?.currency ?? 'BIF';
+            final currency = stats?.currency ?? wallet?.currency ?? AppConstants.defaultCurrency;
             final isLoading =
-                tipsState is TipsLoading || walletState is WalletLoading;
+                (tipsState is TipsLoading && stats == null) || (walletState is WalletLoading && wallet == null);
 
             return Container(
               padding: const EdgeInsets.all(20),
@@ -500,7 +501,7 @@ class _HomePageState extends State<HomePage> {
               _ShortcutItem(
                 icon: Icons.trending_up_rounded,
                 label: 'Analytics',
-                onTap: () {},
+                onTap: () => context.go(AppRoutes.tips),
               ),
             ],
           ),
@@ -514,7 +515,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildRecentTips(BuildContext context) {
     return BlocBuilder<TipsBloc, TipsState>(
       builder: (context, state) {
-        if (state is TipsError) {
+        if (state is TipsError && state.tips.isEmpty) {
           return ErrorState(
             message: state.message,
             onRetry: () =>
@@ -522,10 +523,8 @@ class _HomePageState extends State<HomePage> {
           );
         }
 
-        final tips = state is TipsLoaded
-            ? state.tips.take(5).toList()
-            : <dynamic>[];
-        final isLoading = state is TipsLoading;
+        final tips = state.tips.take(5).toList();
+        final isLoading = state is TipsLoading && state.tips.isEmpty;
 
         return Column(
           children: [

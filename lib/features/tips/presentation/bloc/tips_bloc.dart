@@ -53,10 +53,37 @@ class TipsBloc extends Bloc<TipsEvent, TipsState> {
 
   Future<void> _onDetailRequested(
       TipDetailRequested event, Emitter<TipsState> emit) async {
+    final currentTips = state.tips;
+    final currentStats = state.stats;
+    final currentFilter = state is TipsLoaded
+        ? (state as TipsLoaded).activeFilter
+        : state is TipDetailLoaded
+            ? (state as TipDetailLoaded).activeFilter
+            : TipFilter.all;
+
+    final existingTip = currentTips.where((t) => t.id == event.tipId).firstOrNull;
+    if (existingTip != null) {
+      emit(TipDetailLoaded(
+        existingTip,
+        tips: currentTips,
+        stats: currentStats,
+        activeFilter: currentFilter,
+      ));
+    }
+
     final result = await tipsRepository.getTip(event.tipId);
     result.fold(
-      (failure) => emit(TipsError(failure.message)),
-      (tip) => emit(TipDetailLoaded(tip)),
+      (failure) {
+        if (existingTip == null) {
+          emit(TipsError(failure.message));
+        }
+      },
+      (tip) => emit(TipDetailLoaded(
+        tip,
+        tips: currentTips,
+        stats: currentStats,
+        activeFilter: currentFilter,
+      )),
     );
   }
 

@@ -146,7 +146,7 @@ class _PersonalInfoStepState extends State<_PersonalInfoStep> {
                         ? _nameController.text
                         : 'You',
                     radius: 44,
-                    imageUrl: _selectedAvatarPath != null ? null : null,
+                    localFilePath: _selectedAvatarPath,
                     onTap: _pickImage,
                   ),
                   Positioned(

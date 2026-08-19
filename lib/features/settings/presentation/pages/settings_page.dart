@@ -89,20 +89,50 @@ class SettingsPage extends StatelessWidget {
                   title: const Text('Privacy Policy'),
                   trailing:
                       const Icon(Icons.chevron_right_rounded),
-                  onTap: () {},
+                  onTap: () => _showInfoDialog(
+                    context,
+                    'Privacy Policy',
+                    'At amTips, your privacy is our top priority. We collect only necessary information to process digital tips and facilitate withdrawals to your payment account.\n\nWe never share your financial data with third parties without your explicit consent. All payment transmissions are encrypted using industry-standard protocols.\n\nFor questions about our data practices, reach out to support@amtips.app.',
+                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.article_outlined),
                   title: const Text('Terms of Service'),
                   trailing:
                       const Icon(Icons.chevron_right_rounded),
-                  onTap: () {},
+                  onTap: () => _showInfoDialog(
+                    context,
+                    'Terms of Service',
+                    'By using amTips, you agree to comply with our service guidelines. amTips connects service workers with customers for voluntary digital gratuities.\n\nTips received belong directly to the recipient minus standard processing fees where applicable. Withdrawals are processed to verified mobile money and bank accounts according to regional provider availability.\n\nMisuse of the platform or fraudulent activity may result in account termination.',
+                  ),
                 ),
                 const SizedBox(height: 32),
               ],
             );
           },
         ),
+      ),
+    );
+  }
+
+  void _showInfoDialog(BuildContext context, String title, String content) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title, style: AppTextStyles.h3),
+        content: SingleChildScrollView(
+          child: Text(
+            content,
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }

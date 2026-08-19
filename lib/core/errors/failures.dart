@@ -12,11 +12,11 @@ abstract class Failure extends Equatable {
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure({super.message = 'No internet connection. Please check your network.'});
+  const NetworkFailure({super.message = 'No internet connection. Please check your network.', super.statusCode});
 }
 
 class TimeoutFailure extends Failure {
-  const TimeoutFailure({super.message = 'Request timed out. Please try again.'});
+  const TimeoutFailure({super.message = 'Request timed out. Please try again.', super.statusCode});
 }
 
 class ServerFailure extends Failure {

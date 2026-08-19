@@ -35,3 +35,10 @@ class AuthFailure extends AuthState {
 class ForgotPasswordSent extends AuthState {
   const ForgotPasswordSent();
 }
+
+class RegisterPendingConfirmation extends AuthState {
+  final String email;
+  const RegisterPendingConfirmation({required this.email});
+  @override
+  List<Object?> get props => [email];
+}
