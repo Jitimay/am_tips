@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
@@ -92,23 +93,11 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
         children: [
-          // Logo — heart-in-square asset
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              'assets/images/am_tips.png',
-              width: 40,
-              height: 40,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            'amTips',
-            style: AppTextStyles.h2.copyWith(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w700,
-            ),
+          // Logo
+          Image.asset(
+            'assets/images/logo.png',
+            width: 110,
+            height: 60,
           ),
           const Spacer(),
           // Notification bell with real unread count
@@ -214,7 +203,7 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${_greeting()}, $firstName 👋',
+                      '${_greeting()}, $firstName',
                       style: AppTextStyles.labelLarge.copyWith(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -479,27 +468,27 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _ShortcutItem(
-                icon: Icons.history_rounded,
+                icon: HugeIcons.strokeRoundedFolderClock,
                 label: 'Tips history',
                 onTap: () => context.go(AppRoutes.tips),
               ),
               _ShortcutItem(
-                icon: Icons.account_balance_wallet_rounded,
+                icon: HugeIcons.strokeRoundedWallet03,
                 label: 'Wallet',
                 onTap: () => context.go(AppRoutes.wallet),
               ),
               _ShortcutItem(
-                icon: Icons.qr_code_2_rounded,
+                icon: HugeIcons.strokeRoundedQrCode,
                 label: 'Share QR',
                 onTap: () => context.go(AppRoutes.qr),
               ),
               _ShortcutItem(
-                icon: Icons.trending_up_rounded,
+                icon: HugeIcons.strokeRoundedAutoConversations,
                 label: 'Analytics',
                 onTap: () => context.go(AppRoutes.tips),
               ),
@@ -735,7 +724,7 @@ class _ActionCard extends StatelessWidget {
 
 /// Shortcut icon button
 class _ShortcutItem extends StatelessWidget {
-  final IconData icon;
+  final dynamic icon;
   final String label;
   final VoidCallback onTap;
 
@@ -752,16 +741,24 @@ class _ShortcutItem extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            width: 56,
-            height: 56,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child:
-                Icon(icon, color: AppColors.primary, size: 24),
+            child: Center(
+              child: SizedBox(
+                width: 28,
+                height: 28,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: HugeIcon(icon: icon, color: AppColors.primary, size: 24),
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
             label,
             style: AppTextStyles.caption.copyWith(

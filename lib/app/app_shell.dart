@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hugeicons/hugeicons.dart';
 
 import '../core/theme/app_colors.dart';
 
@@ -36,36 +37,36 @@ class _AmTipsBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-          top: BorderSide(color: AppColors.divider, width: 1),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 0),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: AppColors.divider, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x0A000000),
+              blurRadius: 12,
+              offset: Offset(0, -4),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 12,
-            offset: Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: [
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 64,
+            child: Row(
+              children: [
               _NavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
+                icon: HugeIcons.strokeRoundedHome03,
                 label: 'Home',
                 isSelected: currentIndex == 0,
                 onTap: () => onTap(0),
               ),
               _NavItem(
-                icon: Icons.access_time_outlined,
-                activeIcon: Icons.access_time_filled_rounded,
+                icon: HugeIcons.strokeRoundedTips,
                 label: 'Tips',
                 isSelected: currentIndex == 1,
                 onTap: () => onTap(1),
@@ -76,15 +77,13 @@ class _AmTipsBottomNav extends StatelessWidget {
                 onTap: () => onTap(2),
               ),
               _NavItem(
-                icon: Icons.account_balance_wallet_outlined,
-                activeIcon: Icons.account_balance_wallet_rounded,
+                icon: HugeIcons.strokeRoundedWallet03,
                 label: 'Wallet',
                 isSelected: currentIndex == 3,
                 onTap: () => onTap(3),
               ),
               _NavItem(
-                icon: Icons.person_outline_rounded,
-                activeIcon: Icons.person_rounded,
+                icon: HugeIcons.strokeRoundedUser02,
                 label: 'Profile',
                 isSelected: currentIndex == 4,
                 onTap: () => onTap(4),
@@ -93,21 +92,20 @@ class _AmTipsBottomNav extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }
 
 /// Standard nav item with icon + label
 class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData activeIcon;
+  final dynamic icon;
   final String label;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _NavItem({
     required this.icon,
-    required this.activeIcon,
     required this.label,
     required this.isSelected,
     required this.onTap,
@@ -115,8 +113,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isSelected ? AppColors.primary : AppColors.textSecondary;
+    final color = isSelected ? AppColors.primary : AppColors.textSecondary;
 
     return Expanded(
       child: GestureDetector(
@@ -125,23 +122,17 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              color: color,
-              size: 22,
-            ),
+            HugeIcon(icon: icon, color: color, size: 24),
             const SizedBox(height: 3),
             Text(
               label,
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 10,
-                fontWeight:
-                    isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: color,
               ),
             ),
-            // Active indicator dot
             const SizedBox(height: 2),
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
@@ -190,9 +181,8 @@ class _QrNavItem extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Two-row QR icon dots to mimic QR look from screenshot
-                Icon(
-                  Icons.qr_code_2_rounded,
+                HugeIcon(
+                  icon: HugeIcons.strokeRoundedQrCode,
                   color: Colors.white,
                   size: 24,
                 ),
