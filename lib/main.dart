@@ -12,16 +12,29 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase Authentication
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    }
+  } on FirebaseException catch (e) {
+    if (e.code != 'duplicate-app') rethrow;
+  } catch (e) {
+    if (!e.toString().contains('duplicate-app')) rethrow;
+  }
 
   // Initialize Supabase (used exclusively for File Storage)
-  await Supabase.initialize(
-    url: AppConstants.supabaseUrl,
-    // ignore: deprecated_member_use
-    anonKey: AppConstants.supabaseAnonKey,
-  );
+  try {
+    await Supabase.initialize(
+      url: AppConstants.supabaseUrl,
+      // ignore: deprecated_member_use
+      anonKey: AppConstants.supabaseAnonKey,
+    );
+  } catch (_) {
+    // Already initialized in current isolate/session
+  }
+
 
   // Lock to portrait orientation
   await SystemChrome.setPreferredOrientations([

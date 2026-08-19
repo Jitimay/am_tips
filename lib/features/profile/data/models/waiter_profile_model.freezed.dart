@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WaiterProfileModel {
 
- String get id;@JsonKey(name: 'user_id') String get userId;@JsonKey(name: 'full_name') String get fullName;@JsonKey(name: 'avatar_url') String? get avatarUrl;@JsonKey(name: 'restaurant_name') String get restaurantName; String get city; String get country;@JsonKey(name: 'personal_message') String? get personalMessage;@JsonKey(name: 'average_rating') double get averageRating;@JsonKey(name: 'total_ratings') int get totalRatings;@JsonKey(name: 'qr_token') String get qrToken;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'connected_payment_account') PaymentAccountModel? get connectedPaymentAccount;@JsonKey(name: 'created_at') DateTime get createdAt;@JsonKey(name: 'updated_at') DateTime? get updatedAt;
+ String get id;@JsonKey(name: 'user_id') String get userId;@JsonKey(name: 'full_name') String get fullName;@JsonKey(name: 'avatar_url') String? get avatarUrl;@JsonKey(name: 'restaurant_name') String get restaurantName; String get city; String get country;@JsonKey(name: 'personal_message') String? get personalMessage;@JsonKey(name: 'average_rating') double get averageRating;@JsonKey(name: 'total_ratings') int get totalRatings;@JsonKey(name: 'qr_token') String get qrToken;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'connected_payment_account') PaymentAccountModel? get connectedPaymentAccount;@JsonKey(name: 'created_at') DateTime? get createdAt;@JsonKey(name: 'updated_at') DateTime? get updatedAt;
 /// Create a copy of WaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -48,7 +48,7 @@ abstract mixin class $WaiterProfileModelCopyWith<$Res>  {
   factory $WaiterProfileModelCopyWith(WaiterProfileModel value, $Res Function(WaiterProfileModel) _then) = _$WaiterProfileModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'user_id') String userId,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings,@JsonKey(name: 'qr_token') String qrToken,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'connected_payment_account') PaymentAccountModel? connectedPaymentAccount,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
+ String id,@JsonKey(name: 'user_id') String userId,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings,@JsonKey(name: 'qr_token') String qrToken,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'connected_payment_account') PaymentAccountModel? connectedPaymentAccount,@JsonKey(name: 'created_at') DateTime? createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$WaiterProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of WaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? qrToken = null,Object? isActive = null,Object? connectedPaymentAccount = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? qrToken = null,Object? isActive = null,Object? connectedPaymentAccount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -80,8 +80,8 @@ as double,totalRatings: null == totalRatings ? _self.totalRatings : totalRatings
 as int,qrToken: null == qrToken ? _self.qrToken : qrToken // ignore: cast_nullable_to_non_nullable
 as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,connectedPaymentAccount: freezed == connectedPaymentAccount ? _self.connectedPaymentAccount : connectedPaymentAccount // ignore: cast_nullable_to_non_nullable
-as PaymentAccountModel?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as PaymentAccountModel?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }
@@ -179,7 +179,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WaiterProfileModel() when $default != null:
 return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
@@ -200,7 +200,7 @@ return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.resta
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _WaiterProfileModel():
 return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
@@ -220,7 +220,7 @@ return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.resta
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _WaiterProfileModel() when $default != null:
 return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
@@ -235,7 +235,7 @@ return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.resta
 @JsonSerializable()
 
 class _WaiterProfileModel implements WaiterProfileModel {
-  const _WaiterProfileModel({required this.id, @JsonKey(name: 'user_id') required this.userId, @JsonKey(name: 'full_name') required this.fullName, @JsonKey(name: 'avatar_url') this.avatarUrl, @JsonKey(name: 'restaurant_name') required this.restaurantName, required this.city, required this.country, @JsonKey(name: 'personal_message') this.personalMessage, @JsonKey(name: 'average_rating') this.averageRating = 0.0, @JsonKey(name: 'total_ratings') this.totalRatings = 0, @JsonKey(name: 'qr_token') required this.qrToken, @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'connected_payment_account') this.connectedPaymentAccount, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt});
+  const _WaiterProfileModel({required this.id, @JsonKey(name: 'user_id') required this.userId, @JsonKey(name: 'full_name') this.fullName = '', @JsonKey(name: 'avatar_url') this.avatarUrl, @JsonKey(name: 'restaurant_name') this.restaurantName = '', this.city = '', this.country = '', @JsonKey(name: 'personal_message') this.personalMessage, @JsonKey(name: 'average_rating') this.averageRating = 0.0, @JsonKey(name: 'total_ratings') this.totalRatings = 0, @JsonKey(name: 'qr_token') this.qrToken = '', @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'connected_payment_account') this.connectedPaymentAccount, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt});
   factory _WaiterProfileModel.fromJson(Map<String, dynamic> json) => _$WaiterProfileModelFromJson(json);
 
 @override final  String id;
@@ -243,15 +243,15 @@ class _WaiterProfileModel implements WaiterProfileModel {
 @override@JsonKey(name: 'full_name') final  String fullName;
 @override@JsonKey(name: 'avatar_url') final  String? avatarUrl;
 @override@JsonKey(name: 'restaurant_name') final  String restaurantName;
-@override final  String city;
-@override final  String country;
+@override@JsonKey() final  String city;
+@override@JsonKey() final  String country;
 @override@JsonKey(name: 'personal_message') final  String? personalMessage;
 @override@JsonKey(name: 'average_rating') final  double averageRating;
 @override@JsonKey(name: 'total_ratings') final  int totalRatings;
 @override@JsonKey(name: 'qr_token') final  String qrToken;
 @override@JsonKey(name: 'is_active') final  bool isActive;
 @override@JsonKey(name: 'connected_payment_account') final  PaymentAccountModel? connectedPaymentAccount;
-@override@JsonKey(name: 'created_at') final  DateTime createdAt;
+@override@JsonKey(name: 'created_at') final  DateTime? createdAt;
 @override@JsonKey(name: 'updated_at') final  DateTime? updatedAt;
 
 /// Create a copy of WaiterProfileModel
@@ -287,7 +287,7 @@ abstract mixin class _$WaiterProfileModelCopyWith<$Res> implements $WaiterProfil
   factory _$WaiterProfileModelCopyWith(_WaiterProfileModel value, $Res Function(_WaiterProfileModel) _then) = __$WaiterProfileModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'user_id') String userId,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings,@JsonKey(name: 'qr_token') String qrToken,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'connected_payment_account') PaymentAccountModel? connectedPaymentAccount,@JsonKey(name: 'created_at') DateTime createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
+ String id,@JsonKey(name: 'user_id') String userId,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings,@JsonKey(name: 'qr_token') String qrToken,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'connected_payment_account') PaymentAccountModel? connectedPaymentAccount,@JsonKey(name: 'created_at') DateTime? createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
 });
 
 
@@ -304,7 +304,7 @@ class __$WaiterProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of WaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? qrToken = null,Object? isActive = null,Object? connectedPaymentAccount = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? qrToken = null,Object? isActive = null,Object? connectedPaymentAccount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_WaiterProfileModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -319,8 +319,8 @@ as double,totalRatings: null == totalRatings ? _self.totalRatings : totalRatings
 as int,qrToken: null == qrToken ? _self.qrToken : qrToken // ignore: cast_nullable_to_non_nullable
 as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,connectedPaymentAccount: freezed == connectedPaymentAccount ? _self.connectedPaymentAccount : connectedPaymentAccount // ignore: cast_nullable_to_non_nullable
-as PaymentAccountModel?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
-as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as PaymentAccountModel?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
   ));
 }

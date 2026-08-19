@@ -1,9 +1,8 @@
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/constants/api_endpoints.dart';
-import '../../../../core/network/api_client.dart';
-import '../../../../core/storage/secure_storage.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../../../../core/storage/supabase_storage_service.dart';
 import '../models/waiter_profile_model.dart';
 
@@ -16,71 +15,84 @@ abstract class ProfileRemoteDataSource {
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
-  final ApiClient apiClient;
   final SupabaseStorageService storageService;
-  final SecureStorage secureStorage;
+  final SupabaseClient _db = Supabase.instance.client;
 
-  ProfileRemoteDataSourceImpl({
-    required this.apiClient,
-    required this.storageService,
-    required this.secureStorage,
-  });
+  ProfileRemoteDataSourceImpl({required this.storageService});
+
+  String get _firebaseUid =>
+      fb_auth.FirebaseAuth.instance.currentUser?.uid ?? '';
 
   @override
   Future<WaiterProfileModel> getProfile() async {
-    final res = await apiClient.get(ApiEndpoints.profile);
-    return WaiterProfileModel.fromJson(res.data as Map<String, dynamic>);
+    final data = await _db
+        .from('profiles')
+        .select('*, payment_accounts(*)')
+        .eq('firebase_uid', _firebaseUid)
+        .single();
+    return WaiterProfileModel.fromJson(_mapProfile(data));
   }
 
   @override
   Future<WaiterProfileModel> updateProfile(Map<String, dynamic> data) async {
-    final res = await apiClient.patch(ApiEndpoints.updateProfile, data: data);
-    return WaiterProfileModel.fromJson(res.data as Map<String, dynamic>);
+    final updated = await _db
+        .from('profiles')
+        .upsert({
+          ...data,
+          'firebase_uid': _firebaseUid,
+          'updated_at': DateTime.now().toIso8601String(),
+        }, onConflict: 'firebase_uid')
+        .select('*, payment_accounts(*)')
+        .single();
+    return WaiterProfileModel.fromJson(_mapProfile(updated));
   }
 
-  /// Uploads avatar binary directly to Supabase Storage only,
-  /// then saves the returned public URL and metadata into the database/profile.
   @override
   Future<String> uploadAvatar(String filePath) async {
-    final userId = await secureStorage.getUserId() ??
-        fb_auth.FirebaseAuth.instance.currentUser?.uid ??
-        'anonymous';
-    final file = File(filePath);
-
-    // Upload to Supabase Storage
     final avatarUrl = await storageService.uploadProfileAvatar(
-      userId: userId,
-      file: file,
+      userId: _firebaseUid,
+      file: File(filePath),
     );
-
-    // Sync avatar photoURL to Firebase user profile if signed in
     try {
       await fb_auth.FirebaseAuth.instance.currentUser?.updatePhotoURL(avatarUrl);
     } catch (_) {}
-
-    // Store only the file URL and metadata in the database
-    try {
-      await apiClient.patch(
-        ApiEndpoints.updateProfile,
-        data: {'avatar_url': avatarUrl},
-      );
-    } catch (_) {
-      // Backend API endpoint might be offline or mocked during testing
-    }
-
+    await updateProfile({'avatar_url': avatarUrl});
     return avatarUrl;
   }
 
   @override
   Future<PublicWaiterProfileModel> getPublicProfile(String waiterId) async {
-    final res = await apiClient.get(ApiEndpoints.publicProfile(waiterId));
-    return PublicWaiterProfileModel.fromJson(res.data as Map<String, dynamic>);
+    final data = await _db
+        .from('profiles')
+        .select('id, full_name, avatar_url, restaurant_name, city, country, personal_message, average_rating, total_ratings')
+        .eq('id', waiterId)
+        .single();
+    return PublicWaiterProfileModel.fromJson(data);
   }
 
   @override
-  Future<PaymentAccountModel> connectPaymentAccount(
-      Map<String, dynamic> data) async {
-    final res = await apiClient.post('/profile/payment-accounts', data: data);
-    return PaymentAccountModel.fromJson(res.data as Map<String, dynamic>);
+  Future<PaymentAccountModel> connectPaymentAccount(Map<String, dynamic> data) async {
+    final profile = await _db
+        .from('profiles')
+        .select('id')
+        .eq('firebase_uid', _firebaseUid)
+        .single();
+    final result = await _db
+        .from('payment_accounts')
+        .upsert({...data, 'waiter_id': profile['id']})
+        .select()
+        .single();
+    return PaymentAccountModel.fromJson(result);
+  }
+
+  /// Supabase returns payment_accounts as a list; map it to match the model.
+  Map<String, dynamic> _mapProfile(Map<String, dynamic> data) {
+    final accounts = data['payment_accounts'] as List?;
+    return {
+      ...data,
+      'user_id': data['firebase_uid'],
+      'connected_payment_account':
+          (accounts != null && accounts.isNotEmpty) ? accounts.first : null,
+    };
   }
 }

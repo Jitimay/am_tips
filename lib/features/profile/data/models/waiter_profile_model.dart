@@ -9,19 +9,19 @@ abstract class WaiterProfileModel with _$WaiterProfileModel {
   const factory WaiterProfileModel({
     required String id,
     @JsonKey(name: 'user_id') required String userId,
-    @JsonKey(name: 'full_name') required String fullName,
+    @JsonKey(name: 'full_name') @Default('') String fullName,
     @JsonKey(name: 'avatar_url') String? avatarUrl,
-    @JsonKey(name: 'restaurant_name') required String restaurantName,
-    required String city,
-    required String country,
+    @JsonKey(name: 'restaurant_name') @Default('') String restaurantName,
+    @Default('') String city,
+    @Default('') String country,
     @JsonKey(name: 'personal_message') String? personalMessage,
     @JsonKey(name: 'average_rating') @Default(0.0) double averageRating,
     @JsonKey(name: 'total_ratings') @Default(0) int totalRatings,
-    @JsonKey(name: 'qr_token') required String qrToken,
+    @JsonKey(name: 'qr_token') @Default('') String qrToken,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'connected_payment_account')
     PaymentAccountModel? connectedPaymentAccount,
-    @JsonKey(name: 'created_at') required DateTime createdAt,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'updated_at') DateTime? updatedAt,
   }) = _WaiterProfileModel;
 
@@ -76,7 +76,7 @@ extension WaiterProfileModelX on WaiterProfileModel {
         qrToken: qrToken,
         isActive: isActive,
         connectedPaymentAccount: connectedPaymentAccount?.toDomain(),
-        createdAt: createdAt,
+        createdAt: createdAt ?? DateTime.now(),
         updatedAt: updatedAt,
       );
 }

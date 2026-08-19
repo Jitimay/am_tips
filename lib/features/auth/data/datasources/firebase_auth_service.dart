@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb;
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/errors/exceptions.dart';
 import '../models/auth_response_model.dart';
@@ -47,7 +48,13 @@ class FirebaseAuthService {
       }
 
       // Send email verification link
-      await user.sendEmailVerification();
+      try {
+        await user.sendEmailVerification();
+        debugPrint('[FirebaseAuthService] Verification email sent successfully to ${user.email}');
+      } catch (e) {
+        debugPrint('[FirebaseAuthService] Warning: Failed to send verification email: $e');
+        // Do not fail registration if only email dispatch hit temporary rate limit
+      }
 
       // Get initial ID token
       final token = await user.getIdToken() ?? '';
@@ -59,11 +66,14 @@ class FirebaseAuthService {
         fallbackPhone: phone,
       );
     } on fb.FirebaseAuthException catch (e) {
+      debugPrint('[FirebaseAuthService] FirebaseAuthException during register: ${e.code} - ${e.message}');
       throw _mapFirebaseAuthException(e);
     } catch (e) {
+      debugPrint('[FirebaseAuthService] Unexpected exception during register: $e');
       if (e is AuthenticationException || e is ServerException) rethrow;
       throw ServerException(message: e.toString(), statusCode: null);
     }
+
   }
 
   /// Signs in an existing user with email and password.
@@ -122,9 +132,12 @@ class FirebaseAuthService {
         );
       }
       await user.sendEmailVerification();
+      debugPrint('[FirebaseAuthService] Resent verification email to ${user.email}');
     } on fb.FirebaseAuthException catch (e) {
+      debugPrint('[FirebaseAuthService] Error resending verification email: ${e.code} - ${e.message}');
       throw _mapFirebaseAuthException(e);
     } catch (e) {
+      debugPrint('[FirebaseAuthService] Unexpected error sending verification email: $e');
       if (e is AuthenticationException || e is ServerException) rethrow;
       throw ServerException(message: e.toString(), statusCode: null);
     }
@@ -137,11 +150,14 @@ class FirebaseAuthService {
       if (user == null) return false;
       await user.reload();
       final refreshed = _auth.currentUser;
+      debugPrint('[FirebaseAuthService] checkEmailVerification: email=${refreshed?.email}, emailVerified=${refreshed?.emailVerified}');
       return refreshed?.emailVerified ?? false;
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[FirebaseAuthService] checkEmailVerification error: $e');
       return false;
     }
   }
+
 
   /// Refreshes and returns the current user model.
   Future<AuthResponseModel> getCurrentUser() async {

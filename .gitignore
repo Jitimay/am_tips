@@ -46,3 +46,7 @@ app.*.map.json
 
 # Secret keys — use app_secrets.example.dart as template
 lib/core/constants/app_secrets.dart
+
+# Firebase config files (contain API keys)
+google-services.json
+GoogleService-Info.plist

@@ -99,9 +99,7 @@ Future<void> configureDependencies() async {
   // ── Profile ───────────────────────────────────────────────────────────────
   sl.registerLazySingleton<ProfileRemoteDataSource>(
     () => ProfileRemoteDataSourceImpl(
-      apiClient: sl<ApiClient>(),
       storageService: sl<SupabaseStorageService>(),
-      secureStorage: sl<SecureStorage>(),
     ),
   );
   sl.registerLazySingleton<ProfileRepository>(
@@ -117,7 +115,7 @@ Future<void> configureDependencies() async {
 
   // ── Tips ──────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<TipsRemoteDataSource>(
-    () => TipsRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+    () => TipsRemoteDataSourceImpl(),
   );
   sl.registerLazySingleton<TipsRepository>(
     () => TipsRepositoryImpl(
