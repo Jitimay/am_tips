@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../bloc/auth_bloc.dart';
 
@@ -72,25 +71,10 @@ class _SplashPageState extends State<SplashPage>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // App logo / icon
-                  Container(
+                  Image.asset(
+                    'assets/images/logo.png',
                     width: 88,
                     height: 88,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.monetization_on_rounded,
-                      size: 52,
-                      color: AppColors.primary,
-                    ),
                   ),
                   const SizedBox(height: 20),
                   Text(

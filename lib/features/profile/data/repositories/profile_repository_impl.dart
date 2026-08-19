@@ -22,8 +22,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
     try {
       final model = await remoteDataSource.getProfile();
       return Right(model.toDomain());
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -46,8 +50,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
       };
       final model = await remoteDataSource.updateProfile(data);
       return Right(model.toDomain());
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -57,8 +65,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
     try {
       final url = await remoteDataSource.uploadAvatar(filePath);
       return Right(url);
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -69,13 +81,22 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }) async {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure());
     try {
-      if (avatarPath != null) {
-        await remoteDataSource.uploadAvatar(avatarPath);
+      String? avatarUrl;
+      if (avatarPath != null && avatarPath.isNotEmpty) {
+        avatarUrl = await remoteDataSource.uploadAvatar(avatarPath);
       }
-      final model = await remoteDataSource.updateProfile({'full_name': fullName});
+      final data = <String, dynamic>{'full_name': fullName};
+      if (avatarUrl != null) {
+        data['avatar_url'] = avatarUrl;
+      }
+      final model = await remoteDataSource.updateProfile(data);
       return Right(model.toDomain());
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -93,8 +114,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'country': country,
       });
       return Right(model.toDomain());
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -112,8 +137,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'account_identifier': accountIdentifier,
       });
       return Right(model.toDomain());
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 
@@ -124,8 +153,12 @@ class ProfileRepositoryImpl implements ProfileRepository {
     try {
       final model = await remoteDataSource.getPublicProfile(waiterId);
       return Right(model.toDomain());
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
     }
   }
 }

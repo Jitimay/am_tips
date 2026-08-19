@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../profile/domain/repositories/profile_repository.dart';
 
 part 'onboarding_state.dart';
@@ -91,7 +93,9 @@ class OnboardingCubit extends Cubit<OnboardingState> {
 
   // ── Step 4 — QR Ready ────────────────────────────────────────────────────
 
-  void markQrReady() {
+  Future<void> markQrReady() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppConstants.onboardingCompleteKey, true);
     emit(state.copyWith(qrGenerated: true));
   }
 

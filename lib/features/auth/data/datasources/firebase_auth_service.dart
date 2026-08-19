@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../models/auth_response_model.dart';
 
@@ -108,8 +110,15 @@ class FirebaseAuthService {
         );
       }
 
+      final prefs = await SharedPreferences.getInstance();
+      final isOnboardingComplete = prefs.getBool(AppConstants.onboardingCompleteKey) ?? false;
+
       final token = await refreshedUser.getIdToken() ?? '';
-      return _toAuthResponseModel(user: refreshedUser, token: token);
+      return _toAuthResponseModel(
+        user: refreshedUser,
+        token: token,
+        isOnboardingComplete: isOnboardingComplete,
+      );
     } on fb.FirebaseAuthException catch (e) {
       throw _mapFirebaseAuthException(e);
     } catch (e) {
@@ -176,8 +185,15 @@ class FirebaseAuthService {
         );
       }
 
+      final prefs = await SharedPreferences.getInstance();
+      final isOnboardingComplete = prefs.getBool(AppConstants.onboardingCompleteKey) ?? false;
+
       final token = await refreshedUser.getIdToken() ?? '';
-      return _toAuthResponseModel(user: refreshedUser, token: token);
+      return _toAuthResponseModel(
+        user: refreshedUser,
+        token: token,
+        isOnboardingComplete: isOnboardingComplete,
+      );
     } on fb.FirebaseAuthException catch (e) {
       throw _mapFirebaseAuthException(e);
     } catch (e) {
@@ -235,6 +251,7 @@ class FirebaseAuthService {
   AuthResponseModel _toAuthResponseModel({
     required fb.User user,
     required String token,
+    bool isOnboardingComplete = false,
     String? fallbackName,
     String? fallbackPhone,
   }) {
@@ -251,7 +268,7 @@ class FirebaseAuthService {
         phone: user.phoneNumber ?? fallbackPhone,
         fullName: user.displayName ?? fallbackName ?? '',
         avatarUrl: user.photoURL,
-        isOnboardingComplete: false,
+        isOnboardingComplete: isOnboardingComplete,
         createdAt: createdAt,
         updatedAt: updatedAt,
       ),
