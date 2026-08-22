@@ -20,6 +20,7 @@ import '../../features/qr_code/presentation/pages/campaign_card_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/tips/presentation/pages/tip_detail_page.dart';
 import '../../features/tips/presentation/pages/tips_page.dart';
+import '../../features/tips/presentation/pages/analytics_page.dart';
 import '../../features/wallet/presentation/pages/wallet_page.dart';
 import '../../features/withdrawals/presentation/pages/withdrawal_page.dart';
 import '../../app/app_shell.dart';
@@ -49,6 +50,7 @@ class AppRoutes {
   static const notifications = '/notifications';
   static const settings = '/settings';
   static const search = '/search';
+  static const analytics = '/analytics';
 
   static const customerProfile = '/t/:waiterId';
 }
@@ -164,6 +166,10 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.qr,
         builder: (_, _) => const QrPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.analytics,
+        builder: (_, _) => const AnalyticsPage(),
       ),
       GoRoute(
         path: AppRoutes.search,

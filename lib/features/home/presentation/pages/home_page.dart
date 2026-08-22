@@ -539,7 +539,7 @@ class _HomePageState extends State<HomePage> {
               _ShortcutItem(
                 icon: HugeIcons.strokeRoundedAutoConversations,
                 label: 'Analytics',
-                onTap: () => context.go(AppRoutes.tips),
+                onTap: () => context.push(AppRoutes.analytics),
               ),
             ],
           ),
