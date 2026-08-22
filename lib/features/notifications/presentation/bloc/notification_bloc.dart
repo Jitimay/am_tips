@@ -16,6 +16,51 @@ class NotificationBloc
     on<NotificationsLoaded>(_onLoaded);
     on<NotificationMarkedRead>(_onMarkRead);
     on<AllNotificationsMarkedRead>(_onMarkAllRead);
+    on<NotificationReceived>(_onNotificationReceived);
+    on<NotificationsRefreshed>(_onRefreshed);
+  }
+
+  Future<void> _onNotificationReceived(
+    NotificationReceived event,
+    Emitter<NotificationState> emit,
+  ) async {
+    if (state is NotificationLoaded) {
+      final current = state as NotificationLoaded;
+      final alreadyExists =
+          current.notifications.any((n) => n.id == event.notification.id);
+      if (alreadyExists) return;
+
+      final updated = [event.notification, ...current.notifications];
+      final unread = event.notification.isRead
+          ? current.unreadCount
+          : current.unreadCount + 1;
+      emit(NotificationLoaded(notifications: updated, unreadCount: unread));
+    } else {
+      add(const NotificationsLoaded());
+    }
+  }
+
+  Future<void> _onRefreshed(
+    NotificationsRefreshed event,
+    Emitter<NotificationState> emit,
+  ) async {
+    final notifResult = await notificationRepository.getNotifications();
+    final countResult = await notificationRepository.getUnreadCount();
+
+    notifResult.fold(
+      (failure) {
+        if (state is! NotificationLoaded) {
+          emit(NotificationError(failure.message));
+        }
+      },
+      (notifications) {
+        final count = countResult.fold((_) => 0, (c) => c);
+        emit(NotificationLoaded(
+          notifications: notifications,
+          unreadCount: count,
+        ));
+      },
+    );
   }
 
   Future<void> _onLoaded(

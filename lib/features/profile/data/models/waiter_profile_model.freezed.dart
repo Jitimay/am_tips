@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WaiterProfileModel {
 
- String get id;@JsonKey(name: 'user_id') String get userId;@JsonKey(name: 'full_name') String get fullName;@JsonKey(name: 'avatar_url') String? get avatarUrl;@JsonKey(name: 'restaurant_name') String get restaurantName; String get city; String get country;@JsonKey(name: 'personal_message') String? get personalMessage;@JsonKey(name: 'average_rating') double get averageRating;@JsonKey(name: 'total_ratings') int get totalRatings;@JsonKey(name: 'qr_token') String get qrToken;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'connected_payment_account') PaymentAccountModel? get connectedPaymentAccount;@JsonKey(name: 'created_at') DateTime? get createdAt;@JsonKey(name: 'updated_at') DateTime? get updatedAt;
+ String get id;@JsonKey(name: 'user_id') String get userId;@JsonKey(name: 'full_name') String get fullName;@JsonKey(name: 'avatar_url') String? get avatarUrl;@JsonKey(name: 'restaurant_name') String get restaurantName; String get city; String get country;@JsonKey(name: 'personal_message') String? get personalMessage;@JsonKey(name: 'average_rating') double get averageRating;@JsonKey(name: 'total_ratings') int get totalRatings;@JsonKey(name: 'qr_token') String get qrToken; List<String> get professions;@JsonKey(name: 'is_active') bool get isActive;@JsonKey(name: 'connected_payment_account') PaymentAccountModel? get connectedPaymentAccount;@JsonKey(name: 'created_at') DateTime? get createdAt;@JsonKey(name: 'updated_at') DateTime? get updatedAt;
 /// Create a copy of WaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $WaiterProfileModelCopyWith<WaiterProfileModel> get copyWith => _$WaiterProfileM
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WaiterProfileModel&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.restaurantName, restaurantName) || other.restaurantName == restaurantName)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.personalMessage, personalMessage) || other.personalMessage == personalMessage)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.totalRatings, totalRatings) || other.totalRatings == totalRatings)&&(identical(other.qrToken, qrToken) || other.qrToken == qrToken)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.connectedPaymentAccount, connectedPaymentAccount) || other.connectedPaymentAccount == connectedPaymentAccount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WaiterProfileModel&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.restaurantName, restaurantName) || other.restaurantName == restaurantName)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.personalMessage, personalMessage) || other.personalMessage == personalMessage)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.totalRatings, totalRatings) || other.totalRatings == totalRatings)&&(identical(other.qrToken, qrToken) || other.qrToken == qrToken)&&const DeepCollectionEquality().equals(other.professions, professions)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.connectedPaymentAccount, connectedPaymentAccount) || other.connectedPaymentAccount == connectedPaymentAccount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,fullName,avatarUrl,restaurantName,city,country,personalMessage,averageRating,totalRatings,qrToken,isActive,connectedPaymentAccount,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,userId,fullName,avatarUrl,restaurantName,city,country,personalMessage,averageRating,totalRatings,qrToken,const DeepCollectionEquality().hash(professions),isActive,connectedPaymentAccount,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'WaiterProfileModel(id: $id, userId: $userId, fullName: $fullName, avatarUrl: $avatarUrl, restaurantName: $restaurantName, city: $city, country: $country, personalMessage: $personalMessage, averageRating: $averageRating, totalRatings: $totalRatings, qrToken: $qrToken, isActive: $isActive, connectedPaymentAccount: $connectedPaymentAccount, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'WaiterProfileModel(id: $id, userId: $userId, fullName: $fullName, avatarUrl: $avatarUrl, restaurantName: $restaurantName, city: $city, country: $country, personalMessage: $personalMessage, averageRating: $averageRating, totalRatings: $totalRatings, qrToken: $qrToken, professions: $professions, isActive: $isActive, connectedPaymentAccount: $connectedPaymentAccount, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $WaiterProfileModelCopyWith<$Res>  {
   factory $WaiterProfileModelCopyWith(WaiterProfileModel value, $Res Function(WaiterProfileModel) _then) = _$WaiterProfileModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'user_id') String userId,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings,@JsonKey(name: 'qr_token') String qrToken,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'connected_payment_account') PaymentAccountModel? connectedPaymentAccount,@JsonKey(name: 'created_at') DateTime? createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
+ String id,@JsonKey(name: 'user_id') String userId,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings,@JsonKey(name: 'qr_token') String qrToken, List<String> professions,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'connected_payment_account') PaymentAccountModel? connectedPaymentAccount,@JsonKey(name: 'created_at') DateTime? createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$WaiterProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of WaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? qrToken = null,Object? isActive = null,Object? connectedPaymentAccount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? userId = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? qrToken = null,Object? professions = null,Object? isActive = null,Object? connectedPaymentAccount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -78,7 +78,8 @@ as String,personalMessage: freezed == personalMessage ? _self.personalMessage : 
 as String?,averageRating: null == averageRating ? _self.averageRating : averageRating // ignore: cast_nullable_to_non_nullable
 as double,totalRatings: null == totalRatings ? _self.totalRatings : totalRatings // ignore: cast_nullable_to_non_nullable
 as int,qrToken: null == qrToken ? _self.qrToken : qrToken // ignore: cast_nullable_to_non_nullable
-as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as String,professions: null == professions ? _self.professions : professions // ignore: cast_nullable_to_non_nullable
+as List<String>,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,connectedPaymentAccount: freezed == connectedPaymentAccount ? _self.connectedPaymentAccount : connectedPaymentAccount // ignore: cast_nullable_to_non_nullable
 as PaymentAccountModel?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -179,10 +180,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken,  List<String> professions, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WaiterProfileModel() when $default != null:
-return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.professions,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -200,10 +201,10 @@ return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.resta
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken,  List<String> professions, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _WaiterProfileModel():
-return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.professions,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -220,10 +221,10 @@ return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.resta
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'user_id')  String userId, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings, @JsonKey(name: 'qr_token')  String qrToken,  List<String> professions, @JsonKey(name: 'is_active')  bool isActive, @JsonKey(name: 'connected_payment_account')  PaymentAccountModel? connectedPaymentAccount, @JsonKey(name: 'created_at')  DateTime? createdAt, @JsonKey(name: 'updated_at')  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _WaiterProfileModel() when $default != null:
-return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.qrToken,_that.professions,_that.isActive,_that.connectedPaymentAccount,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -235,7 +236,7 @@ return $default(_that.id,_that.userId,_that.fullName,_that.avatarUrl,_that.resta
 @JsonSerializable()
 
 class _WaiterProfileModel implements WaiterProfileModel {
-  const _WaiterProfileModel({required this.id, @JsonKey(name: 'user_id') required this.userId, @JsonKey(name: 'full_name') this.fullName = '', @JsonKey(name: 'avatar_url') this.avatarUrl, @JsonKey(name: 'restaurant_name') this.restaurantName = '', this.city = '', this.country = '', @JsonKey(name: 'personal_message') this.personalMessage, @JsonKey(name: 'average_rating') this.averageRating = 0.0, @JsonKey(name: 'total_ratings') this.totalRatings = 0, @JsonKey(name: 'qr_token') this.qrToken = '', @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'connected_payment_account') this.connectedPaymentAccount, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt});
+  const _WaiterProfileModel({required this.id, @JsonKey(name: 'user_id') required this.userId, @JsonKey(name: 'full_name') this.fullName = '', @JsonKey(name: 'avatar_url') this.avatarUrl, @JsonKey(name: 'restaurant_name') this.restaurantName = '', this.city = '', this.country = '', @JsonKey(name: 'personal_message') this.personalMessage, @JsonKey(name: 'average_rating') this.averageRating = 0.0, @JsonKey(name: 'total_ratings') this.totalRatings = 0, @JsonKey(name: 'qr_token') this.qrToken = '', final  List<String> professions = const [], @JsonKey(name: 'is_active') this.isActive = true, @JsonKey(name: 'connected_payment_account') this.connectedPaymentAccount, @JsonKey(name: 'created_at') this.createdAt, @JsonKey(name: 'updated_at') this.updatedAt}): _professions = professions;
   factory _WaiterProfileModel.fromJson(Map<String, dynamic> json) => _$WaiterProfileModelFromJson(json);
 
 @override final  String id;
@@ -249,6 +250,13 @@ class _WaiterProfileModel implements WaiterProfileModel {
 @override@JsonKey(name: 'average_rating') final  double averageRating;
 @override@JsonKey(name: 'total_ratings') final  int totalRatings;
 @override@JsonKey(name: 'qr_token') final  String qrToken;
+ final  List<String> _professions;
+@override@JsonKey() List<String> get professions {
+  if (_professions is EqualUnmodifiableListView) return _professions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_professions);
+}
+
 @override@JsonKey(name: 'is_active') final  bool isActive;
 @override@JsonKey(name: 'connected_payment_account') final  PaymentAccountModel? connectedPaymentAccount;
 @override@JsonKey(name: 'created_at') final  DateTime? createdAt;
@@ -267,16 +275,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WaiterProfileModel&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.restaurantName, restaurantName) || other.restaurantName == restaurantName)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.personalMessage, personalMessage) || other.personalMessage == personalMessage)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.totalRatings, totalRatings) || other.totalRatings == totalRatings)&&(identical(other.qrToken, qrToken) || other.qrToken == qrToken)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.connectedPaymentAccount, connectedPaymentAccount) || other.connectedPaymentAccount == connectedPaymentAccount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WaiterProfileModel&&(identical(other.id, id) || other.id == id)&&(identical(other.userId, userId) || other.userId == userId)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.restaurantName, restaurantName) || other.restaurantName == restaurantName)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.personalMessage, personalMessage) || other.personalMessage == personalMessage)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.totalRatings, totalRatings) || other.totalRatings == totalRatings)&&(identical(other.qrToken, qrToken) || other.qrToken == qrToken)&&const DeepCollectionEquality().equals(other._professions, _professions)&&(identical(other.isActive, isActive) || other.isActive == isActive)&&(identical(other.connectedPaymentAccount, connectedPaymentAccount) || other.connectedPaymentAccount == connectedPaymentAccount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,userId,fullName,avatarUrl,restaurantName,city,country,personalMessage,averageRating,totalRatings,qrToken,isActive,connectedPaymentAccount,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,userId,fullName,avatarUrl,restaurantName,city,country,personalMessage,averageRating,totalRatings,qrToken,const DeepCollectionEquality().hash(_professions),isActive,connectedPaymentAccount,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'WaiterProfileModel(id: $id, userId: $userId, fullName: $fullName, avatarUrl: $avatarUrl, restaurantName: $restaurantName, city: $city, country: $country, personalMessage: $personalMessage, averageRating: $averageRating, totalRatings: $totalRatings, qrToken: $qrToken, isActive: $isActive, connectedPaymentAccount: $connectedPaymentAccount, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'WaiterProfileModel(id: $id, userId: $userId, fullName: $fullName, avatarUrl: $avatarUrl, restaurantName: $restaurantName, city: $city, country: $country, personalMessage: $personalMessage, averageRating: $averageRating, totalRatings: $totalRatings, qrToken: $qrToken, professions: $professions, isActive: $isActive, connectedPaymentAccount: $connectedPaymentAccount, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -287,7 +295,7 @@ abstract mixin class _$WaiterProfileModelCopyWith<$Res> implements $WaiterProfil
   factory _$WaiterProfileModelCopyWith(_WaiterProfileModel value, $Res Function(_WaiterProfileModel) _then) = __$WaiterProfileModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'user_id') String userId,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings,@JsonKey(name: 'qr_token') String qrToken,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'connected_payment_account') PaymentAccountModel? connectedPaymentAccount,@JsonKey(name: 'created_at') DateTime? createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
+ String id,@JsonKey(name: 'user_id') String userId,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings,@JsonKey(name: 'qr_token') String qrToken, List<String> professions,@JsonKey(name: 'is_active') bool isActive,@JsonKey(name: 'connected_payment_account') PaymentAccountModel? connectedPaymentAccount,@JsonKey(name: 'created_at') DateTime? createdAt,@JsonKey(name: 'updated_at') DateTime? updatedAt
 });
 
 
@@ -304,7 +312,7 @@ class __$WaiterProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of WaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? qrToken = null,Object? isActive = null,Object? connectedPaymentAccount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? userId = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? qrToken = null,Object? professions = null,Object? isActive = null,Object? connectedPaymentAccount = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,}) {
   return _then(_WaiterProfileModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
@@ -317,7 +325,8 @@ as String,personalMessage: freezed == personalMessage ? _self.personalMessage : 
 as String?,averageRating: null == averageRating ? _self.averageRating : averageRating // ignore: cast_nullable_to_non_nullable
 as double,totalRatings: null == totalRatings ? _self.totalRatings : totalRatings // ignore: cast_nullable_to_non_nullable
 as int,qrToken: null == qrToken ? _self.qrToken : qrToken // ignore: cast_nullable_to_non_nullable
-as String,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
+as String,professions: null == professions ? _self._professions : professions // ignore: cast_nullable_to_non_nullable
+as List<String>,isActive: null == isActive ? _self.isActive : isActive // ignore: cast_nullable_to_non_nullable
 as bool,connectedPaymentAccount: freezed == connectedPaymentAccount ? _self.connectedPaymentAccount : connectedPaymentAccount // ignore: cast_nullable_to_non_nullable
 as PaymentAccountModel?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -619,7 +628,7 @@ as bool,
 /// @nodoc
 mixin _$PublicWaiterProfileModel {
 
- String get id;@JsonKey(name: 'full_name') String get fullName;@JsonKey(name: 'avatar_url') String? get avatarUrl;@JsonKey(name: 'restaurant_name') String get restaurantName; String get city; String get country;@JsonKey(name: 'personal_message') String? get personalMessage;@JsonKey(name: 'average_rating') double get averageRating;@JsonKey(name: 'total_ratings') int get totalRatings;
+ String get id;@JsonKey(name: 'full_name') String get fullName;@JsonKey(name: 'avatar_url') String? get avatarUrl;@JsonKey(name: 'restaurant_name') String get restaurantName; String get city; String get country;@JsonKey(name: 'personal_message') String? get personalMessage;@JsonKey(name: 'average_rating') double get averageRating;@JsonKey(name: 'total_ratings') int get totalRatings; List<String> get professions;
 /// Create a copy of PublicWaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -632,16 +641,16 @@ $PublicWaiterProfileModelCopyWith<PublicWaiterProfileModel> get copyWith => _$Pu
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicWaiterProfileModel&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.restaurantName, restaurantName) || other.restaurantName == restaurantName)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.personalMessage, personalMessage) || other.personalMessage == personalMessage)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.totalRatings, totalRatings) || other.totalRatings == totalRatings));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PublicWaiterProfileModel&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.restaurantName, restaurantName) || other.restaurantName == restaurantName)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.personalMessage, personalMessage) || other.personalMessage == personalMessage)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.totalRatings, totalRatings) || other.totalRatings == totalRatings)&&const DeepCollectionEquality().equals(other.professions, professions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fullName,avatarUrl,restaurantName,city,country,personalMessage,averageRating,totalRatings);
+int get hashCode => Object.hash(runtimeType,id,fullName,avatarUrl,restaurantName,city,country,personalMessage,averageRating,totalRatings,const DeepCollectionEquality().hash(professions));
 
 @override
 String toString() {
-  return 'PublicWaiterProfileModel(id: $id, fullName: $fullName, avatarUrl: $avatarUrl, restaurantName: $restaurantName, city: $city, country: $country, personalMessage: $personalMessage, averageRating: $averageRating, totalRatings: $totalRatings)';
+  return 'PublicWaiterProfileModel(id: $id, fullName: $fullName, avatarUrl: $avatarUrl, restaurantName: $restaurantName, city: $city, country: $country, personalMessage: $personalMessage, averageRating: $averageRating, totalRatings: $totalRatings, professions: $professions)';
 }
 
 
@@ -652,7 +661,7 @@ abstract mixin class $PublicWaiterProfileModelCopyWith<$Res>  {
   factory $PublicWaiterProfileModelCopyWith(PublicWaiterProfileModel value, $Res Function(PublicWaiterProfileModel) _then) = _$PublicWaiterProfileModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings
+ String id,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings, List<String> professions
 });
 
 
@@ -669,7 +678,7 @@ class _$PublicWaiterProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of PublicWaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? professions = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
@@ -680,7 +689,8 @@ as String,country: null == country ? _self.country : country // ignore: cast_nul
 as String,personalMessage: freezed == personalMessage ? _self.personalMessage : personalMessage // ignore: cast_nullable_to_non_nullable
 as String?,averageRating: null == averageRating ? _self.averageRating : averageRating // ignore: cast_nullable_to_non_nullable
 as double,totalRatings: null == totalRatings ? _self.totalRatings : totalRatings // ignore: cast_nullable_to_non_nullable
-as int,
+as int,professions: null == professions ? _self.professions : professions // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -765,10 +775,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings,  List<String> professions)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PublicWaiterProfileModel() when $default != null:
-return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings);case _:
+return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.professions);case _:
   return orElse();
 
 }
@@ -786,10 +796,10 @@ return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings,  List<String> professions)  $default,) {final _that = this;
 switch (_that) {
 case _PublicWaiterProfileModel():
-return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings);case _:
+return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.professions);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -806,10 +816,10 @@ return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'full_name')  String fullName, @JsonKey(name: 'avatar_url')  String? avatarUrl, @JsonKey(name: 'restaurant_name')  String restaurantName,  String city,  String country, @JsonKey(name: 'personal_message')  String? personalMessage, @JsonKey(name: 'average_rating')  double averageRating, @JsonKey(name: 'total_ratings')  int totalRatings,  List<String> professions)?  $default,) {final _that = this;
 switch (_that) {
 case _PublicWaiterProfileModel() when $default != null:
-return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings);case _:
+return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_that.city,_that.country,_that.personalMessage,_that.averageRating,_that.totalRatings,_that.professions);case _:
   return null;
 
 }
@@ -821,7 +831,7 @@ return $default(_that.id,_that.fullName,_that.avatarUrl,_that.restaurantName,_th
 @JsonSerializable()
 
 class _PublicWaiterProfileModel implements PublicWaiterProfileModel {
-  const _PublicWaiterProfileModel({required this.id, @JsonKey(name: 'full_name') required this.fullName, @JsonKey(name: 'avatar_url') this.avatarUrl, @JsonKey(name: 'restaurant_name') required this.restaurantName, required this.city, required this.country, @JsonKey(name: 'personal_message') this.personalMessage, @JsonKey(name: 'average_rating') this.averageRating = 0.0, @JsonKey(name: 'total_ratings') this.totalRatings = 0});
+  const _PublicWaiterProfileModel({required this.id, @JsonKey(name: 'full_name') required this.fullName, @JsonKey(name: 'avatar_url') this.avatarUrl, @JsonKey(name: 'restaurant_name') this.restaurantName = '', required this.city, required this.country, @JsonKey(name: 'personal_message') this.personalMessage, @JsonKey(name: 'average_rating') this.averageRating = 0.0, @JsonKey(name: 'total_ratings') this.totalRatings = 0, final  List<String> professions = const []}): _professions = professions;
   factory _PublicWaiterProfileModel.fromJson(Map<String, dynamic> json) => _$PublicWaiterProfileModelFromJson(json);
 
 @override final  String id;
@@ -833,6 +843,13 @@ class _PublicWaiterProfileModel implements PublicWaiterProfileModel {
 @override@JsonKey(name: 'personal_message') final  String? personalMessage;
 @override@JsonKey(name: 'average_rating') final  double averageRating;
 @override@JsonKey(name: 'total_ratings') final  int totalRatings;
+ final  List<String> _professions;
+@override@JsonKey() List<String> get professions {
+  if (_professions is EqualUnmodifiableListView) return _professions;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_professions);
+}
+
 
 /// Create a copy of PublicWaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
@@ -847,16 +864,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicWaiterProfileModel&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.restaurantName, restaurantName) || other.restaurantName == restaurantName)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.personalMessage, personalMessage) || other.personalMessage == personalMessage)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.totalRatings, totalRatings) || other.totalRatings == totalRatings));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PublicWaiterProfileModel&&(identical(other.id, id) || other.id == id)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl)&&(identical(other.restaurantName, restaurantName) || other.restaurantName == restaurantName)&&(identical(other.city, city) || other.city == city)&&(identical(other.country, country) || other.country == country)&&(identical(other.personalMessage, personalMessage) || other.personalMessage == personalMessage)&&(identical(other.averageRating, averageRating) || other.averageRating == averageRating)&&(identical(other.totalRatings, totalRatings) || other.totalRatings == totalRatings)&&const DeepCollectionEquality().equals(other._professions, _professions));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fullName,avatarUrl,restaurantName,city,country,personalMessage,averageRating,totalRatings);
+int get hashCode => Object.hash(runtimeType,id,fullName,avatarUrl,restaurantName,city,country,personalMessage,averageRating,totalRatings,const DeepCollectionEquality().hash(_professions));
 
 @override
 String toString() {
-  return 'PublicWaiterProfileModel(id: $id, fullName: $fullName, avatarUrl: $avatarUrl, restaurantName: $restaurantName, city: $city, country: $country, personalMessage: $personalMessage, averageRating: $averageRating, totalRatings: $totalRatings)';
+  return 'PublicWaiterProfileModel(id: $id, fullName: $fullName, avatarUrl: $avatarUrl, restaurantName: $restaurantName, city: $city, country: $country, personalMessage: $personalMessage, averageRating: $averageRating, totalRatings: $totalRatings, professions: $professions)';
 }
 
 
@@ -867,7 +884,7 @@ abstract mixin class _$PublicWaiterProfileModelCopyWith<$Res> implements $Public
   factory _$PublicWaiterProfileModelCopyWith(_PublicWaiterProfileModel value, $Res Function(_PublicWaiterProfileModel) _then) = __$PublicWaiterProfileModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings
+ String id,@JsonKey(name: 'full_name') String fullName,@JsonKey(name: 'avatar_url') String? avatarUrl,@JsonKey(name: 'restaurant_name') String restaurantName, String city, String country,@JsonKey(name: 'personal_message') String? personalMessage,@JsonKey(name: 'average_rating') double averageRating,@JsonKey(name: 'total_ratings') int totalRatings, List<String> professions
 });
 
 
@@ -884,7 +901,7 @@ class __$PublicWaiterProfileModelCopyWithImpl<$Res>
 
 /// Create a copy of PublicWaiterProfileModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fullName = null,Object? avatarUrl = freezed,Object? restaurantName = null,Object? city = null,Object? country = null,Object? personalMessage = freezed,Object? averageRating = null,Object? totalRatings = null,Object? professions = null,}) {
   return _then(_PublicWaiterProfileModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fullName: null == fullName ? _self.fullName : fullName // ignore: cast_nullable_to_non_nullable
@@ -895,7 +912,8 @@ as String,country: null == country ? _self.country : country // ignore: cast_nul
 as String,personalMessage: freezed == personalMessage ? _self.personalMessage : personalMessage // ignore: cast_nullable_to_non_nullable
 as String?,averageRating: null == averageRating ? _self.averageRating : averageRating // ignore: cast_nullable_to_non_nullable
 as double,totalRatings: null == totalRatings ? _self.totalRatings : totalRatings // ignore: cast_nullable_to_non_nullable
-as int,
+as int,professions: null == professions ? _self._professions : professions // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

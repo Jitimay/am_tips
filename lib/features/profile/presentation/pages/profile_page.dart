@@ -51,6 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   context.read<ProfileBloc>().add(const LoadProfile()),
             );
           }
+
           final profile = state is ProfileLoaded
               ? state.profile
               : state is ProfileUpdateSuccess
@@ -60,11 +61,14 @@ class _ProfilePageState extends State<ProfilePage> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final hasProfessions = profile.professions.isNotEmpty;
+          final hasWorkplace = profile.restaurantName.isNotEmpty;
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // Avatar + name
+                // ── Avatar + name ────────────────────────────────────────
                 Center(
                   child: Column(
                     children: [
@@ -75,19 +79,56 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 14),
                       Text(profile.fullName, style: AppTextStyles.h2),
-                      const SizedBox(height: 4),
-                      Text(
-                        profile.restaurantName,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
+                      const SizedBox(height: 8),
+
+                      // ── Profession chips ─────────────────────────────
+                      if (hasProfessions)
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: profile.professions.map((p) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.primarySurface,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.25),
+                                ),
+                              ),
+                              child: Text(
+                                p,
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
-                      ),
+
+                      // ── Workplace (if set) ───────────────────────────
+                      if (hasWorkplace) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          profile.restaurantName,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+
                       const SizedBox(height: 6),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(Icons.location_on_outlined,
-                              size: 14, color: AppColors.textSecondary),
+                              size: 14,
+                              color: AppColors.textSecondary),
                           const SizedBox(width: 3),
                           Text(
                             '${profile.city}, ${profile.country}',
@@ -95,6 +136,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                       ),
+
+                      // ── Rating ───────────────────────────────────────
                       if (profile.totalRatings > 0) ...[
                         const SizedBox(height: 8),
                         Row(
@@ -105,7 +148,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 size: 18),
                             const SizedBox(width: 6),
                             Text(
-                              '${profile.averageRating.toStringAsFixed(1)} (${profile.totalRatings})',
+                              '${profile.averageRating.toStringAsFixed(1)} (${profile.totalRatings} ratings)',
                               style: AppTextStyles.labelSmall,
                             ),
                           ],
@@ -116,17 +159,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 24),
 
-                // Personal message
+                // ── Personal message ─────────────────────────────────────
                 if (profile.personalMessage != null &&
                     profile.personalMessage!.isNotEmpty)
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.06),
+                      color:
+                          AppColors.primary.withValues(alpha: 0.06),
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.15)),
+                          color: AppColors.primary
+                              .withValues(alpha: 0.15)),
                     ),
                     child: Row(
                       children: [
@@ -145,27 +190,43 @@ class _ProfilePageState extends State<ProfilePage> {
                       ],
                     ),
                   ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
 
-                // Info cards
-                _InfoCard(
-                  icon: Icons.store_outlined,
-                  label: 'Restaurant',
-                  value: profile.restaurantName,
-                ),
-                const SizedBox(height: 10),
+                // ── Info cards ────────────────────────────────────────────
+                // Professions card — shown when set
+                if (hasProfessions)
+                  _InfoCard(
+                    icon: Icons.work_outline_rounded,
+                    label: 'What I do',
+                    value: profile.professions
+                        .map((p) =>
+                            p.split(' ').skip(1).join(' '))
+                        .join(' · '),
+                  ),
+                if (hasProfessions) const SizedBox(height: 10),
+
+                // Workplace — only shown when not empty, with adaptive label
+                if (hasWorkplace)
+                  _InfoCard(
+                    icon: Icons.business_outlined,
+                    label: _workplaceLabel(profile.professions),
+                    value: profile.restaurantName,
+                  ),
+                if (hasWorkplace) const SizedBox(height: 10),
+
                 _InfoCard(
                   icon: Icons.location_on_outlined,
                   label: 'Location',
                   value: '${profile.city}, ${profile.country}',
                 ),
+
                 if (profile.connectedPaymentAccount != null) ...[
                   const SizedBox(height: 10),
                   _InfoCard(
                     icon: Icons.account_balance_wallet_outlined,
                     label: 'Payment account',
                     value:
-                        '${profile.connectedPaymentAccount!.provider} • ${profile.connectedPaymentAccount!.accountIdentifier}',
+                        '${profile.connectedPaymentAccount!.provider} · ${profile.connectedPaymentAccount!.accountIdentifier}',
                   ),
                 ],
                 const SizedBox(height: 32),
@@ -176,7 +237,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   variant: AppButtonVariant.outline,
                 ),
                 const SizedBox(height: 12),
-
                 AppButton(
                   label: 'Log Out',
                   onPressed: () => _confirmLogout(context),
@@ -191,12 +251,43 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  /// Returns a label for the workplace card that fits the person's professions.
+  String _workplaceLabel(List<String> professions) {
+    if (professions.any((p) =>
+        p.contains('Waiter') ||
+        p.contains('Chef') ||
+        p.contains('Barista') ||
+        p.contains('Hotel'))) {
+      return 'Restaurant / Venue';
+    }
+    if (professions.any((p) =>
+        p.contains('Musician') ||
+        p.contains('Theater') ||
+        p.contains('Dancer') ||
+        p.contains('Band'))) {
+      return 'Club / Stage';
+    }
+    if (professions.any((p) =>
+        p.contains('YouTuber') ||
+        p.contains('Streamer') ||
+        p.contains('Content') ||
+        p.contains('Podcaster'))) {
+      return 'Channel / Platform';
+    }
+    if (professions.any(
+        (p) => p.contains('Taxi') || p.contains('Moto'))) {
+      return 'Operator';
+    }
+    return 'Workplace / Venue';
+  }
+
   void _confirmLogout(BuildContext context) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Log out'),
-        content: const Text('Are you sure you want to log out?'),
+        content:
+            const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -205,11 +296,13 @@ class _ProfilePageState extends State<ProfilePage> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<AuthBloc>().add(const LogoutRequested());
+              context
+                  .read<AuthBloc>()
+                  .add(const LogoutRequested());
               context.go(AppRoutes.login);
             },
-            child:
-                Text('Log out', style: TextStyle(color: AppColors.error)),
+            child: Text('Log out',
+                style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -235,7 +328,8 @@ class _InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
+        border: Border.all(
+            color: Theme.of(context).colorScheme.outline),
       ),
       child: Row(
         children: [
@@ -243,10 +337,12 @@ class _InfoCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color:
+                  AppColors.primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 18, color: AppColors.primary),
+            child:
+                Icon(icon, size: 18, color: AppColors.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -255,9 +351,12 @@ class _InfoCard extends StatelessWidget {
               children: [
                 Text(label, style: AppTextStyles.caption),
                 const SizedBox(height: 2),
-                Text(value,
-                    style: AppTextStyles.labelMedium,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  value,
+                  style: AppTextStyles.labelMedium,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
+                ),
               ],
             ),
           ),

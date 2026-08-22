@@ -31,6 +31,7 @@ class AppConstants {
   static const String cachedTipsKey = 'cached_tips';
   static const String cachedWalletKey = 'cached_wallet';
   static const String onboardingCompleteKey = 'onboarding_complete';
+  static const String balanceVisibleKey = 'balance_visible';
 
   // Hive box names
   static const String profileBox = 'profile_box';

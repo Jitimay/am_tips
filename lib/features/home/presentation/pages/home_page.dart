@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/router/app_router.dart';
@@ -32,6 +33,21 @@ class _HomePageState extends State<HomePage> {
     context.read<TipsBloc>().add(const LoadTips());
     context.read<WalletCubit>().loadWallet();
     context.read<NotificationBloc>().add(const NotificationsLoaded());
+    _loadBalanceVisibility();
+  }
+
+  Future<void> _loadBalanceVisibility() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _balanceVisible = prefs.getBool(AppConstants.balanceVisibleKey) ?? true;
+    });
+  }
+
+  Future<void> _toggleBalanceVisibility() async {
+    final next = !_balanceVisible;
+    setState(() => _balanceVisible = next);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppConstants.balanceVisibleKey, next);
   }
 
   Future<void> _refresh() async {
@@ -329,6 +345,7 @@ class _HomePageState extends State<HomePage> {
                                       stats.todayTotal, currency)
                                   : '— BIF',
                               isLoading: isLoading,
+                              hidden: !_balanceVisible,
                             ),
                           ),
                           Expanded(
@@ -343,12 +360,11 @@ class _HomePageState extends State<HomePage> {
                                             wallet.currency)
                                         : '— BIF',
                                     isLoading: isLoading,
+                                    hidden: !_balanceVisible,
                                   ),
                                 ),
                                 GestureDetector(
-                                  onTap: () => setState(
-                                      () => _balanceVisible =
-                                          !_balanceVisible),
+                                  onTap: _toggleBalanceVisibility,
                                   child: Container(
                                     width: 34,
                                     height: 34,
@@ -388,6 +404,7 @@ class _HomePageState extends State<HomePage> {
                                       stats.weekTotal, currency)
                                   : '— BIF',
                               isLoading: isLoading,
+                              hidden: !_balanceVisible,
                             ),
                           ),
                           Expanded(
@@ -398,6 +415,7 @@ class _HomePageState extends State<HomePage> {
                                       stats.allTimeTotal, currency)
                                   : '— BIF',
                               isLoading: isLoading,
+                              hidden: !_balanceVisible,
                             ),
                           ),
                         ],
@@ -601,11 +619,13 @@ class _StatCell extends StatelessWidget {
   final String label;
   final String value;
   final bool isLoading;
+  final bool hidden;
 
   const _StatCell({
     required this.label,
     required this.value,
     this.isLoading = false,
+    this.hidden = false,
   });
 
   @override
@@ -630,6 +650,17 @@ class _StatCell extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white24,
               borderRadius: BorderRadius.circular(4),
+            ),
+          )
+        else if (hidden)
+          const Text(
+            '••••••',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: 2,
             ),
           )
         else

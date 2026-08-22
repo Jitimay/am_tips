@@ -9,6 +9,7 @@ import '../../../../core/utils/validators.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/avatar_widget.dart';
+import '../../../../core/widgets/profession_picker.dart';
 import '../bloc/profile_bloc.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -27,6 +28,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late final TextEditingController _messageController;
 
   String? _localAvatarPath;
+  late Set<String> _selectedProfessions;
 
   @override
   void initState() {
@@ -34,12 +36,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final state = context.read<ProfileBloc>().state;
     final profile = state is ProfileLoaded ? state.profile : null;
     _nameController = TextEditingController(text: profile?.fullName);
-    _restaurantController =
-        TextEditingController(text: profile?.restaurantName);
+    _restaurantController = TextEditingController(text: profile?.restaurantName);
     _cityController = TextEditingController(text: profile?.city);
     _countryController = TextEditingController(text: profile?.country);
-    _messageController =
-        TextEditingController(text: profile?.personalMessage);
+    _messageController = TextEditingController(text: profile?.personalMessage);
+    _selectedProfessions = Set<String>.from(profile?.professions ?? []);
   }
 
   @override
@@ -73,6 +74,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             city: _cityController.text.trim(),
             country: _countryController.text.trim(),
             personalMessage: _messageController.text.trim(),
+            professions: _selectedProfessions.toList(),
           ),
         );
   }
@@ -153,10 +155,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     const SizedBox(height: 16),
                     AppTextField(
                       controller: _restaurantController,
-                      label: 'Restaurant name',
-                      validator: Validators.restaurantName,
+                      label: 'Workplace / Venue (optional)',
+                      hint: 'e.g. Restaurant, Club, Channel name…',
                       textInputAction: TextInputAction.next,
-                      prefixIcon: const Icon(Icons.restaurant_outlined,
+                      prefixIcon: const Icon(Icons.business_outlined,
                           size: 20),
                     ),
                     const SizedBox(height: 16),
@@ -192,6 +194,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       maxLength: 200,
                       validator: Validators.message,
                       textInputAction: TextInputAction.done,
+                    ),
+                    const SizedBox(height: 24),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text('What do you do?',
+                          style: Theme.of(context).textTheme.titleSmall),
+                    ),
+                    const SizedBox(height: 12),
+                    StatefulBuilder(
+                      builder: (context, setLocal) => ProfessionPicker(
+                        selected: _selectedProfessions,
+                        onToggle: (label, _) => setLocal(() {
+                          if (_selectedProfessions.contains(label)) {
+                            _selectedProfessions.remove(label);
+                          } else {
+                            _selectedProfessions.add(label);
+                          }
+                        }),
+                      ),
                     ),
                     const SizedBox(height: 32),
                     AppButton(

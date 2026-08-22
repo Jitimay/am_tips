@@ -38,6 +38,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     String? city,
     String? country,
     String? personalMessage,
+    List<String>? professions,
   }) async {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure());
     try {
@@ -47,6 +48,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'city': ?city,
         'country': ?country,
         'personal_message': ?personalMessage,
+        'professions': ?professions,
       };
       final model = await remoteDataSource.updateProfile(data);
       return Right(model.toDomain());
@@ -113,6 +115,23 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'city': city,
         'country': country,
       });
+      return Right(model.toDomain());
+    } on AuthenticationException catch (e) {
+      return Left(AuthenticationFailure(message: e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    } catch (e) {
+      return Left(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, WaiterProfile>> completeOnboardingProfessions({
+    required List<String> professions,
+  }) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      final model = await remoteDataSource.updateProfile({'professions': professions});
       return Right(model.toDomain());
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));

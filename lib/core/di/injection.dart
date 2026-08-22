@@ -4,6 +4,7 @@ import 'package:get_it/get_it.dart';
 
 import '../network/api_client.dart';
 import '../network/network_info.dart';
+import '../services/push_notification_service.dart';
 import '../storage/secure_storage.dart';
 import '../storage/supabase_storage_service.dart';
 
@@ -132,7 +133,7 @@ Future<void> configureDependencies() async {
 
   // ── QR Code ───────────────────────────────────────────────────────────────
   sl.registerLazySingleton<QrRemoteDataSource>(
-    () => QrRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+    () => QrRemoteDataSourceImpl(),
   );
   sl.registerLazySingleton<QrRepository>(
     () => QrRepositoryImpl(
@@ -184,6 +185,12 @@ Future<void> configureDependencies() async {
   );
   sl.registerFactory<NotificationBloc>(
     () => NotificationBloc(notificationRepository: sl<NotificationRepository>()),
+  );
+  sl.registerLazySingleton<PushNotificationService>(
+    () => PushNotificationService(
+      notificationRepository: sl<NotificationRepository>(),
+      secureStorage: sl<SecureStorage>(),
+    ),
   );
 
   // ── Settings ──────────────────────────────────────────────────────────────

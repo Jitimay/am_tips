@@ -11,6 +11,7 @@ abstract class ProfileRepository {
     String? city,
     String? country,
     String? personalMessage,
+    List<String>? professions,
   });
 
   Future<Either<Failure, String>> uploadAvatar(String filePath);
@@ -24,6 +25,10 @@ abstract class ProfileRepository {
     required String restaurantName,
     required String city,
     required String country,
+  });
+
+  Future<Either<Failure, WaiterProfile>> completeOnboardingProfessions({
+    required List<String> professions,
   });
 
   Future<Either<Failure, PaymentAccountInfo>> connectPaymentAccount({

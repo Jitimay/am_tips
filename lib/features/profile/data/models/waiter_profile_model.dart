@@ -18,6 +18,7 @@ abstract class WaiterProfileModel with _$WaiterProfileModel {
     @JsonKey(name: 'average_rating') @Default(0.0) double averageRating,
     @JsonKey(name: 'total_ratings') @Default(0) int totalRatings,
     @JsonKey(name: 'qr_token') @Default('') String qrToken,
+    @Default([]) List<String> professions,
     @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @JsonKey(name: 'connected_payment_account')
     PaymentAccountModel? connectedPaymentAccount,
@@ -49,12 +50,13 @@ abstract class PublicWaiterProfileModel with _$PublicWaiterProfileModel {
     required String id,
     @JsonKey(name: 'full_name') required String fullName,
     @JsonKey(name: 'avatar_url') String? avatarUrl,
-    @JsonKey(name: 'restaurant_name') required String restaurantName,
+    @JsonKey(name: 'restaurant_name') @Default('') String restaurantName,
     required String city,
     required String country,
     @JsonKey(name: 'personal_message') String? personalMessage,
     @JsonKey(name: 'average_rating') @Default(0.0) double averageRating,
     @JsonKey(name: 'total_ratings') @Default(0) int totalRatings,
+    @Default([]) List<String> professions,
   }) = _PublicWaiterProfileModel;
 
   factory PublicWaiterProfileModel.fromJson(Map<String, dynamic> json) =>
@@ -74,6 +76,7 @@ extension WaiterProfileModelX on WaiterProfileModel {
         averageRating: averageRating,
         totalRatings: totalRatings,
         qrToken: qrToken,
+        professions: professions,
         isActive: isActive,
         connectedPaymentAccount: connectedPaymentAccount?.toDomain(),
         createdAt: createdAt ?? DateTime.now(),
@@ -102,5 +105,6 @@ extension PublicWaiterProfileModelX on PublicWaiterProfileModel {
         personalMessage: personalMessage,
         averageRating: averageRating,
         totalRatings: totalRatings,
+        professions: professions,
       );
 }

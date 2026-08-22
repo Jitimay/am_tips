@@ -19,6 +19,11 @@ _WaiterProfileModel _$WaiterProfileModelFromJson(Map<String, dynamic> json) =>
       averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0.0,
       totalRatings: (json['total_ratings'] as num?)?.toInt() ?? 0,
       qrToken: json['qr_token'] as String? ?? '',
+      professions:
+          (json['professions'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       isActive: json['is_active'] as bool? ?? true,
       connectedPaymentAccount: json['connected_payment_account'] == null
           ? null
@@ -46,6 +51,7 @@ Map<String, dynamic> _$WaiterProfileModelToJson(_WaiterProfileModel instance) =>
       'average_rating': instance.averageRating,
       'total_ratings': instance.totalRatings,
       'qr_token': instance.qrToken,
+      'professions': instance.professions,
       'is_active': instance.isActive,
       'connected_payment_account': instance.connectedPaymentAccount,
       'created_at': instance.createdAt?.toIso8601String(),
@@ -77,12 +83,17 @@ _PublicWaiterProfileModel _$PublicWaiterProfileModelFromJson(
   id: json['id'] as String,
   fullName: json['full_name'] as String,
   avatarUrl: json['avatar_url'] as String?,
-  restaurantName: json['restaurant_name'] as String,
+  restaurantName: json['restaurant_name'] as String? ?? '',
   city: json['city'] as String,
   country: json['country'] as String,
   personalMessage: json['personal_message'] as String?,
   averageRating: (json['average_rating'] as num?)?.toDouble() ?? 0.0,
   totalRatings: (json['total_ratings'] as num?)?.toInt() ?? 0,
+  professions:
+      (json['professions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$PublicWaiterProfileModelToJson(
@@ -97,4 +108,5 @@ Map<String, dynamic> _$PublicWaiterProfileModelToJson(
   'personal_message': instance.personalMessage,
   'average_rating': instance.averageRating,
   'total_ratings': instance.totalRatings,
+  'professions': instance.professions,
 };

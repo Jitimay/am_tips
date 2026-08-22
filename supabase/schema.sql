@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     average_rating NUMERIC(3, 2) NOT NULL DEFAULT 0.0,
     total_ratings INTEGER NOT NULL DEFAULT 0,
     qr_token TEXT NOT NULL DEFAULT '',
+    professions TEXT[] NOT NULL DEFAULT '{}',
     is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
@@ -87,6 +88,10 @@ ALTER TABLE public.wallets ENABLE ROW LEVEL SECURITY;
 
 -- ----------------------------------------------------------------------------
 -- PROFILES POLICIES
+-- The app passes firebase_uid via the app client (anon key).
+-- SELECT is open so customers can view waiter profiles without auth.
+-- INSERT/UPDATE are scoped to the requesting user's firebase_uid via request header.
+-- DELETE is disallowed — use is_active = false instead.
 -- ----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Allow select profiles" ON public.profiles;
 CREATE POLICY "Allow select profiles"
@@ -98,50 +103,140 @@ DROP POLICY IF EXISTS "Allow insert profiles" ON public.profiles;
 CREATE POLICY "Allow insert profiles"
 ON public.profiles FOR INSERT
 TO anon, authenticated
-WITH CHECK (true);
+WITH CHECK (firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid'));
 
 DROP POLICY IF EXISTS "Allow update profiles" ON public.profiles;
 CREATE POLICY "Allow update profiles"
 ON public.profiles FOR UPDATE
 TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+USING (firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid'))
+WITH CHECK (firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid'));
 
-DROP POLICY IF EXISTS "Allow delete profiles" ON public.profiles;
-CREATE POLICY "Allow delete profiles"
-ON public.profiles FOR DELETE
-TO anon, authenticated
-USING (true);
+-- No DELETE policy — soft-delete via is_active flag only.
 
 -- ----------------------------------------------------------------------------
 -- PAYMENT ACCOUNTS POLICIES
+-- Only the owning waiter can manage their payment accounts.
 -- ----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Allow all on payment_accounts" ON public.payment_accounts;
-CREATE POLICY "Allow all on payment_accounts"
-ON public.payment_accounts FOR ALL
+
+CREATE POLICY "Select own payment_accounts"
+ON public.payment_accounts FOR SELECT
 TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+USING (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
+
+CREATE POLICY "Insert own payment_accounts"
+ON public.payment_accounts FOR INSERT
+TO anon, authenticated
+WITH CHECK (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
+
+CREATE POLICY "Update own payment_accounts"
+ON public.payment_accounts FOR UPDATE
+TO anon, authenticated
+USING (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
+
+CREATE POLICY "Delete own payment_accounts"
+ON public.payment_accounts FOR DELETE
+TO anon, authenticated
+USING (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
 
 -- ----------------------------------------------------------------------------
 -- TIPS POLICIES
+-- INSERT is open to anon (customers tip without an account).
+-- SELECT/UPDATE/DELETE are restricted to the receiving waiter.
 -- ----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Allow all on tips" ON public.tips;
-CREATE POLICY "Allow all on tips"
-ON public.tips FOR ALL
+
+CREATE POLICY "Anyone can insert tips"
+ON public.tips FOR INSERT
 TO anon, authenticated
-USING (true)
 WITH CHECK (true);
+
+CREATE POLICY "Waiter can select own tips"
+ON public.tips FOR SELECT
+TO anon, authenticated
+USING (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
+
+CREATE POLICY "Waiter can update own tips"
+ON public.tips FOR UPDATE
+TO anon, authenticated
+USING (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
 
 -- ----------------------------------------------------------------------------
 -- WALLETS POLICIES
+-- Only the owning waiter can read/update their wallet.
+-- INSERT is restricted (wallet created server-side on profile creation).
 -- ----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Allow all on wallets" ON public.wallets;
-CREATE POLICY "Allow all on wallets"
-ON public.wallets FOR ALL
+
+CREATE POLICY "Waiter can select own wallet"
+ON public.wallets FOR SELECT
 TO anon, authenticated
-USING (true)
-WITH CHECK (true);
+USING (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
+
+CREATE POLICY "Waiter can update own wallet"
+ON public.wallets FOR UPDATE
+TO anon, authenticated
+USING (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
+
+CREATE POLICY "Waiter can insert own wallet"
+ON public.wallets FOR INSERT
+TO anon, authenticated
+WITH CHECK (
+  waiter_id = (
+    SELECT id FROM public.profiles
+    WHERE firebase_uid = (current_setting('request.headers', true)::json->>'x-firebase-uid')
+    LIMIT 1
+  )
+);
 
 -- ============================================================================
 -- STORAGE BUCKETS & STORAGE POLICIES
@@ -220,3 +315,81 @@ ON storage.objects FOR UPDATE
 TO anon, authenticated
 USING (bucket_id = 'user-uploads')
 WITH CHECK (bucket_id = 'user-uploads');
+
+-- ============================================================================
+-- MIGRATION: Add professions column (run once on existing databases)
+-- ============================================================================
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS professions TEXT[] NOT NULL DEFAULT '{}';
+
+-- ============================================================================
+-- MIGRATION: Add professions column (run once on existing databases)
+-- ============================================================================
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS professions TEXT[] NOT NULL DEFAULT '{}';
+
+-- ============================================================================
+-- MIGRATION: Profession-first platform update
+-- amTips is no longer restaurant-only. restaurant_name is now a generic
+-- "workplace / venue" field — optional context for any profession.
+-- Run this block once in the Supabase SQL Editor.
+-- ============================================================================
+
+-- 1. Rename the column comment so the schema documents the new intent.
+--    (PostgreSQL COMMENT does not require a rename — data is unchanged.)
+COMMENT ON COLUMN public.profiles.restaurant_name IS
+  'Generic workplace or venue name — e.g. restaurant, music club, YouTube channel. '
+  'Empty string means the person works independently. Not limited to restaurants.';
+
+-- 2. Ensure professions column exists with correct type (idempotent).
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS professions TEXT[] NOT NULL DEFAULT '{}';
+
+-- 3. GIN index on professions for fast array-contains queries,
+--    e.g. WHERE professions @> ARRAY['🎵 Musician / Singer']
+CREATE INDEX IF NOT EXISTS idx_profiles_professions
+  ON public.profiles USING GIN (professions);
+
+-- 4. Add a generated tsvector column for full-text search across
+--    name, workplace, city, and professions so the discovery feature
+--    can search "musician Bujumbura" or "taxi driver".
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS search_vector tsvector
+  GENERATED ALWAYS AS (
+    to_tsvector('simple',
+      coalesce(full_name,        '') || ' ' ||
+      coalesce(restaurant_name,  '') || ' ' ||
+      coalesce(city,             '') || ' ' ||
+      coalesce(country,          '') || ' ' ||
+      coalesce(array_to_string(professions, ' '), '')
+    )
+  ) STORED;
+
+CREATE INDEX IF NOT EXISTS idx_profiles_search_vector
+  ON public.profiles USING GIN (search_vector);
+
+-- 5. Public profile view — returns only safe fields including professions.
+--    Customers use this view; it never exposes firebase_uid or payment data.
+CREATE OR REPLACE VIEW public.public_profiles AS
+SELECT
+  id,
+  full_name,
+  avatar_url,
+  restaurant_name,   -- kept as column name for backward compat; means "workplace"
+  city,
+  country,
+  personal_message,
+  average_rating,
+  total_ratings,
+  professions,
+  qr_token,
+  is_active
+FROM public.profiles
+WHERE is_active = true;
+
+-- Grant SELECT on the view to anon (customers can read without auth)
+GRANT SELECT ON public.public_profiles TO anon, authenticated;
+
+-- ============================================================================
+-- END: Profession-first platform migration
+-- ============================================================================

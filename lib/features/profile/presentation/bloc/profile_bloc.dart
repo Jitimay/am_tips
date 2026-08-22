@@ -39,6 +39,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       city: event.city,
       country: event.country,
       personalMessage: event.personalMessage,
+      professions: event.professions,
     );
     result.fold(
       (failure) => emit(ProfileError(failure.message)),

@@ -17,6 +17,7 @@ abstract class WaiterProfile with _$WaiterProfile {
     @Default(0.0) double averageRating,
     @Default(0) int totalRatings,
     required String qrToken,
+    @Default([]) List<String> professions,
     @Default(true) bool isActive,
     PaymentAccountInfo? connectedPaymentAccount,
     required DateTime createdAt,
@@ -48,12 +49,16 @@ abstract class PublicWaiterProfile with _$PublicWaiterProfile {
     required String id,
     required String fullName,
     String? avatarUrl,
-    required String restaurantName,
+    /// Generic workplace/venue name — e.g. restaurant, club, channel.
+    /// Empty string means the person works independently.
+    @Default('') String restaurantName,
     required String city,
     required String country,
     String? personalMessage,
     required double averageRating,
     required int totalRatings,
+    /// The professions/roles this person does, e.g. ["🎵 Musician / Singer"].
+    @Default([]) List<String> professions,
   }) = _PublicWaiterProfile;
 
   factory PublicWaiterProfile.fromJson(Map<String, dynamic> json) =>

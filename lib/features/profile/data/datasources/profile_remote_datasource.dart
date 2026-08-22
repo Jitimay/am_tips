@@ -102,7 +102,8 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     try {
       final data = await _db
           .from('profiles')
-          .select('id, full_name, avatar_url, restaurant_name, city, country, personal_message, average_rating, total_ratings')
+          .select(
+              'id, full_name, avatar_url, restaurant_name, city, country, personal_message, average_rating, total_ratings, professions')
           .eq('id', waiterId)
           .single();
       return PublicWaiterProfileModel.fromJson(data);

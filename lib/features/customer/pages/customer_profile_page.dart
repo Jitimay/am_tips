@@ -13,7 +13,6 @@ import '../bloc/customer_tip_bloc.dart';
 
 class CustomerProfilePage extends StatefulWidget {
   final String waiterId;
-
   const CustomerProfilePage({super.key, required this.waiterId});
 
   @override
@@ -29,9 +28,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
   @override
   void initState() {
     super.initState();
-    context
-        .read<CustomerTipBloc>()
-        .add(CustomerProfileRequested(widget.waiterId));
+    context.read<CustomerTipBloc>().add(
+          CustomerProfileRequested(widget.waiterId),
+        );
   }
 
   @override
@@ -55,8 +54,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
 
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please select or enter a tip amount.')),
+        const SnackBar(content: Text('Please select or enter a tip amount.')),
       );
       return;
     }
@@ -64,9 +62,10 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
     context.read<CustomerTipBloc>().add(
           TipAmountSelected(amount: amount, currency: _currency),
         );
-
-    context.push('/t/${widget.waiterId}/payment',
-        extra: {'amount': amount, 'currency': _currency});
+    context.push(
+      '/t/${widget.waiterId}/payment',
+      extra: {'amount': amount, 'currency': _currency},
+    );
   }
 
   @override
@@ -91,9 +90,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
             return SafeArea(
               child: CustomScrollView(
                 slivers: [
-                  _buildHeader(profile),
+                  _buildHeader(context, profile),
                   SliverPadding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         _buildPresetAmounts(),
@@ -103,6 +102,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                         _buildContinueButton(),
                         const SizedBox(height: 24),
                         _buildPoweredBy(),
+                        const SizedBox(height: 32),
                       ]),
                     ),
                   ),
@@ -116,38 +116,83 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
     );
   }
 
-  Widget _buildHeader(dynamic profile) {
+  // ── Header ───────────────────────────────────────────────────────────────
+
+  Widget _buildHeader(BuildContext context, dynamic profile) {
+    final professions = (profile.professions as List?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        <String>[];
+    final hasWorkplace = (profile.restaurantName as String?)?.isNotEmpty == true;
+    final hasProfessions = professions.isNotEmpty;
+
     return SliverToBoxAdapter(
       child: Container(
-        padding: const EdgeInsets.all(28),
-        decoration: const BoxDecoration(
-          gradient: AppColors.walletGradient,
-        ),
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 28),
+        decoration: const BoxDecoration(gradient: AppColors.walletGradient),
         child: Column(
           children: [
-            const SizedBox(height: 12),
+            // Avatar
             AvatarWidget(
-              name: profile.fullName,
-              imageUrl: profile.avatarUrl,
+              name: profile.fullName as String,
+              imageUrl: profile.avatarUrl as String?,
               radius: 40,
             ),
             const SizedBox(height: 14),
+
+            // Name
             Text(
-              'Tip ${profile.fullName.split(' ').first}',
+              'Tip ${(profile.fullName as String).split(' ').first}',
               style: AppTextStyles.h1.copyWith(color: Colors.white),
             ),
-            const SizedBox(height: 4),
-            Text(
-              profile.restaurantName,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: Colors.white70),
-            ),
             const SizedBox(height: 6),
+
+            // ── Professions chips (primary identity) ──────────────────────
+            if (hasProfessions) ...[
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 6,
+                runSpacing: 6,
+                children: professions.map((p) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      p,
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 12,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // ── Workplace (secondary, only if set) ────────────────────────
+            if (hasWorkplace) ...[
+              Text(
+                profile.restaurantName as String,
+                style: AppTextStyles.bodyMedium
+                    .copyWith(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+            ],
+
+            // ── Location ──────────────────────────────────────────────────
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.location_on_outlined,
-                    size: 14, color: Colors.white70),
+                    size: 13, color: Colors.white70),
                 const SizedBox(width: 3),
                 Text(
                   '${profile.city}, ${profile.country}',
@@ -156,31 +201,35 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                 ),
               ],
             ),
-            if (profile.totalRatings > 0) ...[
+
+            // ── Rating ────────────────────────────────────────────────────
+            if ((profile.totalRatings as int) > 0) ...[
               const SizedBox(height: 10),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   StarRating(
-                    rating: profile.averageRating.round(),
+                    rating: (profile.averageRating as double).round(),
                     size: 16,
                     activeColor: AppColors.warning,
                     inactiveColor: Colors.white38,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    profile.averageRating.toStringAsFixed(1),
+                    (profile.averageRating as double).toStringAsFixed(1),
                     style: AppTextStyles.labelSmall
                         .copyWith(color: Colors.white),
                   ),
                 ],
               ),
             ],
-            if (profile.personalMessage != null &&
-                profile.personalMessage!.isNotEmpty) ...[
+
+            // ── Personal message ──────────────────────────────────────────
+            if ((profile.personalMessage as String?)?.isNotEmpty == true) ...[
               const SizedBox(height: 14),
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
@@ -201,6 +250,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
     );
   }
 
+  // ── Preset amounts ────────────────────────────────────────────────────────
+
   Widget _buildPresetAmounts() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +270,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
             return GestureDetector(
               onTap: () => _selectAmount(amount),
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 180),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primary
@@ -234,10 +285,11 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
+                            color:
+                                AppColors.primary.withValues(alpha: 0.3),
                             blurRadius: 8,
                             offset: const Offset(0, 3),
-                          )
+                          ),
                         ]
                       : [],
                 ),
@@ -259,6 +311,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
       ],
     );
   }
+
+  // ── Custom amount ─────────────────────────────────────────────────────────
 
   Widget _buildCustomAmount() {
     return Column(
@@ -296,8 +350,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
             style: AppTextStyles.amountMedium,
             decoration: InputDecoration(
               hintText: '0',
-              hintStyle: AppTextStyles.amountMedium.copyWith(
-                  color: AppColors.textHint),
+              hintStyle: AppTextStyles.amountMedium
+                  .copyWith(color: AppColors.textHint),
               suffix: Text(
                 _currency,
                 style: AppTextStyles.labelMedium
@@ -310,6 +364,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
     );
   }
 
+  // ── CTA ───────────────────────────────────────────────────────────────────
+
   Widget _buildContinueButton() {
     return SizedBox(
       width: double.infinity,
@@ -320,8 +376,8 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           elevation: 0,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
         ),
         child: Text(
           'Continue',
@@ -337,7 +393,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const Icon(Icons.monetization_on_rounded,
-              size: 14, color: AppColors.textHint),
+              size: 13, color: AppColors.textHint),
           const SizedBox(width: 4),
           Text('Powered by amTips', style: AppTextStyles.caption),
         ],

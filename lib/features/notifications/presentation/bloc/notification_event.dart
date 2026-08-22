@@ -20,3 +20,15 @@ class NotificationMarkedRead extends NotificationEvent {
 class AllNotificationsMarkedRead extends NotificationEvent {
   const AllNotificationsMarkedRead();
 }
+
+class NotificationReceived extends NotificationEvent {
+  final AppNotification notification;
+  const NotificationReceived(this.notification);
+
+  @override
+  List<Object?> get props => [notification];
+}
+
+class NotificationsRefreshed extends NotificationEvent {
+  const NotificationsRefreshed();
+}

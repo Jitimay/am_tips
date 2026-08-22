@@ -29,34 +29,55 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       avatarPath: avatarPath,
     );
     result.fold(
-      (failure) => emit(state.copyWith(isLoading: false, error: failure.message)),
+      (failure) =>
+          emit(state.copyWith(isLoading: false, error: failure.message)),
       (_) => emit(state.copyWith(
         isLoading: false,
         fullName: fullName,
         avatarPath: avatarPath,
-        step: OnboardingStep.serviceInfo,
+        step: OnboardingStep.professions,
       )),
     );
   }
 
-  // ── Step 2 — Service Info ─────────────────────────────────────────────────
+  // ── Step 2 — Professions ──────────────────────────────────────────────────
 
-  Future<void> submitServiceInfo({
-    required String restaurantName,
+  Future<void> submitProfessions(List<String> professions) async {
+    emit(state.copyWith(isLoading: true, error: null));
+    final result = await profileRepository.completeOnboardingProfessions(
+      professions: professions,
+    );
+    result.fold(
+      (failure) =>
+          emit(state.copyWith(isLoading: false, error: failure.message)),
+      (_) => emit(state.copyWith(
+        isLoading: false,
+        professions: professions,
+        step: OnboardingStep.locationInfo,
+      )),
+    );
+  }
+
+  // ── Step 3 — Location + Workplace ─────────────────────────────────────────
+  // restaurantName is now a generic "workplace / venue" — optional.
+
+  Future<void> submitLocationInfo({
     required String city,
     required String country,
+    String? workplaceName,
   }) async {
     emit(state.copyWith(isLoading: true, error: null));
     final result = await profileRepository.completeOnboardingStep2(
-      restaurantName: restaurantName,
+      restaurantName: workplaceName ?? '',
       city: city,
       country: country,
     );
     result.fold(
-      (failure) => emit(state.copyWith(isLoading: false, error: failure.message)),
+      (failure) =>
+          emit(state.copyWith(isLoading: false, error: failure.message)),
       (_) => emit(state.copyWith(
         isLoading: false,
-        restaurantName: restaurantName,
+        restaurantName: workplaceName,
         city: city,
         country: country,
         step: OnboardingStep.paymentAccount,
@@ -64,7 +85,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     );
   }
 
-  // ── Step 3 — Payment Account ──────────────────────────────────────────────
+  // ── Step 4 — Payment Account ──────────────────────────────────────────────
 
   Future<void> connectPaymentAccount({
     required String type,
@@ -78,7 +99,8 @@ class OnboardingCubit extends Cubit<OnboardingState> {
       accountIdentifier: accountIdentifier,
     );
     result.fold(
-      (failure) => emit(state.copyWith(isLoading: false, error: failure.message)),
+      (failure) =>
+          emit(state.copyWith(isLoading: false, error: failure.message)),
       (_) => emit(state.copyWith(
         isLoading: false,
         paymentConnected: true,
@@ -91,7 +113,7 @@ class OnboardingCubit extends Cubit<OnboardingState> {
     emit(state.copyWith(step: OnboardingStep.qrCode));
   }
 
-  // ── Step 4 — QR Ready ────────────────────────────────────────────────────
+  // ── Step 5 — QR Ready ────────────────────────────────────────────────────
 
   Future<void> markQrReady() async {
     final prefs = await SharedPreferences.getInstance();

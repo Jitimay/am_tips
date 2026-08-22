@@ -19,6 +19,11 @@ _WaiterProfile _$WaiterProfileFromJson(Map<String, dynamic> json) =>
       averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
       totalRatings: (json['totalRatings'] as num?)?.toInt() ?? 0,
       qrToken: json['qrToken'] as String,
+      professions:
+          (json['professions'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
       isActive: json['isActive'] as bool? ?? true,
       connectedPaymentAccount: json['connectedPaymentAccount'] == null
           ? null
@@ -44,6 +49,7 @@ Map<String, dynamic> _$WaiterProfileToJson(_WaiterProfile instance) =>
       'averageRating': instance.averageRating,
       'totalRatings': instance.totalRatings,
       'qrToken': instance.qrToken,
+      'professions': instance.professions,
       'isActive': instance.isActive,
       'connectedPaymentAccount': instance.connectedPaymentAccount,
       'createdAt': instance.createdAt.toIso8601String(),
@@ -73,12 +79,17 @@ _PublicWaiterProfile _$PublicWaiterProfileFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       fullName: json['fullName'] as String,
       avatarUrl: json['avatarUrl'] as String?,
-      restaurantName: json['restaurantName'] as String,
+      restaurantName: json['restaurantName'] as String? ?? '',
       city: json['city'] as String,
       country: json['country'] as String,
       personalMessage: json['personalMessage'] as String?,
       averageRating: (json['averageRating'] as num).toDouble(),
       totalRatings: (json['totalRatings'] as num).toInt(),
+      professions:
+          (json['professions'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$PublicWaiterProfileToJson(
@@ -93,4 +104,5 @@ Map<String, dynamic> _$PublicWaiterProfileToJson(
   'personalMessage': instance.personalMessage,
   'averageRating': instance.averageRating,
   'totalRatings': instance.totalRatings,
+  'professions': instance.professions,
 };

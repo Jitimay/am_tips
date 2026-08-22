@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../core/di/injection.dart';
 import '../core/router/app_router.dart';
+import '../core/services/push_notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/customer/bloc/customer_tip_bloc.dart';
+import '../features/notifications/domain/entities/notification.dart';
 import '../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../features/onboarding/presentation/bloc/onboarding_cubit.dart';
 import '../features/payments/presentation/bloc/payment_bloc.dart';
@@ -57,20 +61,78 @@ class AmTipsApp extends StatelessWidget {
           create: (_) => sl<CustomerTipBloc>(),
         ),
       ],
-      child: BlocBuilder<SettingsCubit, SettingsState>(
-        buildWhen: (prev, curr) => prev.isDarkMode != curr.isDarkMode,
-        builder: (context, settings) {
-          return MaterialApp.router(
-            title: 'amTips',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode:
-                settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-            routerConfig: AppRouter.router,
-          );
-        },
+      child: _NotificationLifecycleWrapper(
+        child: BlocBuilder<SettingsCubit, SettingsState>(
+          buildWhen: (prev, curr) => prev.isDarkMode != curr.isDarkMode,
+          builder: (context, settings) {
+            return MaterialApp.router(
+              title: 'amTips',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              themeMode:
+                  settings.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+              routerConfig: AppRouter.router,
+            );
+          },
+        ),
       ),
+    );
+  }
+}
+
+class _NotificationLifecycleWrapper extends StatefulWidget {
+  final Widget child;
+  const _NotificationLifecycleWrapper({required this.child});
+
+  @override
+  State<_NotificationLifecycleWrapper> createState() =>
+      _NotificationLifecycleWrapperState();
+}
+
+class _NotificationLifecycleWrapperState
+    extends State<_NotificationLifecycleWrapper> {
+  StreamSubscription? _notifSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _notifSub = sl<PushNotificationService>()
+        .onNotificationReceived
+        .listen(_handleNotification);
+  }
+
+  void _handleNotification(AppNotification notif) {
+    if (!mounted) return;
+    context.read<NotificationBloc>().add(NotificationReceived(notif));
+
+    if (notif.type == NotificationType.newTip) {
+      context.read<TipsBloc>().add(const LoadTips());
+      context.read<WalletCubit>().refreshWallet();
+    } else if (notif.type == NotificationType.withdrawalCompleted ||
+        notif.type == NotificationType.withdrawalFailed) {
+      context.read<WalletCubit>().refreshWallet();
+    }
+  }
+
+  @override
+  void dispose() {
+    _notifSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, authState) {
+        if (authState is Authenticated) {
+          sl<PushNotificationService>().syncToken();
+          context.read<NotificationBloc>().add(const NotificationsLoaded());
+        } else if (authState is Unauthenticated) {
+          sl<PushNotificationService>().deleteToken();
+        }
+      },
+      child: widget.child,
     );
   }
 }

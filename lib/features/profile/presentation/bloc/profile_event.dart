@@ -16,6 +16,7 @@ class ProfileUpdated extends ProfileEvent {
   final String? city;
   final String? country;
   final String? personalMessage;
+  final List<String>? professions;
 
   const ProfileUpdated({
     this.fullName,
@@ -23,11 +24,12 @@ class ProfileUpdated extends ProfileEvent {
     this.city,
     this.country,
     this.personalMessage,
+    this.professions,
   });
 
   @override
   List<Object?> get props =>
-      [fullName, restaurantName, city, country, personalMessage];
+      [fullName, restaurantName, city, country, personalMessage, professions];
 }
 
 class ProfileAvatarUpdated extends ProfileEvent {
