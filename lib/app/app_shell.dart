@@ -71,8 +71,8 @@ class _AmTipsBottomNav extends StatelessWidget {
                 isSelected: currentIndex == 1,
                 onTap: () => onTap(1),
               ),
-              // Centre QR button — elevated pill
-              _QrNavItem(
+              // Centre Campaign button — elevated pill
+              _CampaignNavItem(
                 isSelected: currentIndex == 2,
                 onTap: () => onTap(2),
               ),
@@ -150,12 +150,12 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-/// Centre QR button — square with rounded corners, purple gradient
-class _QrNavItem extends StatelessWidget {
+/// Centre Campaign button — square with rounded corners, purple gradient
+class _CampaignNavItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  const _QrNavItem({required this.isSelected, required this.onTap});
+  const _CampaignNavItem({required this.isSelected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -178,11 +178,11 @@ class _QrNavItem extends StatelessWidget {
                 ),
               ],
             ),
-            child: Column(
+            child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 HugeIcon(
-                  icon: HugeIcons.strokeRoundedQrCode,
+                  icon: HugeIcons.strokeRoundedPlusSignSquare,
                   color: Colors.white,
                   size: 24,
                 ),

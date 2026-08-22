@@ -78,6 +78,37 @@ class _HomePageState extends State<HomePage> {
               // ── Top App Bar ─────────────────────────────────────────────
               SliverToBoxAdapter(child: _buildTopBar(context)),
 
+              // ── Search bar ──────────────────────────────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: GestureDetector(
+                    onTap: () => context.push(AppRoutes.search),
+                    child: Container(
+                      height: 46,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.divider),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.search_rounded,
+                              color: AppColors.textHint, size: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Search for someone to tip…',
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: AppColors.textHint),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
               // ── Body ────────────────────────────────────────────────────
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),

@@ -6,6 +6,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/splash_page.dart';
 import '../../features/auth/presentation/pages/verify_email_page.dart';
+import '../../features/customer/pages/search_page.dart';
 import '../../features/customer/pages/customer_payment_page.dart';
 import '../../features/customer/pages/customer_profile_page.dart';
 import '../../features/customer/pages/customer_success_page.dart';
@@ -15,6 +16,7 @@ import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/edit_profile_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/qr_code/presentation/pages/qr_page.dart';
+import '../../features/qr_code/presentation/pages/campaign_card_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/tips/presentation/pages/tip_detail_page.dart';
 import '../../features/tips/presentation/pages/tips_page.dart';
@@ -37,6 +39,7 @@ class AppRoutes {
 
   static const home = '/home';
   static const tips = '/tips';
+  static const campaign = '/campaign';
   static const qr = '/qr';
   static const wallet = '/wallet';
   static const profile = '/profile';
@@ -45,6 +48,7 @@ class AppRoutes {
   static const editProfile = '/profile/edit';
   static const notifications = '/notifications';
   static const settings = '/settings';
+  static const search = '/search';
 
   static const customerProfile = '/t/:waiterId';
 }
@@ -125,8 +129,8 @@ class AppRouter {
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
-              path: AppRoutes.qr,
-              builder: (_, _) => const QrPage(),
+              path: AppRoutes.campaign,
+              builder: (_, _) => const CampaignCardPage(),
             ),
           ]),
           StatefulShellBranch(routes: [
@@ -157,6 +161,14 @@ class AppRouter {
       ),
 
       // ── Standalone modal routes ───────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.qr,
+        builder: (_, _) => const QrPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.search,
+        builder: (_, _) => const SearchPage(),
+      ),
       GoRoute(
         path: AppRoutes.notifications,
         builder: (_, _) => const NotificationsPage(),
