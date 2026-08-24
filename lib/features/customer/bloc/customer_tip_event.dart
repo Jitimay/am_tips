@@ -21,13 +21,20 @@ class TipAmountSelected extends CustomerTipEvent {
   List<Object?> get props => [amount, currency];
 }
 
-class PaymentStarted extends CustomerTipEvent {
-  final String methodId;
-  const PaymentStarted(this.methodId);
-  @override
-  List<Object?> get props => [methodId];
+/// Fired when the customer taps "Pay" — inserts tip row then opens AfriPay.
+class AfriPayCheckoutStarted extends CustomerTipEvent {
+  const AfriPayCheckoutStarted();
 }
 
+/// Fired periodically while polling for payment confirmation.
+class PaymentStatusPolled extends CustomerTipEvent {
+  final String? transactionRef;
+  const PaymentStatusPolled({this.transactionRef});
+  @override
+  List<Object?> get props => [transactionRef];
+}
+
+/// Fired after success screen — submits optional rating + message.
 class PaymentCompleted extends CustomerTipEvent {
   final int? rating;
   final String? message;
@@ -36,6 +43,7 @@ class PaymentCompleted extends CustomerTipEvent {
   List<Object?> get props => [rating, message];
 }
 
-class PaymentStatusPolled extends CustomerTipEvent {
-  const PaymentStatusPolled();
+/// Resets the BLoC for a fresh tip flow.
+class CustomerTipReset extends CustomerTipEvent {
+  const CustomerTipReset();
 }

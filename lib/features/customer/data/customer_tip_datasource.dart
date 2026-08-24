@@ -1,104 +1,170 @@
-import '../../../core/constants/api_endpoints.dart';
-import '../../../core/network/api_client.dart';
-import '../../payments/data/models/payment_model.dart';
+import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../../../core/errors/exceptions.dart';
+import '../../payments/data/datasources/payment_remote_datasource.dart';
+import '../../payments/data/services/afripay_service.dart';
 import '../../profile/data/models/waiter_profile_model.dart';
 import '../../tips/data/models/tip_model.dart';
 
+/// Customer-facing datasource.
+/// Uses Supabase directly for profile + tip data.
+/// Uses AfriPayService for the payment flow.
 abstract class CustomerTipDataSource {
   Future<PublicWaiterProfileModel> getWaiterPublicProfile(String waiterId);
-  Future<TipFeeBreakdownModel> getFeeBreakdown({
-    required String waiterId,
-    required int amount,
+
+  AfriPayFeeDto getFeeBreakdown({
+    required int tipAmount,
     required String currency,
   });
-  Future<TipModel> initiateTip({
+
+  Future<TipModel> insertTip({
     required String waiterId,
     required int amount,
     required String currency,
     required bool isAnonymous,
-    String? idempotencyKey,
   });
-  Future<PaymentResultModel> initiatePayment({
+
+  Future<AfriPayCheckoutDto> initiateAfriPayCheckout({
     required String tipId,
-    required String methodId,
-    required String idempotencyKey,
+    required String waiterId,
+    required String waiterName,
+    required int tipAmount,
+    required String currency,
   });
-  Future<String> checkTipStatus(String tipId);
+
+  Future<String> pollPaymentStatus(String clientToken);
+
+  Future<Map<String, dynamic>?> getCompletedPayment(String clientToken);
+
   Future<void> submitFeedback({
     required String tipId,
     int? rating,
     String? message,
   });
-  Future<List<PaymentMethodModel>> getPaymentMethods();
+
+  List<AfriPayMethodDto> getPaymentMethods();
 }
 
 class CustomerTipDataSourceImpl implements CustomerTipDataSource {
-  final ApiClient apiClient;
-  CustomerTipDataSourceImpl({required this.apiClient});
+  final SupabaseClient _db;
+  final AfriPayService _afri;
+  final PaymentRemoteDataSource _paymentDs;
+
+  CustomerTipDataSourceImpl({
+    SupabaseClient? client,
+    AfriPayService? afriPayService,
+    PaymentRemoteDataSource? paymentDataSource,
+  })  : _db = client ?? Supabase.instance.client,
+        _afri = afriPayService ?? AfriPayService(),
+        _paymentDs = paymentDataSource ?? PaymentRemoteDataSourceImpl();
+
+  // ── Public profile ────────────────────────────────────────────────────────
 
   @override
   Future<PublicWaiterProfileModel> getWaiterPublicProfile(
       String waiterId) async {
-    final res =
-        await apiClient.get(ApiEndpoints.waiterPublicProfile(waiterId));
-    return PublicWaiterProfileModel.fromJson(res.data as Map<String, dynamic>);
+    try {
+      final data = await _db
+          .from('profiles')
+          .select(
+            'id, full_name, avatar_url, restaurant_name, city, country, '
+            'personal_message, average_rating, total_ratings, professions, qr_token',
+          )
+          .eq('id', waiterId)
+          .eq('is_active', true)
+          .single();
+      return PublicWaiterProfileModel.fromJson(data);
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        statusCode: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), statusCode: null);
+    }
   }
 
+  // ── Fee breakdown (local — no network needed) ─────────────────────────────
+
   @override
-  Future<TipFeeBreakdownModel> getFeeBreakdown({
-    required String waiterId,
-    required int amount,
+  AfriPayFeeDto getFeeBreakdown({
+    required int tipAmount,
     required String currency,
-  }) async {
-    final res = await apiClient.get(
-      '/public/fee-preview',
-      queryParameters: {
-        'waiter_id': waiterId,
-        'amount': amount,
-        'currency': currency,
-      },
+  }) {
+    return _paymentDs.getFeeBreakdown(
+      tipAmount: tipAmount,
+      currency: currency,
     );
-    return TipFeeBreakdownModel.fromJson(res.data as Map<String, dynamic>);
   }
 
+  // ── Create tip row in Supabase ────────────────────────────────────────────
+
   @override
-  Future<TipModel> initiateTip({
+  Future<TipModel> insertTip({
     required String waiterId,
     required int amount,
     required String currency,
     required bool isAnonymous,
-    String? idempotencyKey,
   }) async {
-    final res = await apiClient.post(
-      ApiEndpoints.initiateTip(waiterId),
-      data: {
-        'amount': amount,
-        'currency': currency,
-        'is_anonymous': isAnonymous,
-        'idempotency_key': ?idempotencyKey,
-      },
-    );
-    return TipModel.fromJson(res.data as Map<String, dynamic>);
+    try {
+      // Tips are inserted with status = 'pending' until AfriPay confirms.
+      final row = await _db
+          .from('tips')
+          .insert({
+            'waiter_id': waiterId,
+            'amount': amount,
+            'currency': currency,
+            'status': 'pending',
+            'is_anonymous': isAnonymous,
+          })
+          .select()
+          .single();
+      return TipModel.fromJson(row);
+    } on PostgrestException catch (e) {
+      throw ServerException(
+        message: e.message,
+        statusCode: int.tryParse(e.code ?? ''),
+      );
+    } catch (e) {
+      if (e is ServerException) rethrow;
+      throw ServerException(message: e.toString(), statusCode: null);
+    }
   }
 
+  // ── AfriPay checkout ──────────────────────────────────────────────────────
+
   @override
-  Future<PaymentResultModel> initiatePayment({
+  Future<AfriPayCheckoutDto> initiateAfriPayCheckout({
     required String tipId,
-    required String methodId,
-    required String idempotencyKey,
+    required String waiterId,
+    required String waiterName,
+    required int tipAmount,
+    required String currency,
   }) async {
-    final res = await apiClient.post(
-      ApiEndpoints.initiatePayment(tipId),
-      data: {'method_id': methodId, 'idempotency_key': idempotencyKey},
+    return _paymentDs.initiateCheckout(
+      tipId: tipId,
+      waiterId: waiterId,
+      waiterName: waiterName,
+      tipAmount: tipAmount,
+      currency: currency,
     );
-    return PaymentResultModel.fromJson(res.data as Map<String, dynamic>);
+  }
+
+  // ── Status polling ────────────────────────────────────────────────────────
+
+  @override
+  Future<String> pollPaymentStatus(String clientToken) {
+    return _afri.getPaymentStatus(clientToken);
   }
 
   @override
-  Future<String> checkTipStatus(String tipId) async {
-    final res = await apiClient.get(ApiEndpoints.tipPaymentStatus(tipId));
-    return (res.data as Map<String, dynamic>)['status'] as String;
+  Future<Map<String, dynamic>?> getCompletedPayment(String clientToken) {
+    return _afri.getCompletedPayment(clientToken);
   }
+
+  // ── Feedback ──────────────────────────────────────────────────────────────
 
   @override
   Future<void> submitFeedback({
@@ -106,21 +172,23 @@ class CustomerTipDataSourceImpl implements CustomerTipDataSource {
     int? rating,
     String? message,
   }) async {
-    await apiClient.post(
-      ApiEndpoints.completeTip(tipId),
-      data: {
-        'rating': ?rating,
-        'message': ?message,
-      },
-    );
+    try {
+      final updates = <String, dynamic>{};
+      if (rating != null) updates['rating'] = rating;
+      if (message != null && message.isNotEmpty) updates['message'] = message;
+      if (updates.isEmpty) return;
+
+      await _db.from('tips').update(updates).eq('id', tipId);
+    } on PostgrestException catch (e) {
+      debugPrint('[CustomerTipDataSource] submitFeedback error: ${e.message}');
+      // Non-critical — don't throw
+    }
   }
 
+  // ── Payment methods ───────────────────────────────────────────────────────
+
   @override
-  Future<List<PaymentMethodModel>> getPaymentMethods() async {
-    final res = await apiClient.get('/public/payment-methods');
-    final list = res.data['data'] as List;
-    return list
-        .map((e) => PaymentMethodModel.fromJson(e as Map<String, dynamic>))
-        .toList();
+  List<AfriPayMethodDto> getPaymentMethods() {
+    return _paymentDs.getPaymentMethods();
   }
 }

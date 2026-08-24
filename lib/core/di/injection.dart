@@ -4,7 +4,6 @@ import 'package:get_it/get_it.dart';
 
 import '../network/api_client.dart';
 import '../network/network_info.dart';
-import '../services/push_notification_service.dart';
 import '../storage/secure_storage.dart';
 import '../storage/supabase_storage_service.dart';
 
@@ -32,6 +31,7 @@ import '../../features/qr_code/presentation/bloc/qr_cubit.dart';
 
 import '../../features/payments/data/datasources/payment_remote_datasource.dart';
 import '../../features/payments/data/repositories/payment_repository_impl.dart';
+import '../../features/payments/data/services/afripay_service.dart';
 import '../../features/payments/domain/repositories/payment_repository.dart';
 import '../../features/payments/presentation/bloc/payment_bloc.dart';
 
@@ -62,7 +62,7 @@ Future<void> configureDependencies() async {
   // ── External ──────────────────────────────────────────────────────────────
   sl.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(
-      aOptions: AndroidOptions(),
+      aOptions: AndroidOptions(encryptedSharedPreferences: true),
     ),
   );
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
@@ -95,7 +95,9 @@ Future<void> configureDependencies() async {
       networkInfo: sl<NetworkInfo>(),
     ),
   );
-  sl.registerFactory<AuthBloc>(() => AuthBloc(authRepository: sl<AuthRepository>()));
+  sl.registerFactory<AuthBloc>(
+    () => AuthBloc(authRepository: sl<AuthRepository>()),
+  );
 
   // ── Profile ───────────────────────────────────────────────────────────────
   sl.registerLazySingleton<ProfileRemoteDataSource>(
@@ -112,7 +114,6 @@ Future<void> configureDependencies() async {
   sl.registerFactory<ProfileBloc>(
     () => ProfileBloc(profileRepository: sl<ProfileRepository>()),
   );
-
 
   // ── Tips ──────────────────────────────────────────────────────────────────
   sl.registerLazySingleton<TipsRemoteDataSource>(
@@ -145,9 +146,14 @@ Future<void> configureDependencies() async {
     () => QrCubit(qrRepository: sl<QrRepository>()),
   );
 
-  // ── Payments ──────────────────────────────────────────────────────────────
+  // ── AfriPay + Payments ────────────────────────────────────────────────────
+  sl.registerLazySingleton<AfriPayService>(
+    () => AfriPayService(),
+  );
   sl.registerLazySingleton<PaymentRemoteDataSource>(
-    () => PaymentRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+    () => PaymentRemoteDataSourceImpl(
+      afriPayService: sl<AfriPayService>(),
+    ),
   );
   sl.registerLazySingleton<PaymentRepository>(
     () => PaymentRepositoryImpl(
@@ -184,13 +190,8 @@ Future<void> configureDependencies() async {
     ),
   );
   sl.registerFactory<NotificationBloc>(
-    () => NotificationBloc(notificationRepository: sl<NotificationRepository>()),
-  );
-  sl.registerLazySingleton<PushNotificationService>(
-    () => PushNotificationService(
-      notificationRepository: sl<NotificationRepository>(),
-      secureStorage: sl<SecureStorage>(),
-    ),
+    () => NotificationBloc(
+        notificationRepository: sl<NotificationRepository>()),
   );
 
   // ── Settings ──────────────────────────────────────────────────────────────
@@ -206,9 +207,12 @@ Future<void> configureDependencies() async {
     () => OnboardingCubit(profileRepository: sl<ProfileRepository>()),
   );
 
-  // ── Customer tipping ──────────────────────────────────────────────────────
+  // ── Customer tipping (AfriPay-backed, Supabase-direct) ───────────────────
   sl.registerLazySingleton<CustomerTipDataSource>(
-    () => CustomerTipDataSourceImpl(apiClient: sl<ApiClient>()),
+    () => CustomerTipDataSourceImpl(
+      afriPayService: sl<AfriPayService>(),
+      paymentDataSource: sl<PaymentRemoteDataSource>(),
+    ),
   );
   sl.registerLazySingleton<CustomerTipRepository>(
     () => CustomerTipRepositoryImpl(

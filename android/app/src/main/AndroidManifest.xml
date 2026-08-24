@@ -35,6 +35,27 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="amtips"/>
             </intent-filter>
+            <!-- AfriPay return deep link: amtips://payment/return -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="amtips" android:host="payment"/>
+            </intent-filter>
+            <!-- QR tipping deep link: amtips://t/{waiterId} -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="amtips" android:host="t"/>
+            </intent-filter>
+            <!-- Web tipping link: https://amtips.app/t/{waiterId} -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="amtips.app" android:pathPrefix="/t/"/>
+            </intent-filter>
         </activity>
 
         <!-- FCM default notification channel & icon -->

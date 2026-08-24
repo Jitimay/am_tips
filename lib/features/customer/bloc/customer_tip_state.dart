@@ -16,7 +16,7 @@ class CustomerTipLoading extends CustomerTipState {
 
 class CustomerProfileLoaded extends CustomerTipState {
   final PublicWaiterProfile profile;
-  final List<PaymentMethod> paymentMethods;
+  final List<AfriPayMethodDto> paymentMethods;
   const CustomerProfileLoaded({
     required this.profile,
     required this.paymentMethods,
@@ -29,8 +29,8 @@ class CustomerTipAmountSelected extends CustomerTipState {
   final PublicWaiterProfile profile;
   final int amount;
   final String currency;
-  final TipFeeBreakdown? feeBreakdown;
-  final List<PaymentMethod> paymentMethods;
+  final AfriPayFeeDto? feeBreakdown;
+  final List<AfriPayMethodDto> paymentMethods;
   const CustomerTipAmountSelected({
     required this.profile,
     required this.amount,
@@ -39,23 +39,42 @@ class CustomerTipAmountSelected extends CustomerTipState {
     required this.paymentMethods,
   });
   @override
-  List<Object?> get props =>
-      [profile, amount, currency, feeBreakdown, paymentMethods];
+  List<Object?> get props => [profile, amount, currency, feeBreakdown];
 }
 
-class CustomerPaymentProcessing extends CustomerTipState {
+/// AfriPay checkout has been launched in the browser.
+/// App is now waiting for the callback to update Supabase.
+class CustomerAwaitingPayment extends CustomerTipState {
   final String tipId;
-  const CustomerPaymentProcessing(this.tipId);
+  final String clientToken;
+  final AfriPayFeeDto feeBreakdown;
+  final PublicWaiterProfile profile;
+  const CustomerAwaitingPayment({
+    required this.tipId,
+    required this.clientToken,
+    required this.feeBreakdown,
+    required this.profile,
+  });
   @override
-  List<Object?> get props => [tipId];
+  List<Object?> get props => [tipId, clientToken];
 }
 
+/// AfriPay confirmed payment — tip is completed.
 class CustomerTipSuccess extends CustomerTipState {
-  final Tip tip;
+  final String tipId;
+  final int tipAmount;
+  final String currency;
   final PublicWaiterProfile profile;
-  const CustomerTipSuccess({required this.tip, required this.profile});
+  final String? transactionRef;
+  const CustomerTipSuccess({
+    required this.tipId,
+    required this.tipAmount,
+    required this.currency,
+    required this.profile,
+    this.transactionRef,
+  });
   @override
-  List<Object?> get props => [tip, profile];
+  List<Object?> get props => [tipId, tipAmount, currency];
 }
 
 class CustomerTipError extends CustomerTipState {

@@ -50,6 +50,25 @@ class AppConstants {
   // Tip preset amounts (in minor currency units / BIF)
   static const List<int> tipPresets = [1000, 2000, 5000, 10000];
 
+  // ── AfriPay Payment Gateway ───────────────────────────────────────────────
+  static const String afriPayAppId       = AppSecrets.afriPayAppId;
+  static const String afriPayAppSecret   = AppSecrets.afriPayAppSecret;
+  static const String afriPayCheckoutUrl = AppSecrets.afriPayCheckoutUrl;
+  static const String afriPayCallbackUrl = AppSecrets.afriPayCallbackUrl;
+  static const String afriPayReturnUrl   = AppSecrets.afriPayReturnUrl;
+
+  /// AfriPay charges 4% on every payment.
+  /// We pass this to the customer transparently.
+  static const double afriPayFeePercent = 0.04;
+
+  /// amTips platform fee on top (currently 0 — waiter keeps everything after gateway).
+  /// Change this to e.g. 0.02 to add a 2% platform cut.
+  static const double amTipsPlatformFeePercent = 0.00;
+
+  /// Total fee multiplier shown to customer.
+  static double get totalFeePercent =>
+      afriPayFeePercent + amTipsPlatformFeePercent;
+
   // Withdrawal limits
   static const int minWithdrawalAmount = 1000;
   static const int maxWithdrawalAmount = 1000000;
