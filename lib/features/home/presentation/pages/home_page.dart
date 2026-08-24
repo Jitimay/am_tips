@@ -195,6 +195,23 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           const SizedBox(width: 8),
+          // Scan QR button
+          GestureDetector(
+            onTap: () => context.push(AppRoutes.scanner),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                shape: BoxShape.circle,
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: const Icon(Icons.qr_code_scanner_rounded,
+                  color: AppColors.primary, size: 20),
+            ),
+          ),
+          const SizedBox(width: 8),
           // Profile icon
           GestureDetector(
             onTap: () => context.go(AppRoutes.profile),
@@ -849,7 +866,7 @@ class _RecentTipRow extends StatelessWidget {
     final name =
         isAnon ? 'Anonymous customer' : (tip.customerName ?? 'Happy guest');
     final message = tip.message as String?;
-    final amount = tip.amount as int;
+    final amount = (tip.amount as num).toInt();
     final currency = tip.currency as String;
     final time = _formatTime(tip.createdAt as DateTime);
 

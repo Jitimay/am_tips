@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -25,24 +26,13 @@ class WithdrawalPage extends StatefulWidget {
 class _WithdrawalPageState extends State<WithdrawalPage> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
-  int _availableBalance = 0;
-  String _currency = AppConstants.defaultCurrency;
-  String? _paymentAccountId;
 
   @override
   void initState() {
     super.initState();
-    final walletState = context.read<WalletCubit>().state;
-    if (walletState is WalletLoaded) {
-      _availableBalance = walletState.wallet.availableBalance;
-      _currency = walletState.wallet.currency;
-    }
-    final profileState = context.read<ProfileBloc>().state;
-    if (profileState is ProfileLoaded &&
-        profileState.profile.connectedPaymentAccount != null) {
-      _paymentAccountId =
-          profileState.profile.connectedPaymentAccount!.id;
-    }
+    // Ensure latest data is loaded
+    context.read<WalletCubit>().loadWallet();
+    context.read<ProfileBloc>().add(const LoadProfile());
   }
 
   @override
@@ -51,23 +41,30 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
     super.dispose();
   }
 
-  void _setMax() {
-    _amountController.text = _availableBalance.toString();
-  }
-
-  void _submit() {
+  void _submit({
+    required int availableBalance,
+    required String currency,
+    required String? paymentAccountId,
+  }) {
     if (!_formKey.currentState!.validate()) return;
-    if (_paymentAccountId == null) {
-      SnackBarUtils.showError(context,
-          'No payment account connected. Please add one in your profile.');
+
+    if (paymentAccountId == null) {
+      SnackBarUtils.showError(
+        context,
+        'No payment account connected. Add one in Edit Profile first.',
+      );
+      // Take user directly to edit profile
+      context.push(AppRoutes.editProfile);
       return;
     }
+
     final amount = int.parse(
         _amountController.text.replaceAll(',', '').trim());
+
     context.read<WithdrawalBloc>().add(WithdrawalRequested(
           amount: amount,
-          currency: _currency,
-          paymentAccountId: _paymentAccountId!,
+          currency: currency,
+          paymentAccountId: paymentAccountId,
         ));
   }
 
@@ -84,147 +81,165 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('Withdraw Funds')),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Balance info
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    gradient: AppColors.walletGradient,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Available',
-                        style: AppTextStyles.labelSmall
-                            .copyWith(color: Colors.white70),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        CurrencyFormatter.format(
-                            _availableBalance, _currency),
-                        style: AppTextStyles.amountMedium
-                            .copyWith(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 28),
-                Text('Enter amount', style: AppTextStyles.h3),
-                const SizedBox(height: 12),
-                AppTextField(
-                  controller: _amountController,
-                  label: 'Amount',
-                  hint: 'e.g. 5000',
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.done,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  prefixIcon: const Icon(Icons.monetization_on_outlined,
-                      size: 20),
-                  suffixIcon: TextButton(
-                    onPressed: _setMax,
-                    child: const Text('MAX'),
-                  ),
-                  validator: (v) => Validators.withdrawalAmount(
-                    v,
-                    availableBalance: _availableBalance,
-                    min: AppConstants.minWithdrawalAmount,
-                    max: AppConstants.maxWithdrawalAmount,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Min: ${CurrencyFormatter.format(AppConstants.minWithdrawalAmount, _currency)}',
-                  style: AppTextStyles.caption,
-                ),
-                const SizedBox(height: 28),
+        body: BlocBuilder<WalletCubit, WalletState>(
+          builder: (context, walletState) {
+            return BlocBuilder<ProfileBloc, ProfileState>(
+              builder: (context, profileState) {
+                // ── Derive real values from BLoC states ────────────
+                final wallet = walletState is WalletLoaded
+                    ? walletState.wallet
+                    : null;
+                final availableBalance =
+                    wallet?.availableBalance ?? 0;
+                final currency =
+                    wallet?.currency ?? AppConstants.defaultCurrency;
 
-                // Payment account
-                Text('Send to', style: AppTextStyles.h3),
-                const SizedBox(height: 12),
-                BlocBuilder<ProfileBloc, ProfileState>(
-                  builder: (context, state) {
-                    if (state is ProfileLoaded &&
-                        state.profile.connectedPaymentAccount != null) {
-                      final acct =
-                          state.profile.connectedPaymentAccount!;
-                      return Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.4),
-                              width: 1.5),
+                final account = profileState is ProfileLoaded
+                    ? profileState.profile.connectedPaymentAccount
+                    : null;
+                final paymentAccountId = account?.id;
+
+                final isLoading =
+                    walletState is WalletLoading ||
+                    profileState is ProfileLoading;
+
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ── Available balance card ──────────────────
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.walletGradient,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: isLoading
+                              ? const Center(
+                                  child: SizedBox(
+                                    height: 36,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Available to withdraw',
+                                      style:
+                                          AppTextStyles.labelSmall.copyWith(
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      CurrencyFormatter.format(
+                                          availableBalance, currency),
+                                      style:
+                                          AppTextStyles.amountMedium.copyWith(
+                                        color: Colors.white,
+                                        fontSize: 32,
+                                      ),
+                                    ),
+                                    if (availableBalance == 0) ...[
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Receive tips first to build your balance.',
+                                        style: AppTextStyles.bodySmall
+                                            .copyWith(color: Colors.white60),
+                                      ),
+                                    ],
+                                  ],
+                                ),
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                  Icons.account_balance_wallet_outlined,
-                                  size: 20,
-                                  color: AppColors.primary),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                children: [
-                                  Text(acct.provider,
-                                      style: AppTextStyles.labelMedium),
-                                  Text(acct.accountIdentifier,
-                                      style: AppTextStyles.bodySmall),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.check_circle_rounded,
-                                color: AppColors.accent, size: 20),
+                        const SizedBox(height: 28),
+
+                        // ── Send to (payment account) ───────────────
+                        Text('Send to', style: AppTextStyles.h3),
+                        const SizedBox(height: 12),
+                        if (account != null)
+                          _AccountCard(account: account)
+                        else
+                          _NoAccountCard(),
+                        const SizedBox(height: 28),
+
+                        // ── Amount entry ────────────────────────────
+                        Text('Enter amount', style: AppTextStyles.h3),
+                        const SizedBox(height: 12),
+                        AppTextField(
+                          controller: _amountController,
+                          label: 'Amount ($currency)',
+                          hint: 'e.g. 5000',
+                          keyboardType: TextInputType.number,
+                          textInputAction: TextInputAction.done,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
                           ],
+                          prefixIcon: const Icon(
+                              Icons.monetization_on_outlined,
+                              size: 20),
+                          suffixIcon: TextButton(
+                            onPressed: () {
+                              _amountController.text =
+                                  availableBalance.toString();
+                            },
+                            child: const Text('MAX'),
+                          ),
+                          validator: (v) => Validators.withdrawalAmount(
+                            v,
+                            availableBalance: availableBalance,
+                            min: AppConstants.minWithdrawalAmount,
+                            max: AppConstants.maxWithdrawalAmount,
+                          ),
                         ),
-                      );
-                    }
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        'No payment account connected. Add one in your profile.',
-                        style: AppTextStyles.bodySmall
-                            .copyWith(color: AppColors.warning),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 36),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Min: ${CurrencyFormatter.format(AppConstants.minWithdrawalAmount, currency)}  '
+                          '·  Max: ${CurrencyFormatter.format(AppConstants.maxWithdrawalAmount, currency)}',
+                          style: AppTextStyles.caption,
+                        ),
+                        const SizedBox(height: 36),
 
-                BlocBuilder<WithdrawalBloc, WithdrawalState>(
-                  builder: (context, state) => AppButton(
-                    label: 'Confirm Withdrawal',
-                    onPressed: _submit,
-                    isLoading: state is WithdrawalLoading,
+                        // ── Confirm button ──────────────────────────
+                        BlocBuilder<WithdrawalBloc, WithdrawalState>(
+                          builder: (context, withdrawState) => AppButton(
+                            label: account != null
+                                ? 'Confirm Withdrawal'
+                                : 'Add Payment Account First',
+                            onPressed: account != null &&
+                                    availableBalance > 0
+                                ? () => _submit(
+                                      availableBalance: availableBalance,
+                                      currency: currency,
+                                      paymentAccountId: paymentAccountId,
+                                    )
+                                : account == null
+                                    ? () => context
+                                        .push(AppRoutes.editProfile)
+                                    : null,
+                            isLoading:
+                                withdrawState is WithdrawalLoading,
+                            variant: account != null
+                                ? AppButtonVariant.primary
+                                : AppButtonVariant.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -236,19 +251,36 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_rounded,
-                color: AppColors.accent, size: 56),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: const BoxDecoration(
+                color: AppColors.accentSurface,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_rounded,
+                  color: AppColors.accent, size: 36),
+            ),
             const SizedBox(height: 16),
             Text('Withdrawal Requested!',
                 style: AppTextStyles.h3, textAlign: TextAlign.center),
             const SizedBox(height: 8),
             Text(
-              'Your withdrawal of ${CurrencyFormatter.format(state.withdrawal.amount, state.withdrawal.currency)} is being processed.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary),
+              'Your withdrawal of ${CurrencyFormatter.format(state.withdrawal.amount, state.withdrawal.currency)} to ${state.withdrawal.paymentAccountId} is being processed.',
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Payout is instant via AfriPay.',
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: AppColors.accent),
               textAlign: TextAlign.center,
             ),
           ],
@@ -260,6 +292,98 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
               context.pop();
             },
             child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Sub-widgets ───────────────────────────────────────────────────────────────
+
+class _AccountCard extends StatelessWidget {
+  final dynamic account;
+  const _AccountCard({required this.account});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: AppColors.accent.withValues(alpha: 0.4), width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.accentSurface,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.account_balance_wallet_outlined,
+                size: 22, color: AppColors.accent),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  account.provider as String,
+                  style: AppTextStyles.labelMedium,
+                ),
+                Text(
+                  account.accountIdentifier as String,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.check_circle_rounded,
+              color: AppColors.accent, size: 22),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoAccountCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: AppColors.warning.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.warning_amber_rounded,
+              color: AppColors.warning, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'No payment account connected',
+                  style: AppTextStyles.labelMedium
+                      .copyWith(color: AppColors.warning),
+                ),
+                Text(
+                  'Tap the button below to add one in Edit Profile.',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textSecondary),
+                ),
+              ],
+            ),
           ),
         ],
       ),

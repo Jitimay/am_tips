@@ -98,7 +98,7 @@ class _SearchPageState extends State<SearchPage> {
                   ? _NoResults(query: _query)
                   : ListView.separated(
                       itemCount: _results.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (context, index) =>
                           const Divider(height: 1, indent: 72, endIndent: 16),
                       itemBuilder: (_, i) =>
                           _ResultTile(profile: _results[i]),

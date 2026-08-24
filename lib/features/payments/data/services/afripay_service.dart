@@ -100,7 +100,7 @@ class AfriPayService {
       );
     }
 
-    await launchUrl(uri, mode: LaunchMode.externalBrowserApplication);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   // ── Payment record in Supabase ─────────────────────────────────────────────

@@ -15,6 +15,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<LoadProfile>(_onLoaded);
     on<ProfileUpdated>(_onUpdated);
     on<ProfileAvatarUpdated>(_onAvatarUpdated);
+    on<PaymentAccountConnected>(_onPaymentAccountConnected);
   }
 
   Future<void> _onLoaded(
@@ -54,6 +55,23 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     if (current != null) emit(ProfileUpdating(profile: current));
 
     final result = await profileRepository.uploadAvatar(event.filePath);
+    result.fold(
+      (failure) => emit(ProfileError(failure.message)),
+      (_) => add(const LoadProfile()),
+    );
+  }
+
+  Future<void> _onPaymentAccountConnected(
+      PaymentAccountConnected event, Emitter<ProfileState> emit) async {
+    final current =
+        state is ProfileLoaded ? (state as ProfileLoaded).profile : null;
+    if (current != null) emit(ProfileUpdating(profile: current));
+
+    final result = await profileRepository.connectPaymentAccount(
+      type: event.type,
+      provider: event.provider,
+      accountIdentifier: event.accountIdentifier,
+    );
     result.fold(
       (failure) => emit(ProfileError(failure.message)),
       (_) => add(const LoadProfile()),

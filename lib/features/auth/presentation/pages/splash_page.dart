@@ -56,6 +56,8 @@ class _SplashPageState extends State<SplashPage>
           } else {
             context.go(AppRoutes.onboarding);
           }
+        } else if (state is RegisterPendingConfirmation) {
+          context.go(AppRoutes.verifyEmail, extra: state.email);
         } else if (state is Unauthenticated) {
           context.go(AppRoutes.login);
         }

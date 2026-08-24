@@ -44,7 +44,10 @@ class SecureStorage {
   }
 
   Future<bool> get hasValidSession async {
-    final user = fb_auth.FirebaseAuth.instance.currentUser;
+    // currentUser can be null briefly on startup while Firebase restores the
+    // session. authStateChanges().first waits for that restoration to complete.
+    final user = fb_auth.FirebaseAuth.instance.currentUser ??
+        await fb_auth.FirebaseAuth.instance.authStateChanges().first;
     if (user == null) return false;
     return user.emailVerified;
   }

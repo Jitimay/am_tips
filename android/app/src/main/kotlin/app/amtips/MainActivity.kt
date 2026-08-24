@@ -1,4 +1,4 @@
-package com.example.am_tips
+package app.amtips
 
 import io.flutter.embedding.android.FlutterActivity
 

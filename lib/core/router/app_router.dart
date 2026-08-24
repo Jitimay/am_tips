@@ -16,6 +16,7 @@ import '../../features/onboarding/presentation/pages/onboarding_page.dart';
 import '../../features/profile/presentation/pages/edit_profile_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/qr_code/presentation/pages/qr_page.dart';
+import '../../features/qr_code/presentation/pages/qr_scanner_page.dart';
 import '../../features/qr_code/presentation/pages/campaign_card_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/tips/presentation/pages/tip_detail_page.dart';
@@ -42,6 +43,7 @@ class AppRoutes {
   static const tips = '/tips';
   static const campaign = '/campaign';
   static const qr = '/qr';
+  static const scanner = '/scanner';
   static const wallet = '/wallet';
   static const profile = '/profile';
 
@@ -166,6 +168,10 @@ class AppRouter {
       GoRoute(
         path: AppRoutes.qr,
         builder: (_, _) => const QrPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.scanner,
+        builder: (_, _) => const QrScannerPage(),
       ),
       GoRoute(
         path: AppRoutes.analytics,

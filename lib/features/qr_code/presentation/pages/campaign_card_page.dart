@@ -179,7 +179,7 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
                             child: ListView.separated(
                               scrollDirection: Axis.horizontal,
                               itemCount: _campaigns.length,
-                              separatorBuilder: (_, __) =>
+                              separatorBuilder: (context, index) =>
                                   const SizedBox(width: 10),
                               itemBuilder: (_, i) {
                                 final c = _campaigns[i];
@@ -400,7 +400,7 @@ class _CampaignCard extends StatelessWidget {
                             ? CachedNetworkImage(
                                 imageUrl: avatarUrl!,
                                 fit: BoxFit.cover,
-                                errorWidget: (_, __, ___) =>
+                                errorWidget: (context, url, error) =>
                                     _AvatarFallback(name: name),
                               )
                             : _AvatarFallback(name: name),

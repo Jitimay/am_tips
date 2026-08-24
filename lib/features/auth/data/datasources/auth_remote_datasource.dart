@@ -99,8 +99,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<bool> isSessionValid() async {
-    final user = authService.currentUser;
-    if (user == null) return false;
-    return user.emailVerified;
+    final user = await authService.getOrRestoreUser();
+    return user != null;
   }
 }

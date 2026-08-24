@@ -1,7 +1,4 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../services/afripay_service.dart';
 
 /// Available payment methods on AfriPay for Burundi.
@@ -54,13 +51,10 @@ abstract class PaymentRemoteDataSource {
 
 class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
   final AfriPayService afriPayService;
-  final SupabaseClient _db;
 
   PaymentRemoteDataSourceImpl({
     AfriPayService? afriPayService,
-    SupabaseClient? client,
-  })  : afriPayService = afriPayService ?? AfriPayService(),
-        _db = client ?? Supabase.instance.client;
+  })  : afriPayService = afriPayService ?? AfriPayService();
 
   @override
   List<AfriPayMethodDto> getPaymentMethods() {

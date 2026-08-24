@@ -38,3 +38,18 @@ class ProfileAvatarUpdated extends ProfileEvent {
   @override
   List<Object?> get props => [filePath];
 }
+
+class PaymentAccountConnected extends ProfileEvent {
+  final String type;
+  final String provider;
+  final String accountIdentifier;
+
+  const PaymentAccountConnected({
+    required this.type,
+    required this.provider,
+    required this.accountIdentifier,
+  });
+
+  @override
+  List<Object?> get props => [type, provider, accountIdentifier];
+}

@@ -6,6 +6,7 @@ import '../network/api_client.dart';
 import '../network/network_info.dart';
 import '../storage/secure_storage.dart';
 import '../storage/supabase_storage_service.dart';
+import '../services/push_notification_service.dart';
 
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/datasources/firebase_auth_service.dart';
@@ -62,7 +63,7 @@ Future<void> configureDependencies() async {
   // ── External ──────────────────────────────────────────────────────────────
   sl.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(
-      aOptions: AndroidOptions(encryptedSharedPreferences: true),
+      aOptions: AndroidOptions(),
     ),
   );
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
@@ -205,6 +206,14 @@ Future<void> configureDependencies() async {
   // ── Onboarding ────────────────────────────────────────────────────────────
   sl.registerFactory<OnboardingCubit>(
     () => OnboardingCubit(profileRepository: sl<ProfileRepository>()),
+  );
+
+  // ── Push Notifications ────────────────────────────────────────────────────
+  sl.registerLazySingleton<PushNotificationService>(
+    () => PushNotificationService(
+      notificationRepository: sl<NotificationRepository>(),
+      secureStorage: sl<SecureStorage>(),
+    ),
   );
 
   // ── Customer tipping (AfriPay-backed, Supabase-direct) ───────────────────

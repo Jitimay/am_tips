@@ -284,25 +284,21 @@ class _ProfilePageState extends State<ProfilePage> {
   void _confirmLogout(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Log out'),
-        content:
-            const Text('Are you sure you want to log out?'),
+        content: const Text('Are you sure you want to log out?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              context
-                  .read<AuthBloc>()
-                  .add(const LogoutRequested());
+              Navigator.pop(dialogContext);
+              context.read<AuthBloc>().add(const LogoutRequested());
               context.go(AppRoutes.login);
             },
-            child: Text('Log out',
-                style: TextStyle(color: AppColors.error)),
+            child: Text('Log out', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),

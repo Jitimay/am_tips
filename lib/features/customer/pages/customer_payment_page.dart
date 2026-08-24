@@ -9,6 +9,7 @@ import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/currency_formatter.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../payments/data/datasources/payment_remote_datasource.dart';
+import '../../payments/data/services/afripay_service.dart';
 import '../bloc/customer_tip_bloc.dart';
 
 class CustomerPaymentPage extends StatefulWidget {

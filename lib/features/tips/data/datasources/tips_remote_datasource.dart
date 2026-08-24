@@ -134,7 +134,19 @@ class TipsRemoteDataSourceImpl implements TipsRemoteDataSource {
           .from('wallets')
           .select()
           .eq('waiter_id', waiterId)
-          .single();
+          .maybeSingle(); // returns null if no wallet row yet — safe
+
+      // No wallet row yet (new user, no tips received) — return empty wallet
+      if (data == null) {
+        return WalletModel(
+          waiterId: waiterId,
+          availableBalance: 0,
+          pendingBalance: 0,
+          currency: 'BIF',
+          lastUpdatedAt: null,
+        );
+      }
+
       return WalletModel.fromJson({
         ...data,
         'available_balance': data['balance'],

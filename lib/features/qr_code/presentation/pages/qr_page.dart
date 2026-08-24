@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
@@ -93,7 +94,17 @@ class _QrPageState extends State<QrPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My QR Code')),
+      appBar: AppBar(
+        title: const Text('My QR Code'),
+        actions: [
+          // Scan button — opens the scanner
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner_rounded),
+            tooltip: 'Scan a QR code',
+            onPressed: () => context.push(AppRoutes.scanner),
+          ),
+        ],
+      ),
       body: BlocBuilder<QrCubit, QrState>(
         builder: (context, qrState) {
           if (qrState is QrLoading || qrState is QrInitial) {

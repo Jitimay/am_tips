@@ -19,6 +19,12 @@ class FirebaseAuthService {
   /// Returns the current Firebase User, if signed in.
   fb.User? get currentUser => _auth.currentUser;
 
+  /// Returns the current Firebase User, or waits for Firebase Auth to restore the persisted session on startup.
+  Future<fb.User?> getOrRestoreUser() async {
+    return _auth.currentUser ??
+        await _auth.authStateChanges().first;
+  }
+
   /// Registers a new user with Firebase Authentication.
   ///
   /// 1. Creates the Firebase user.
@@ -171,11 +177,15 @@ class FirebaseAuthService {
   /// Refreshes and returns the current user model.
   Future<AuthResponseModel> getCurrentUser() async {
     try {
-      final user = _auth.currentUser;
+      final user = await getOrRestoreUser();
       if (user == null) {
         throw const AuthenticationException(message: 'No active session.');
       }
-      await user.reload();
+      try {
+        await user.reload();
+      } catch (e) {
+        debugPrint('[FirebaseAuthService] Warning: user.reload failed (possibly offline): $e');
+      }
       final refreshedUser = _auth.currentUser ?? user;
 
       if (!refreshedUser.emailVerified) {
