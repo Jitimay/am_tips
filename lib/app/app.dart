@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../core/di/injection.dart';
+import '../core/network/sync_manager.dart';
 import '../core/router/app_router.dart';
 import '../core/services/push_notification_service.dart';
 import '../core/theme/app_theme.dart';
@@ -100,6 +101,19 @@ class _NotificationLifecycleWrapperState
     _notifSub = sl<PushNotificationService>()
         .onNotificationReceived
         .listen(_handleNotification);
+
+    // Register auto-sync callback when internet is restored
+    sl<SyncManager>().registerSyncCallback(_onInternetRestored);
+  }
+
+  void _onInternetRestored() {
+    if (!mounted) return;
+    debugPrint('[AutoSync] Network restored — refreshing all app data...');
+    context.read<ProfileBloc>().add(const LoadProfile());
+    context.read<TipsBloc>().add(const LoadTips());
+    context.read<WalletCubit>().refreshWallet();
+    context.read<NotificationBloc>().add(const NotificationsLoaded());
+    context.read<QrCubit>().loadQrCode();
   }
 
   void _handleNotification(AppNotification notif) {
@@ -117,6 +131,7 @@ class _NotificationLifecycleWrapperState
 
   @override
   void dispose() {
+    sl<SyncManager>().unregisterSyncCallback(_onInternetRestored);
     _notifSub?.cancel();
     super.dispose();
   }

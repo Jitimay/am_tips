@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/storage/isar_database_service.dart';
 import '../../domain/entities/notification.dart';
 import '../../domain/repositories/notification_repository.dart';
 import '../datasources/notification_remote_datasource.dart';
@@ -10,10 +10,12 @@ import '../models/notification_model.dart';
 class NotificationRepositoryImpl implements NotificationRepository {
   final NotificationRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
+  final IsarDatabaseService isarDb;
 
   NotificationRepositoryImpl({
     required this.remoteDataSource,
     required this.networkInfo,
+    required this.isarDb,
   });
 
   @override
@@ -21,47 +23,65 @@ class NotificationRepositoryImpl implements NotificationRepository {
     int page = 1,
     int pageSize = 20,
   }) async {
-    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
-    try {
-      final models =
-          await remoteDataSource.getNotifications(page: page, pageSize: pageSize);
-      return Right(models.map((m) => m.toDomain()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    final online = await networkInfo.isConnected;
+    if (online) {
+      try {
+        final models = await remoteDataSource.getNotifications(
+            page: page, pageSize: pageSize);
+        final domainList = models.map((m) => m.toDomain()).toList();
+        await isarDb.saveNotifications(domainList);
+        return Right(domainList);
+      } catch (_) {
+        final cached = await isarDb.getNotifications(page: page, pageSize: pageSize);
+        return Right(cached);
+      }
     }
+
+    final cached = await isarDb.getNotifications(page: page, pageSize: pageSize);
+    return Right(cached);
   }
 
   @override
   Future<Either<Failure, void>> markAsRead(String id) async {
-    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
-    try {
-      await remoteDataSource.markAsRead(id);
-      return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    // Always mark locally first for instant UI response
+    await isarDb.markNotificationAsRead(id);
+
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.markAsRead(id);
+      } catch (_) {}
     }
+    return const Right(null);
   }
 
   @override
   Future<Either<Failure, void>> markAllAsRead() async {
-    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
-    try {
-      await remoteDataSource.markAllAsRead();
-      return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    // Always mark locally first
+    await isarDb.markAllNotificationsAsRead();
+
+    if (await networkInfo.isConnected) {
+      try {
+        await remoteDataSource.markAllAsRead();
+      } catch (_) {}
     }
+    return const Right(null);
   }
 
   @override
   Future<Either<Failure, int>> getUnreadCount() async {
-    if (!await networkInfo.isConnected) return const Right(0);
-    try {
-      final count = await remoteDataSource.getUnreadCount();
-      return Right(count);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+    final online = await networkInfo.isConnected;
+    if (online) {
+      try {
+        final count = await remoteDataSource.getUnreadCount();
+        return Right(count);
+      } catch (_) {
+        final count = await isarDb.getUnreadNotificationCount();
+        return Right(count);
+      }
     }
+
+    final count = await isarDb.getUnreadNotificationCount();
+    return Right(count);
   }
 
   @override

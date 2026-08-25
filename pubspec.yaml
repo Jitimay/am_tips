@@ -2,6 +2,11 @@ name: am_tips
 description: "amTips — Digital tipping platform for service workers."
 publish_to: 'none'
 version: 1.0.0+1
+# Version format: MAJOR.MINOR.PATCH+BUILD_NUMBER
+# - Increment PATCH for bug fixes
+# - Increment MINOR for new features
+# - Increment MAJOR for breaking changes
+# - BUILD_NUMBER auto-incremented by CI (flutter build apk --build-number=$CI_BUILD_NUMBER)
 
 environment:
   sdk: ^3.12.2
@@ -51,6 +56,8 @@ dependencies:
 
   # Local Cache / Persistence
   shared_preferences: ^2.3.3
+  isar_community: ^3.3.2
+  isar_community_flutter_libs: ^3.3.2
 
   # Supabase
   supabase_flutter: ^2.8.4
@@ -80,6 +87,7 @@ dev_dependencies:
   build_runner: ^2.4.12
   freezed: ^3.2.5
   json_serializable: ^6.8.0
+  isar_community_generator: ^3.3.2
 
 flutter:
   uses-material-design: true

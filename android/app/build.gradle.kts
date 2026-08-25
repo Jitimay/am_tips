@@ -28,9 +28,33 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // Release signing — reads keystore from environment variables.
+            // Set these before building:
+            //   export KEY_STORE_PATH=/path/to/amtips.keystore
+            //   export KEY_ALIAS=amtips
+            //   export KEY_PASSWORD=yourpassword
+            //   export STORE_PASSWORD=yourstorepassword
+            val keystorePath = System.getenv("KEY_STORE_PATH")
+            if (keystorePath != null) {
+                signingConfig = signingConfigs.create("release").apply {
+                    storeFile = file(keystorePath)
+                    storePassword = System.getenv("STORE_PASSWORD") ?: ""
+                    keyAlias = System.getenv("KEY_ALIAS") ?: "amtips"
+                    keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+                }
+            } else {
+                // Fallback to debug keys for local testing only
+                signingConfig = signingConfigs.getByName("debug")
+            }
+        }
+        debug {
+            isDebuggable = true
         }
     }
 }

@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/storage/isar_database_service.dart';
 import '../../domain/entities/waiter_profile.dart';
 import '../../domain/repositories/profile_repository.dart';
 import '../datasources/profile_remote_datasource.dart';
@@ -10,25 +11,39 @@ import '../models/waiter_profile_model.dart';
 class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileRemoteDataSource remoteDataSource;
   final NetworkInfo networkInfo;
+  final IsarDatabaseService isarDb;
 
   ProfileRepositoryImpl({
     required this.remoteDataSource,
     required this.networkInfo,
+    required this.isarDb,
   });
 
   @override
   Future<Either<Failure, WaiterProfile>> getProfile() async {
-    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
-    try {
-      final model = await remoteDataSource.getProfile();
-      return Right(model.toDomain());
-    } on AuthenticationException catch (e) {
-      return Left(AuthenticationFailure(message: e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
-    } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+    final online = await networkInfo.isConnected;
+    if (online) {
+      try {
+        final model = await remoteDataSource.getProfile();
+        final domain = model.toDomain();
+        await isarDb.saveProfile(domain);
+        return Right(domain);
+      } on AuthenticationException catch (e) {
+        return Left(AuthenticationFailure(message: e.message));
+      } catch (e) {
+        // Fall back to local Isar store if network error occurred despite being connected
+        final cached = await isarDb.getProfile();
+        if (cached != null) return Right(cached);
+        return Left(ServerFailure(message: e.toString()));
+      }
     }
+
+    // Offline — serve from Isar
+    final cached = await isarDb.getProfile();
+    if (cached != null) return Right(cached);
+    return const Left(NetworkFailure(
+      message: 'No internet connection and no cached profile available.',
+    ));
   }
 
   @override
@@ -43,15 +58,17 @@ class ProfileRepositoryImpl implements ProfileRepository {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure());
     try {
       final data = <String, dynamic>{
-        'full_name': ?fullName,
-        'restaurant_name': ?restaurantName,
-        'city': ?city,
-        'country': ?country,
-        'personal_message': ?personalMessage,
-        'professions': ?professions,
+        if (fullName != null) 'full_name': fullName,
+        if (restaurantName != null) 'restaurant_name': restaurantName,
+        if (city != null) 'city': city,
+        if (country != null) 'country': country,
+        if (personalMessage != null) 'personal_message': personalMessage,
+        if (professions != null) 'professions': professions,
       };
       final model = await remoteDataSource.updateProfile(data);
-      return Right(model.toDomain());
+      final domain = model.toDomain();
+      await isarDb.saveProfile(domain);
+      return Right(domain);
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
@@ -92,7 +109,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
         data['avatar_url'] = avatarUrl;
       }
       final model = await remoteDataSource.updateProfile(data);
-      return Right(model.toDomain());
+      final domain = model.toDomain();
+      await isarDb.saveProfile(domain);
+      return Right(domain);
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
@@ -115,7 +134,9 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'city': city,
         'country': country,
       });
-      return Right(model.toDomain());
+      final domain = model.toDomain();
+      await isarDb.saveProfile(domain);
+      return Right(domain);
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
@@ -131,8 +152,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }) async {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure());
     try {
-      final model = await remoteDataSource.updateProfile({'professions': professions});
-      return Right(model.toDomain());
+      final model =
+          await remoteDataSource.updateProfile({'professions': professions});
+      final domain = model.toDomain();
+      await isarDb.saveProfile(domain);
+      return Right(domain);
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
@@ -155,7 +179,11 @@ class ProfileRepositoryImpl implements ProfileRepository {
         'provider': provider,
         'account_identifier': accountIdentifier,
       });
-      return Right(model.toDomain());
+      final domain = model.toDomain();
+      // Reload profile into Isar
+      final profile = await remoteDataSource.getProfile();
+      await isarDb.saveProfile(profile.toDomain());
+      return Right(domain);
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {

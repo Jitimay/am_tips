@@ -491,7 +491,7 @@ class _HomePageState extends State<HomePage> {
             subtitle: 'Show your QR code',
             iconBg: AppColors.primarySurface,
             iconColor: AppColors.primary,
-            onTap: () => context.go(AppRoutes.qr),
+            onTap: () => context.push(AppRoutes.qr),
           ),
         ),
         const SizedBox(width: 12),
@@ -502,7 +502,7 @@ class _HomePageState extends State<HomePage> {
             subtitle: 'Transfer to your account',
             iconBg: AppColors.accentSurface,
             iconColor: AppColors.accent,
-            onTap: () => context.go('/wallet/withdraw'),
+            onTap: () => context.push('/wallet/withdraw'),
           ),
         ),
       ],
@@ -551,7 +551,7 @@ class _HomePageState extends State<HomePage> {
               _ShortcutItem(
                 icon: HugeIcons.strokeRoundedQrCode,
                 label: 'Share QR',
-                onTap: () => context.go(AppRoutes.qr),
+                onTap: () => context.push(AppRoutes.qr),
               ),
               _ShortcutItem(
                 icon: HugeIcons.strokeRoundedAutoConversations,

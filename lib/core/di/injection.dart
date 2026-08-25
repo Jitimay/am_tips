@@ -4,6 +4,9 @@ import 'package:get_it/get_it.dart';
 
 import '../network/api_client.dart';
 import '../network/network_info.dart';
+import '../network/sync_manager.dart';
+import '../storage/isar_database_service.dart';
+import '../storage/local_cache_service.dart';
 import '../storage/secure_storage.dart';
 import '../storage/supabase_storage_service.dart';
 import '../services/push_notification_service.dart';
@@ -68,12 +71,21 @@ Future<void> configureDependencies() async {
   );
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
 
-  // ── Core ──────────────────────────────────────────────────────────────────
+  // ── Core Storage & Offline Database ───────────────────────────────────────
+  sl.registerLazySingleton<IsarDatabaseService>(
+    () => IsarDatabaseService(),
+  );
+  sl.registerLazySingleton<LocalCacheService>(
+    () => LocalCacheService(),
+  );
   sl.registerLazySingleton<SecureStorage>(
     () => SecureStorage(storage: sl<FlutterSecureStorage>()),
   );
   sl.registerLazySingleton<NetworkInfo>(
     () => NetworkInfoImpl(connectivity: sl<Connectivity>()),
+  );
+  sl.registerLazySingleton<SyncManager>(
+    () => SyncManager(connectivity: sl<Connectivity>()),
   );
   sl.registerLazySingleton<ApiClient>(
     () => ApiClient(secureStorage: sl<SecureStorage>()),
@@ -110,6 +122,7 @@ Future<void> configureDependencies() async {
     () => ProfileRepositoryImpl(
       remoteDataSource: sl<ProfileRemoteDataSource>(),
       networkInfo: sl<NetworkInfo>(),
+      isarDb: sl<IsarDatabaseService>(),
     ),
   );
   sl.registerFactory<ProfileBloc>(
@@ -124,6 +137,7 @@ Future<void> configureDependencies() async {
     () => TipsRepositoryImpl(
       remoteDataSource: sl<TipsRemoteDataSource>(),
       networkInfo: sl<NetworkInfo>(),
+      isarDb: sl<IsarDatabaseService>(),
     ),
   );
   sl.registerFactory<TipsBloc>(
@@ -141,6 +155,7 @@ Future<void> configureDependencies() async {
     () => QrRepositoryImpl(
       remoteDataSource: sl<QrRemoteDataSource>(),
       networkInfo: sl<NetworkInfo>(),
+      isarDb: sl<IsarDatabaseService>(),
     ),
   );
   sl.registerFactory<QrCubit>(
@@ -174,6 +189,7 @@ Future<void> configureDependencies() async {
     () => WithdrawalRepositoryImpl(
       remoteDataSource: sl<WithdrawalRemoteDataSource>(),
       networkInfo: sl<NetworkInfo>(),
+      isarDb: sl<IsarDatabaseService>(),
     ),
   );
   sl.registerFactory<WithdrawalBloc>(
@@ -188,6 +204,7 @@ Future<void> configureDependencies() async {
     () => NotificationRepositoryImpl(
       remoteDataSource: sl<NotificationRemoteDataSource>(),
       networkInfo: sl<NetworkInfo>(),
+      isarDb: sl<IsarDatabaseService>(),
     ),
   );
   sl.registerFactory<NotificationBloc>(
