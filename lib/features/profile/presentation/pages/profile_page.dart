@@ -8,6 +8,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/avatar_widget.dart';
 import '../../../../core/widgets/error_state.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../../../core/widgets/star_rating.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/profile_bloc.dart';
@@ -42,7 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
       body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
           if (state is ProfileLoading || state is ProfileInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return const ProfileShimmer();
           }
           if (state is ProfileError) {
             return ErrorState(
@@ -58,7 +59,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ? state.profile
                   : null;
           if (profile == null) {
-            return const Center(child: CircularProgressIndicator());
+            return const ProfileShimmer();
           }
 
           final hasProfessions = profile.professions.isNotEmpty;

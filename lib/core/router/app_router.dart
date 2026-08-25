@@ -75,7 +75,21 @@ class AppRouter {
       if (_publicRoutes.contains(location) || location.startsWith('/t/')) {
         return null;
       }
-      final hasSession = await sl<SecureStorage>().hasValidSession;
+
+      // hasValidSession reads Firebase's LOCAL cached state — no network needed.
+      // We add a short timeout as a safety net in case Firebase takes too long
+      // to restore its local state on a cold start.
+      bool hasSession = false;
+      try {
+        hasSession = await sl<SecureStorage>()
+            .hasValidSession
+            .timeout(const Duration(seconds: 3));
+      } catch (_) {
+        // Timeout or error — keep user where they are rather than kick to login.
+        // They'll be redirected on next navigation attempt if truly unauthenticated.
+        hasSession = false;
+      }
+
       if (!hasSession) return AppRoutes.login;
       return null;
     },

@@ -11,6 +11,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/avatar_widget.dart';
 import '../../../../core/widgets/error_state.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../tips/presentation/bloc/tips_bloc.dart';
@@ -601,11 +602,7 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 12),
             if (isLoading)
-              const Center(
-                  child: Padding(
-                padding: EdgeInsets.all(24),
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ))
+              RecentTipsShimmer()
             else if (tips.isEmpty)
               Container(
                 padding: const EdgeInsets.all(24),

@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/error_state.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../domain/entities/tip.dart';
 import '../bloc/tips_bloc.dart';
 
@@ -30,7 +31,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
       body: BlocBuilder<TipsBloc, TipsState>(
         builder: (context, state) {
           if (state is TipsLoading && state.tips.isEmpty) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            return const TipsListShimmer();
           }
           if (state is TipsError && state.tips.isEmpty) {
             return ErrorState(

@@ -6,6 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/error_state.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../../../core/widgets/star_rating.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../domain/entities/tip.dart';
@@ -40,7 +41,7 @@ class _TipDetailPageState extends State<TipDetailPage> {
       body: BlocBuilder<TipsBloc, TipsState>(
         builder: (context, state) {
           if (state is TipsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const TipDetailShimmer();
           }
           if (state is TipsError) {
             return ErrorState(message: state.message);
@@ -48,7 +49,7 @@ class _TipDetailPageState extends State<TipDetailPage> {
           if (state is TipDetailLoaded) {
             return _DetailBody(tip: state.tip, badge: _badge);
           }
-          return const Center(child: CircularProgressIndicator());
+          return const TipDetailShimmer();
         },
       ),
     );

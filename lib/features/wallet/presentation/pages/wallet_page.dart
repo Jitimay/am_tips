@@ -9,6 +9,7 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../../tips/domain/entities/wallet.dart';
 import '../../../tips/presentation/bloc/wallet_cubit.dart';
 
@@ -33,7 +34,7 @@ class _WalletPageState extends State<WalletPage> {
       body: BlocBuilder<WalletCubit, WalletState>(
         builder: (context, state) {
           if (state is WalletLoading || state is WalletInitial) {
-            return const Center(child: CircularProgressIndicator());
+            return const WalletShimmer();
           }
           if (state is WalletError) {
             return ErrorState(

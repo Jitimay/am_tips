@@ -1,4 +1,7 @@
 import 'package:dartz/dartz.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -148,9 +151,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, User>> getCurrentUser() async {
-    if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure());
+    final online = await networkInfo.isConnected;
+
+    if (!online) {
+      // Offline — build User from the local Firebase cached state.
+      // Firebase stores the session on-device; currentUser is always
+      // available without a network call.
+      return _userFromLocalCache();
     }
+
     try {
       final result = await remoteDataSource.getCurrentUser();
       await _persistTokens(result);
@@ -163,10 +172,40 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message, statusCode: e.statusCode));
+      // Network error despite being "online" — fall back to local cache
+      return _userFromLocalCache();
     } catch (e) {
-      return const Left(ServerFailure(
-        message: 'Could not connect to amTips. Please try again.',
+      return _userFromLocalCache();
+    }
+  }
+
+  /// Builds a [User] entity from the Firebase local cached state.
+  /// This is safe to call offline — Firebase SDK stores the last
+  /// authenticated user on the device permanently until logout.
+  Future<Either<Failure, User>> _userFromLocalCache() async {
+    try {
+      final fbUser =
+          fb_auth.FirebaseAuth.instance.currentUser;
+      if (fbUser == null) return const Left(AuthenticationFailure());
+
+      // Use SharedPreferences for onboarding flag — no network needed
+      final prefs = await _getPrefs();
+      final isOnboardingComplete =
+          prefs.getBool(AppConstants.onboardingCompleteKey) ?? false;
+
+      return Right(User(
+        id: fbUser.uid,
+        email: fbUser.email ?? '',
+        phone: fbUser.phoneNumber,
+        fullName: fbUser.displayName ?? '',
+        avatarUrl: fbUser.photoURL,
+        isOnboardingComplete: isOnboardingComplete,
+        createdAt: fbUser.metadata.creationTime ?? DateTime.now(),
+        updatedAt: fbUser.metadata.lastSignInTime,
+      ));
+    } catch (e) {
+      return const Left(AuthenticationFailure(
+        message: 'Session could not be restored.',
       ));
     }
   }
@@ -224,5 +263,11 @@ class AuthRepositoryImpl implements AuthRepository {
     await secureStorage.saveAccessToken(result.accessToken);
     await secureStorage.saveRefreshToken(result.refreshToken);
     await secureStorage.saveUserId(result.user.id);
+  }
+
+  SharedPreferences? _prefs;
+  Future<SharedPreferences> _getPrefs() async {
+    _prefs ??= await SharedPreferences.getInstance();
+    return _prefs!;
   }
 }

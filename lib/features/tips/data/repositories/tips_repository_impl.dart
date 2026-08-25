@@ -63,11 +63,8 @@ class TipsRepositoryImpl implements TipsRepository {
       page: page,
       pageSize: pageSize,
     );
-    if (tips.isEmpty) {
-      return const Left(NetworkFailure(
-        message: 'No internet connection and no cached tips available.',
-      ));
-    }
+    // Always return Right — empty list is valid (no tips yet or no cached data).
+    // Never show a network error on the history screen when offline.
     return Right(tips);
   }
 
@@ -122,8 +119,15 @@ class TipsRepositoryImpl implements TipsRepository {
   Future<Either<Failure, TipStats>> _statsFromIsar() async {
     final cached = await isarDb.getTipStats();
     if (cached != null) return Right(cached);
-    return const Left(NetworkFailure(
-      message: 'No internet connection and no cached stats available.',
+    // No cached stats — return empty stats so the screen still loads
+    return const Right(TipStats(
+      todayTotal: 0,
+      weekTotal: 0,
+      allTimeTotal: 0,
+      currency: 'BIF',
+      todayCount: 0,
+      weekCount: 0,
+      allTimeCount: 0,
     ));
   }
 

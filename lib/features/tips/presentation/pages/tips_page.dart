@@ -8,11 +8,15 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../../../core/widgets/star_rating.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../domain/entities/tip.dart';
 import '../../domain/repositories/tips_repository.dart';
 import '../bloc/tips_bloc.dart';
+
+// ignore: depend_on_referenced_packages
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class TipsPage extends StatefulWidget {
   const TipsPage({super.key});
@@ -41,7 +45,53 @@ class _TipsPageState extends State<TipsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Tip History')),
+      appBar: AppBar(
+        title: const Text('Tip History'),
+        actions: [
+          // Offline cached badge in app bar
+          BlocBuilder<TipsBloc, TipsState>(
+            builder: (context, state) {
+              final isCached = state is TipsLoaded &&
+                  state.tips.isNotEmpty;
+              return StreamBuilder<List<ConnectivityResult>>(
+                stream: Connectivity().onConnectivityChanged,
+                builder: (context, snap) {
+                  final results = snap.data ?? [];
+                  final offline = results.isNotEmpty &&
+                      results.every((r) => r == ConnectivityResult.none);
+                  if (!offline || !isCached) return const SizedBox.shrink();
+                  return Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: AppColors.warning.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.offline_bolt_rounded,
+                            size: 12, color: AppColors.warning),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Cached',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.warning,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Filter chips
@@ -86,7 +136,7 @@ class _TipsPageState extends State<TipsPage> {
             child: BlocBuilder<TipsBloc, TipsState>(
               builder: (context, state) {
                 if (state is TipsLoading && state.tips.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const TipsListShimmer();
                 }
                 if (state is TipsError && state.tips.isEmpty) {
                   return ErrorState(
@@ -99,11 +149,25 @@ class _TipsPageState extends State<TipsPage> {
                 if (state is TipsLoaded || state is TipDetailLoaded || state.tips.isNotEmpty) {
                   final tips = state.tips;
                   if (tips.isEmpty) {
-                    return EmptyState(
-                      icon: Icons.payments_outlined,
-                      title: 'No tips yet',
-                      subtitle:
-                          'Tips you receive will appear here.',
+                    return StreamBuilder<List<ConnectivityResult>>(
+                      stream: Connectivity().onConnectivityChanged,
+                      builder: (context, snap) {
+                        final results = snap.data ?? [];
+                        final offline = results.isNotEmpty &&
+                            results.every(
+                                (r) => r == ConnectivityResult.none);
+                        return EmptyState(
+                          icon: offline
+                              ? Icons.wifi_off_rounded
+                              : Icons.payments_outlined,
+                          title: offline
+                              ? 'No cached tips'
+                              : 'No tips yet',
+                          subtitle: offline
+                              ? 'Connect to the internet to load your tip history.'
+                              : 'Tips you receive will appear here.',
+                        );
+                      },
                     );
                   }
                   return RefreshIndicator(

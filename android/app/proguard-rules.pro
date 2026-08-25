@@ -59,6 +59,16 @@
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
 -dontwarn com.dexterous.flutterlocalnotifications.**
 
+# ── Isar (community) ─────────────────────────────────────────────────────────
+-keep class dev.isar.** { *; }
+-dontwarn dev.isar.**
+-keep class io.realm.** { *; }
+-dontwarn io.realm.**
+# isar_community native libs — keep JNI bridge
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+
 # ── Kotlin metadata (required for Kotlin reflection) ─────────────────────────
 -keep class kotlin.Metadata { *; }
 -dontwarn kotlin.**

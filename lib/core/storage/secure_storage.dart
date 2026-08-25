@@ -44,11 +44,17 @@ class SecureStorage {
   }
 
   Future<bool> get hasValidSession async {
-    // currentUser can be null briefly on startup while Firebase restores the
-    // session. authStateChanges().first waits for that restoration to complete.
-    final user = fb_auth.FirebaseAuth.instance.currentUser ??
-        await fb_auth.FirebaseAuth.instance.authStateChanges().first;
+    // Firebase persists the session locally on device.
+    // currentUser is available immediately from the local cache —
+    // no network call needed for this check.
+    // We do NOT call authStateChanges().first here because that can
+    // hang or fail when the device is offline.
+    final user = fb_auth.FirebaseAuth.instance.currentUser;
     if (user == null) return false;
+
+    // emailVerified is also cached locally from the last login/reload.
+    // We accept the cached value offline — the next online session will
+    // refresh it via user.reload() in FirebaseAuthService.login().
     return user.emailVerified;
   }
 

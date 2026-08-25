@@ -88,16 +88,14 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Offline / Restored banner — slides in from top
+        // Only show the "Back online" green flash — no offline banner
         AnimatedBuilder(
           animation: _slideAnim,
           builder: (context, child) => Transform.translate(
             offset: Offset(0, _slideAnim.value * 48),
-            child: _isOffline
-                ? const _OfflineBanner()
-                : (_showOnlineRestored
-                    ? const _OnlineRestoredBanner()
-                    : const SizedBox.shrink()),
+            child: _showOnlineRestored
+                ? const _OnlineRestoredBanner()
+                : const SizedBox.shrink(),
           ),
         ),
         Expanded(child: widget.child),

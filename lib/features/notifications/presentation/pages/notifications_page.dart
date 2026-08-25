@@ -6,6 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/date_formatter.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_state.dart';
+import '../../../../core/widgets/shimmer_widgets.dart';
 import '../../domain/entities/notification.dart';
 import '../bloc/notification_bloc.dart';
 
@@ -47,7 +48,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       body: BlocBuilder<NotificationBloc, NotificationState>(
         builder: (context, state) {
           if (state is NotificationLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const NotificationsShimmer();
           }
           if (state is NotificationError) {
             return ErrorState(

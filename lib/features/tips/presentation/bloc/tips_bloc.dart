@@ -18,14 +18,30 @@ class TipsBloc extends Bloc<TipsEvent, TipsState> {
   }
 
   Future<void> _onTipsLoaded(LoadTips event, Emitter<TipsState> emit) async {
-    emit(const TipsLoading());
+    // Show loading indicator but keep existing tips visible if we have them
+    final existing = state.tips;
+    if (existing.isEmpty) {
+      emit(const TipsLoading());
+    }
+
     final tipsResult = await tipsRepository.getTips(filter: event.filter);
     final statsResult = await tipsRepository.getTipStats();
 
     tipsResult.fold(
-      (failure) => emit(TipsError(failure.message)),
+      (failure) {
+        // Only show error if we have nothing to show
+        if (existing.isEmpty) {
+          emit(TipsError(failure.message));
+        } else {
+          emit(TipsLoaded(
+            tips: existing,
+            stats: state.stats,
+            activeFilter: event.filter,
+          ));
+        }
+      },
       (tips) {
-        final stats = statsResult.fold((_) => null, (s) => s);
+        final stats = statsResult.fold((_) => state.stats, (s) => s);
         emit(TipsLoaded(
           tips: tips,
           stats: stats,
@@ -37,12 +53,29 @@ class TipsBloc extends Bloc<TipsEvent, TipsState> {
 
   Future<void> _onFilterChanged(
       TipsFilterChanged event, Emitter<TipsState> emit) async {
+    // Keep existing tips visible while loading the filtered results
     final currentStats =
         state is TipsLoaded ? (state as TipsLoaded).stats : null;
-    emit(TipsLoading());
+    final existing = state.tips;
+
+    // Only blank the screen if we have nothing cached
+    if (existing.isEmpty) {
+      emit(TipsLoading());
+    }
+
     final result = await tipsRepository.getTips(filter: event.filter);
     result.fold(
-      (failure) => emit(TipsError(failure.message)),
+      (failure) {
+        if (existing.isEmpty) {
+          emit(TipsError(failure.message));
+        } else {
+          emit(TipsLoaded(
+            tips: existing,
+            stats: currentStats,
+            activeFilter: event.filter,
+          ));
+        }
+      },
       (tips) => emit(TipsLoaded(
         tips: tips,
         stats: currentStats,
