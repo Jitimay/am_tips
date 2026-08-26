@@ -1,8 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -21,7 +23,14 @@ Future<void> main() async {
   // Catch all uncaught Flutter framework errors and show a friendly screen.
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
     debugPrint('[FlutterError] ${details.exceptionAsString()}');
+  };
+
+  // Catch all uncaught async errors (Dart zone errors)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
   };
 
   runApp(
@@ -55,6 +64,9 @@ class _InitAppState extends State<_InitApp> {
           options: DefaultFirebaseOptions.currentPlatform,
         );
       }
+
+      // 1b. Crashlytics
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
 
       // 2. FCM background handler (must be top-level)
       FirebaseMessaging.onBackgroundMessage(

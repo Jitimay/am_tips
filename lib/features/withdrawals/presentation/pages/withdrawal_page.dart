@@ -190,6 +190,7 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
                             onPressed: () {
                               _amountController.text =
                                   availableBalance.toString();
+                              setState(() {});
                             },
                             child: const Text('MAX'),
                           ),
@@ -199,6 +200,7 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
                             min: AppConstants.minWithdrawalAmount,
                             max: AppConstants.maxWithdrawalAmount,
                           ),
+                          onChanged: (_) => setState(() {}),
                         ),
                         const SizedBox(height: 6),
                         Text(
@@ -206,7 +208,33 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
                           '·  Max: ${CurrencyFormatter.format(AppConstants.maxWithdrawalAmount, currency)}',
                           style: AppTextStyles.caption,
                         ),
-                        const SizedBox(height: 36),
+
+                        // ── Fee breakdown ───────────────────────────
+                        Builder(builder: (_) {
+                          final raw = int.tryParse(
+                              _amountController.text.replaceAll(',', '').trim()) ?? 0;
+                          if (raw <= 0) return const SizedBox(height: 36);
+                          final fee = (raw * 0.03).round();
+                          final receives = raw - fee;
+                          return Container(
+                            margin: const EdgeInsets.only(top: 16, bottom: 20),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.primarySurface,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              children: [
+                                _FeeRow(label: 'Withdrawal amount', value: CurrencyFormatter.format(raw, currency)),
+                                const SizedBox(height: 6),
+                                _FeeRow(label: 'AfriPay fee (3%)', value: '− ${CurrencyFormatter.format(fee, currency)}', valueColor: AppColors.error),
+                                const Divider(height: 16),
+                                _FeeRow(label: 'You receive', value: CurrencyFormatter.format(receives, currency), bold: true, valueColor: AppColors.accent),
+                              ],
+                            ),
+                          );
+                        }),
+                        const SizedBox(height: 16),
 
                         // ── Confirm button ──────────────────────────
                         BlocBuilder<WithdrawalBloc, WithdrawalState>(
@@ -235,7 +263,7 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
                         const SizedBox(height: 12),
                         Center(
                           child: Text(
-                            '✓ 0% amTips fee on withdrawals',
+                            '3% AfriPay processing fee applies',
                             style: AppTextStyles.caption.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -396,6 +424,36 @@ class _NoAccountCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _FeeRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool bold;
+  final Color? valueColor;
+
+  const _FeeRow({
+    required this.label,
+    required this.value,
+    this.bold = false,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label,
+            style: bold
+                ? AppTextStyles.labelMedium
+                : AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+        Text(value,
+            style: (bold ? AppTextStyles.labelMedium : AppTextStyles.bodySmall)
+                .copyWith(color: valueColor)),
+      ],
     );
   }
 }
