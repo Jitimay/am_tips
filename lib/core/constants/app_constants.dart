@@ -20,6 +20,7 @@ class AppConstants {
 
   // Base URLs – override via environment / build flavor
   static const String baseUrl = 'https://api.amtips.app/v1';
+  // Update to your Vercel deployment URL (or custom domain once configured).
   static const String webBaseUrl = 'https://amtips.app';
   static const String tipBaseUrl = '$webBaseUrl/t';
 
@@ -50,7 +51,7 @@ class AppConstants {
   static const int defaultPageSize = 20;
 
   // Tip preset amounts (in minor currency units / BIF)
-  static const List<int> tipPresets = [1000, 2000, 5000, 10000];
+  static const List<int> tipPresets = [2000, 5000, 10000, 20000];
 
   // ── AfriPay Payment Gateway ───────────────────────────────────────────────
   static const String afriPayAppId       = AppSecrets.afriPayAppId;

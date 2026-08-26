@@ -1,4 +1,3 @@
-import '../../../../core/constants/app_constants.dart';
 import '../services/afripay_service.dart';
 
 /// Available payment methods on AfriPay for Burundi.

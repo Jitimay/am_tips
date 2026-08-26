@@ -171,10 +171,10 @@ class AuthRepositoryImpl implements AuthRepository {
       ));
     } on AuthenticationException catch (e) {
       return Left(AuthenticationFailure(message: e.message));
-    } on ServerException catch (e) {
+    } on ServerException catch (_) {
       // Network error despite being "online" — fall back to local cache
       return _userFromLocalCache();
-    } catch (e) {
+    } catch (_) {
       return _userFromLocalCache();
     }
   }

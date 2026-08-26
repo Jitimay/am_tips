@@ -45,47 +45,30 @@ class WithdrawalRemoteDataSourceImpl implements WithdrawalRemoteDataSource {
   @override
   Future<WithdrawalModel> requestWithdrawal(Map<String, dynamic> data) async {
     try {
-      final waiterId = await _profileId;
+      final uid = _firebaseUid;
+      if (uid.isEmpty) {
+        throw const AuthenticationException(message: 'User is not authenticated.');
+      }
+
       final amount = (data['amount'] as num).toInt();
       final currency = data['currency'] as String? ?? 'BIF';
       final paymentAccountId = data['payment_account_id'] as String;
 
-      // 1. Verify wallet balance
-      final wallet = await _db
-          .from('wallets')
-          .select('balance')
-          .eq('waiter_id', waiterId)
-          .maybeSingle();
+      // Atomic RPC: balance check + deduct + insert in one DB transaction.
+      // Throws PostgrestException with ERRCODE P0003 if insufficient balance.
+      final rows = await _db.rpc('request_withdrawal', params: {
+        'p_firebase_uid': uid,
+        'p_amount': amount,
+        'p_currency': currency,
+        'p_payment_account_id': paymentAccountId,
+      });
 
-      final currentBalance = (wallet?['balance'] as num?)?.toInt() ?? 0;
-      if (currentBalance < amount) {
-        throw const ValidationException(message: 'Insufficient balance.');
-      }
-
-      // 2. Deduct from wallet balance
-      await _db
-          .from('wallets')
-          .update({
-            'balance': currentBalance - amount,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('waiter_id', waiterId);
-
-      // 3. Insert withdrawal row
-      final row = await _db
-          .from('withdrawals')
-          .insert({
-            'waiter_id': waiterId,
-            'amount': amount,
-            'currency': currency,
-            'status': 'requested',
-            'payment_account_id': paymentAccountId,
-          })
-          .select()
-          .single();
-
+      final row = (rows as List).first as Map<String, dynamic>;
       return WithdrawalModel.fromJson(row);
     } on PostgrestException catch (e) {
+      if (e.message.contains('Insufficient balance')) {
+        throw const ValidationException(message: 'Insufficient balance.');
+      }
       throw ServerException(
         message: e.message,
         statusCode: int.tryParse(e.code ?? ''),

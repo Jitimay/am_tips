@@ -104,42 +104,6 @@ class _ConnectivityBannerState extends State<ConnectivityBanner>
   }
 }
 
-class _OfflineBanner extends StatelessWidget {
-  const _OfflineBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: const Color(0xFF1A1033),
-      child: SafeArea(
-        bottom: false,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: const Color(0xFF1A1033),
-          child: Row(
-            children: [
-              const Icon(Icons.cloud_off_rounded,
-                  color: Color(0xFFFFB74D), size: 16),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Offline mode — viewing saved data. Will auto-sync when online.',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _OnlineRestoredBanner extends StatelessWidget {
   const _OnlineRestoredBanner();
 
