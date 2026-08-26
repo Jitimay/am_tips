@@ -18,9 +18,10 @@ CREATE TABLE IF NOT EXISTS public.payments (
   client_token     TEXT        NOT NULL UNIQUE,
 
   -- Fee breakdown (BIF integers — no decimals for BIF)
-  tip_amount       BIGINT      NOT NULL,
-  gateway_fee      BIGINT      NOT NULL DEFAULT 0,
-  customer_pays    BIGINT      NOT NULL,
+  tip_amount       BIGINT      NOT NULL,  -- Net amount credited to waiter (e.g. 9,000 BIF)
+  gateway_fee      BIGINT      NOT NULL DEFAULT 0,  -- AfriPay 4% fee (e.g. 400 BIF)
+  platform_fee     BIGINT      NOT NULL DEFAULT 0,  -- amTips 6% fee (e.g. 600 BIF)
+  customer_pays    BIGINT      NOT NULL,  -- Total charged on LumiCash (e.g. 10,000 BIF)
   currency         TEXT        NOT NULL DEFAULT 'BIF',
 
   -- Payment status lifecycle:

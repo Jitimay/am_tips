@@ -89,8 +89,18 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
     return BlocListener<CustomerTipBloc, CustomerTipState>(
       listener: (context, state) {
         if (state is CustomerAwaitingPayment) {
-          // Browser was launched — mark it so we start polling on resume
           setState(() => _browserLaunched = true);
+          context.push(
+            '/t/${widget.waiterId}/checkout',
+            extra: {
+              'tipId': state.tipId,
+              'amount': state.feeBreakdown.customerPays,
+              'currency': _currency,
+              'clientToken': state.clientToken,
+              'waiterName': state.profile.fullName.split(' ').first,
+              'waiterId': widget.waiterId,
+            },
+          );
         } else if (state is CustomerTipSuccess) {
           _pollTimer?.cancel();
           context.go(
@@ -133,10 +143,17 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
                 feeBreakdown: state.feeBreakdown,
                 currency: _currency,
                 onOpenAgain: () {
-                  // Let user re-open AfriPay if they accidentally closed it
-                  context
-                      .read<CustomerTipBloc>()
-                      .add(const AfriPayCheckoutStarted());
+                  context.push(
+                    '/t/${widget.waiterId}/checkout',
+                    extra: {
+                      'tipId': state.tipId,
+                      'amount': state.feeBreakdown.customerPays,
+                      'currency': _currency,
+                      'clientToken': state.clientToken,
+                      'waiterName': state.profile.fullName.split(' ').first,
+                      'waiterId': widget.waiterId,
+                    },
+                  );
                 },
                 onCancel: () {
                   _pollTimer?.cancel();
@@ -160,10 +177,10 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
             fee ??= AfriPayFeeDto(
               tipAmount: _amount,
               gatewayFee: AfriPayService.gatewayFee(_amount),
-              platformFee: 0,
-              totalFee: AfriPayService.gatewayFee(_amount),
+              platformFee: AfriPayService.platformFee(_amount),
+              totalFee: AfriPayService.totalFee(_amount),
               customerPays: AfriPayService.customerPays(_amount),
-              waiterReceives: _amount,
+              waiterReceives: AfriPayService.waiterReceives(_amount),
               currency: _currency,
             );
 
@@ -311,7 +328,7 @@ class _FeeBreakdownCard extends StatelessWidget {
           if (fee.platformFee > 0) ...[
             const SizedBox(height: 6),
             _FeeRow(
-              label: 'amTips platform fee',
+              label: 'amTips platform fee (6%)',
               value: CurrencyFormatter.format(fee.platformFee, currency),
             ),
           ],

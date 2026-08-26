@@ -60,16 +60,19 @@ class AppConstants {
   static const String afriPayReturnUrl   = AppSecrets.afriPayReturnUrl;
 
   /// AfriPay charges 4% on every payment.
-  /// We pass this to the customer transparently.
   static const double afriPayFeePercent = 0.04;
 
-  /// amTips platform fee on top (currently 0 — waiter keeps everything after gateway).
-  /// Change this to e.g. 0.02 to add a 2% platform cut.
-  static const double amTipsPlatformFeePercent = 0.00;
+  /// amTips platform fee (6% platform cut retained by amTips).
+  static const double amTipsPlatformFeePercent = 0.06;
 
-  /// Total fee multiplier shown to customer.
+  /// Total fee deduction (4% AfriPay + 6% amTips = 10%).
   static double get totalFeePercent =>
       afriPayFeePercent + amTipsPlatformFeePercent;
+
+  /// Platform fee on withdrawal — amTips charges 0%.
+  /// Note: LumiCash deducts their own 3% directly from the payout; that is
+  /// between the user and LumiCash and is NOT collected by amTips.
+  static const double platformWithdrawalFeePercent = 0.00;
 
   // Withdrawal limits
   static const int minWithdrawalAmount = 1000;

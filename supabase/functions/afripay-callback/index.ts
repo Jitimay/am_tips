@@ -85,9 +85,9 @@ Deno.serve(async (req: Request) => {
   }
 
   // ── Verify secret ────────────────────────────────────────────────────────
-  // AfriPay may send app_secret in the body. If they do, validate it.
-  // If they don't send it, we rely on the client_token uniqueness.
-  if (app_secret && app_secret !== AFRIPAY_APP_SECRET) {
+  if (!app_secret) {
+    console.warn("[afripay-callback] No app_secret in callback body — proceeding without verification");
+  } else if (app_secret !== AFRIPAY_APP_SECRET) {
     console.error("[afripay-callback] Invalid app_secret");
     return json({ error: "Unauthorized" }, 401);
   }

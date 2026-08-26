@@ -69,14 +69,16 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
     required String currency,
   }) {
     final gateway = AfriPayService.gatewayFee(tipAmount);
-    final platform = (tipAmount * AppConstants.amTipsPlatformFeePercent).ceil();
+    final platform = AfriPayService.platformFee(tipAmount);
+    final totalFee = gateway + platform;
+    final waiterReceives = tipAmount - totalFee;
     return AfriPayFeeDto(
       tipAmount: tipAmount,
       gatewayFee: gateway,
       platformFee: platform,
-      totalFee: gateway + platform,
-      customerPays: tipAmount + gateway + platform,
-      waiterReceives: tipAmount - platform, // waiter loses only amTips cut, not gateway
+      totalFee: totalFee,
+      customerPays: tipAmount,
+      waiterReceives: waiterReceives,
       currency: currency,
     );
   }
@@ -93,21 +95,16 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
     final clientToken = afriPayService.generateClientToken(tipId);
 
     // 1. Insert pending payment row into Supabase
+    // tip_amount = net amount (e.g. 9,000 BIF) to credit to waiter's wallet
+    // customer_pays = gross amount (e.g. 10,000 BIF) charged via LumiCash
     await afriPayService.createPendingPayment(
       tipId: tipId,
       clientToken: clientToken,
-      tipAmount: tipAmount,
+      tipAmount: fee.waiterReceives,
       gatewayFeeAmount: fee.gatewayFee,
+      platformFeeAmount: fee.platformFee,
       customerPaysAmount: fee.customerPays,
       currency: currency,
-    );
-
-    // 2. Launch AfriPay checkout in system browser
-    await afriPayService.launchCheckout(
-      amount: fee.customerPays,
-      currency: currency,
-      clientToken: clientToken,
-      comment: 'Tip for $waiterName — amTips',
     );
 
     return AfriPayCheckoutDto(

@@ -22,6 +22,7 @@ import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/tips/presentation/pages/tip_detail_page.dart';
 import '../../features/tips/presentation/pages/tips_page.dart';
 import '../../features/tips/presentation/pages/analytics_page.dart';
+import '../../features/payments/presentation/pages/afripay_checkout_page.dart';
 import '../../features/wallet/presentation/pages/wallet_page.dart';
 import '../../features/withdrawals/presentation/pages/withdrawal_page.dart';
 import '../../app/app_shell.dart';
@@ -216,6 +217,20 @@ class AppRouter {
               waiterId: state.pathParameters['waiterId']!,
               extra: state.extra as Map<String, dynamic>? ?? {},
             ),
+          ),
+          GoRoute(
+            path: 'checkout',
+            builder: (_, state) {
+              final extra = state.extra as Map<String, dynamic>? ?? {};
+              return AfriPayCheckoutPage(
+                amount: extra['amount'] as int? ?? 0,
+                currency: extra['currency'] as String? ?? 'BIF',
+                clientToken: extra['clientToken'] as String? ?? '',
+                waiterName: extra['waiterName'] as String? ?? '',
+                waiterId: state.pathParameters['waiterId']!,
+                tipId: extra['tipId'] as String? ?? '',
+              );
+            },
           ),
           GoRoute(
             path: 'success',

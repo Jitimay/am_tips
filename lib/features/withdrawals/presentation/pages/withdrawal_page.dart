@@ -232,6 +232,15 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
                                 : AppButtonVariant.outline,
                           ),
                         ),
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Text(
+                            '✓ 0% amTips fee on withdrawals',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 24),
                       ],
                     ),

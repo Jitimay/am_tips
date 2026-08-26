@@ -27,19 +27,24 @@ class AfriPayService {
 
   // ── Fee Calculation ────────────────────────────────────────────────────────
 
-  /// Calculates the AfriPay gateway fee (4%) on a tip amount.
-  /// Rounds up to avoid under-charging.
+  /// Calculates the AfriPay gateway fee (4%) on a total tip amount.
   static int gatewayFee(int tipAmount) =>
-      (tipAmount * AppConstants.afriPayFeePercent).ceil();
+      (tipAmount * AppConstants.afriPayFeePercent).round();
 
-  /// The total amount the customer pays (tip + gateway fee).
-  static int customerPays(int tipAmount) =>
-      tipAmount + gatewayFee(tipAmount);
+  /// Calculates the amTips platform fee (6%) on a total tip amount.
+  static int platformFee(int tipAmount) =>
+      (tipAmount * AppConstants.amTipsPlatformFeePercent).round();
 
-  /// The amount the waiter receives after the gateway deducts its fee.
-  /// AfriPay deducts from the total — waiter gets the tip amount intact
-  /// because we charge the fee on top to the customer.
-  static int waiterReceives(int tipAmount) => tipAmount;
+  /// Total fee deductions (4% AfriPay + 6% amTips = 10%).
+  static int totalFee(int tipAmount) =>
+      gatewayFee(tipAmount) + platformFee(tipAmount);
+
+  /// The total amount the customer pays (e.g. 10,000 BIF).
+  static int customerPays(int tipAmount) => tipAmount;
+
+  /// The net amount the waiter receives in their wallet (e.g. 9,000 BIF).
+  static int waiterReceives(int tipAmount) =>
+      tipAmount - totalFee(tipAmount);
 
   // ── Checkout ──────────────────────────────────────────────────────────────
 
@@ -112,11 +117,12 @@ class AfriPayService {
     required String clientToken,
     required int tipAmount,
     required int gatewayFeeAmount,
+    int platformFeeAmount = 0,
     required int customerPaysAmount,
     required String currency,
   }) async {
     try {
-      final row = await _db.from('payments').insert({
+      final insertData = <String, dynamic>{
         'tip_id': tipId,
         'client_token': clientToken,
         'tip_amount': tipAmount,
@@ -125,7 +131,12 @@ class AfriPayService {
         'currency': currency,
         'status': 'pending',
         'provider': 'afripay',
-      }).select('id').single();
+      };
+      if (platformFeeAmount > 0) {
+        insertData['platform_fee'] = platformFeeAmount;
+      }
+
+      final row = await _db.from('payments').insert(insertData).select('id').single();
 
       return row['id'] as String;
     } on PostgrestException catch (e) {

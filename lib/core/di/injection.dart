@@ -183,7 +183,7 @@ Future<void> configureDependencies() async {
 
   // ── Withdrawals ───────────────────────────────────────────────────────────
   sl.registerLazySingleton<WithdrawalRemoteDataSource>(
-    () => WithdrawalRemoteDataSourceImpl(apiClient: sl<ApiClient>()),
+    () => WithdrawalRemoteDataSourceImpl(),
   );
   sl.registerLazySingleton<WithdrawalRepository>(
     () => WithdrawalRepositoryImpl(

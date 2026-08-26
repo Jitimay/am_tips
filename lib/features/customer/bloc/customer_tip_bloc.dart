@@ -91,10 +91,18 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
 
     emit(const CustomerTipLoading());
 
-    // 1. Insert pending tip row in Supabase
+    // 1. Calculate net amount for waiter after 4% AfriPay + 6% amTips fee
+    final feeResult = repository.getFeeBreakdown(
+      tipAmount: _tipAmount!,
+      currency: currency,
+    );
+    final fee = feeResult.fold((_) => null, (f) => f);
+    final netAmount = fee?.waiterReceives ?? (_tipAmount! * 0.9).round();
+
+    // Insert pending tip row in Supabase
     final tipResult = await repository.insertTip(
       waiterId: _waiterId!,
-      amount: _tipAmount!,
+      amount: netAmount,
       currency: currency,
       isAnonymous: true,
     );
