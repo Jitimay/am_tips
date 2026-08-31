@@ -63,6 +63,8 @@ import '../../features/customer/domain/customer_tip_repository.dart';
 final sl = GetIt.instance;
 
 Future<void> configureDependencies() async {
+  await sl.reset();
+
   // ── External ──────────────────────────────────────────────────────────────
   sl.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(

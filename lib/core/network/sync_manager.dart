@@ -17,10 +17,15 @@ class SyncManager {
 
   Future<void> initialize() async {
     // Check initial connectivity
-    final results = await _connectivity.checkConnectivity();
-    _updateStatus(results);
+    try {
+      final results = await _connectivity.checkConnectivity();
+      _updateStatus(results);
+    } catch (e) {
+      debugPrint('[SyncManager] Initial connectivity check failed: $e');
+    }
 
-    // Listen to continuous connectivity changes
+    // Listen to continuous connectivity changes without creating duplicate subscriptions
+    await _subscription?.cancel();
     _subscription = _connectivity.onConnectivityChanged.listen(_handleConnectivityChange);
   }
 
