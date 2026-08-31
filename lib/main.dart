@@ -49,6 +49,7 @@ class _InitApp extends StatefulWidget {
 class _InitAppState extends State<_InitApp> {
   String? _errorMessage;
   bool _ready = false;
+  StreamSubscription<fb_auth.User?>? _authSub;
 
   @override
   void initState() {
@@ -56,34 +57,70 @@ class _InitAppState extends State<_InitApp> {
     _bootstrap();
   }
 
-  Future<void> _bootstrap() async {
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _resetAndRetry() async {
+    await _authSub?.cancel();
+    _authSub = null;
+    if (mounted) {
+      setState(() {
+        _errorMessage = null;
+        _ready = false;
+      });
+    }
+    await _bootstrap();
+  }
+
+  Future<void> _recordBootstrapError(
+    String stage,
+    Object error,
+    StackTrace stack, {
+    bool fatal = false,
+  }) async {
+    debugPrint('[Bootstrap][$stage] ${fatal ? "Fatal" : "Non-fatal"} error: $error\n$stack');
     try {
-      // 1. Firebase init
+      await FirebaseCrashlytics.instance.setCustomKey('bootstrap_stage', stage);
+      await FirebaseCrashlytics.instance.recordError(error, stack, fatal: fatal);
+    } catch (e) {
+      debugPrint('[Crashlytics] Failed to record bootstrap error for stage $stage: $e');
+    }
+  }
+
+  Future<void> _bootstrap() async {
+    // 1. Firebase init
+    try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform,
         );
       }
-
-      // 1b. Crashlytics
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-
-      // 2. FCM background handler (must be top-level)
       FirebaseMessaging.onBackgroundMessage(
           firebaseMessagingBackgroundHandler);
+    } catch (e, st) {
+      await _recordBootstrapError('FirebaseInit', e, st, fatal: false);
+    }
 
-      // 3. Supabase init
-      try {
-        await Supabase.initialize(
-          url: AppConstants.supabaseUrl,
-          // ignore: deprecated_member_use
-          anonKey: AppConstants.supabaseAnonKey,
-        );
-      } catch (_) {
-        // Already initialized — safe to ignore
+    // 2. Supabase init
+    try {
+      await Supabase.initialize(
+        url: AppConstants.supabaseUrl,
+        // ignore: deprecated_member_use
+        anonKey: AppConstants.supabaseAnonKey,
+      );
+    } catch (e, st) {
+      // Safe to ignore if already initialized; otherwise log non-fatally
+      if (!e.toString().contains('already initialized')) {
+        await _recordBootstrapError('SupabaseInit', e, st, fatal: false);
       }
+    }
 
-      // 4. Orientation + system UI
+    // 3. System Chrome orientation & status bar styling
+    try {
       await SystemChrome.setPreferredOrientations([
         DeviceOrientation.portraitUp,
         DeviceOrientation.portraitDown,
@@ -95,35 +132,67 @@ class _InitAppState extends State<_InitApp> {
           statusBarBrightness: Brightness.light,
         ),
       );
+    } catch (e, st) {
+      await _recordBootstrapError('SystemChrome', e, st, fatal: false);
+    }
 
-      // 5. Dependency injection
+    // 4. Dependency Injection Configuration
+    try {
       await configureDependencies();
-
-      // 6. Initialize Isar Offline DB & Connectivity Sync Manager
-      try {
-        await sl<IsarDatabaseService>().db;
-      } catch (e) {
-        debugPrint('[Isar] DB initialization warning: $e');
+    } catch (e, st) {
+      await _recordBootstrapError('DependencyInjection', e, st, fatal: true);
+      if (mounted) {
+        setState(() => _errorMessage =
+            'Could not start amTips.\n\n${e.toString().split('\n').first}');
       }
+      return;
+    }
+
+    // 5. Isar Offline Database Initialization
+    try {
+      await sl<IsarDatabaseService>().db;
+    } catch (e, st) {
+      await _recordBootstrapError('IsarDatabase', e, st, fatal: false);
+    }
+
+    // 6. Connectivity Sync Manager Initialization
+    try {
       await sl<SyncManager>().initialize();
+    } catch (e, st) {
+      await _recordBootstrapError('SyncManager', e, st, fatal: false);
+    }
 
-      // 7. Push notifications
+    // 7. Push Notifications Initialization
+    try {
       await sl<PushNotificationService>().initialize();
+    } catch (e, st) {
+      await _recordBootstrapError('PushNotificationService', e, st, fatal: false);
+    }
 
-      // 7. Keep Supabase UID header in sync with Firebase auth state
-      fb_auth.FirebaseAuth.instance.authStateChanges().listen((user) {
-        final headers = Supabase.instance.client.headers;
-        if (user != null) {
-          headers['x-firebase-uid'] = user.uid;
-          if (user.emailVerified) {
-            sl<PushNotificationService>().syncToken();
+    // 8. Firebase Auth State Listener (Keep Supabase UID header in sync)
+    try {
+      await _authSub?.cancel();
+      _authSub = fb_auth.FirebaseAuth.instance.authStateChanges().listen((user) {
+        try {
+          final headers = Supabase.instance.client.headers;
+          if (user != null) {
+            headers['x-firebase-uid'] = user.uid;
+            if (user.emailVerified) {
+              sl<PushNotificationService>().syncToken();
+            }
+          } else {
+            headers.remove('x-firebase-uid');
           }
-        } else {
-          headers.remove('x-firebase-uid');
+        } catch (e, st) {
+          debugPrint('[AuthStateListener] Error handling auth state change: $e\n$st');
         }
       });
+    } catch (e, st) {
+      await _recordBootstrapError('AuthStateListener', e, st, fatal: false);
+    }
 
-      // 8. One-time migration: if user already verified, mark onboarding done
+    // 9. One-time migration: check onboarding status
+    try {
       final prefs = await SharedPreferences.getInstance();
       if (!prefs.containsKey(AppConstants.onboardingCompleteKey)) {
         final fbUser = fb_auth.FirebaseAuth.instance.currentUser;
@@ -131,20 +200,23 @@ class _InitAppState extends State<_InitApp> {
           await prefs.setBool(AppConstants.onboardingCompleteKey, true);
         }
       }
-
-      if (mounted) setState(() => _ready = true);
     } catch (e, st) {
-      debugPrint('[Bootstrap] Fatal error: $e\n$st');
-      if (mounted) {
-        setState(() => _errorMessage =
-            'Could not start amTips.\n\n${e.toString().split('\n').first}');
-      }
+      await _recordBootstrapError('OnboardingMigration', e, st, fatal: false);
+    }
+
+    if (mounted) {
+      setState(() => _ready = true);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_errorMessage != null) return _ErrorScreen(message: _errorMessage!);
+    if (_errorMessage != null) {
+      return _ErrorScreen(
+        message: _errorMessage!,
+        onRetry: _resetAndRetry,
+      );
+    }
     if (!_ready) return _SplashLoader();
     return const AmTipsApp();
   }
@@ -166,7 +238,8 @@ class _SplashLoader extends StatelessWidget {
 // ── Startup error screen ──────────────────────────────────────────────────────
 class _ErrorScreen extends StatelessWidget {
   final String message;
-  const _ErrorScreen({required this.message});
+  final VoidCallback onRetry;
+  const _ErrorScreen({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -211,10 +284,7 @@ class _ErrorScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               ElevatedButton.icon(
-                onPressed: () {
-                  // Restart the app by re-running main
-                  main();
-                },
+                onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
                 label: const Text('Try Again'),
                 style: ElevatedButton.styleFrom(
