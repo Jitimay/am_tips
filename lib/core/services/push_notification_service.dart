@@ -191,7 +191,7 @@ class PushNotificationService {
     );
 
     await _localNotifications.initialize(
-      settings: initSettings,
+      initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         final payload = response.payload;
         if (payload != null && payload.isNotEmpty) {
@@ -257,10 +257,10 @@ class PushNotificationService {
 
       final id = message.messageId.hashCode;
       await _localNotifications.show(
-        id: id,
-        title: title,
-        body: body,
-        notificationDetails: notificationDetails,
+        id,
+        title,
+        body,
+        notificationDetails,
         payload: jsonEncode(message.data),
       );
     }
