@@ -2,7 +2,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
@@ -37,9 +39,9 @@ class _SearchPageState extends State<SearchPage> {
 
     setState(() => _loading = true);
     try {
-      // Use the public_profiles view + full-text search vector
+      // public_profiles is a view — query the base profiles table with search_vector
       final data = await Supabase.instance.client
-          .from('public_profiles')
+          .from('profiles')
           .select('id, full_name, avatar_url, restaurant_name, city, professions, average_rating, qr_token')
           .textSearch('search_vector', trimmed, config: 'simple')
           .eq('is_active', true)
@@ -49,7 +51,7 @@ class _SearchPageState extends State<SearchPage> {
       // fallback: ilike on full_name
       try {
         final data = await Supabase.instance.client
-            .from('public_profiles')
+            .from('profiles')
             .select('id, full_name, avatar_url, restaurant_name, city, professions, average_rating, qr_token')
             .ilike('full_name', '%$trimmed%')
             .eq('is_active', true)
@@ -215,7 +217,56 @@ class _ResultTile extends StatelessWidget {
               ],
             )
           : null,
-      onTap: () => context.push('/t/$waiterId'),
+      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => _TipWebView(
+          url: '${AppConstants.webBaseUrl}/t/$waiterId',
+        ),
+      )),
+    );
+  }
+}
+
+class _TipWebView extends StatefulWidget {
+  final String url;
+  const _TipWebView({required this.url});
+
+  @override
+  State<_TipWebView> createState() => _TipWebViewState();
+}
+
+class _TipWebViewState extends State<_TipWebView> {
+  late final WebViewController _controller;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageFinished: (_) {
+          if (mounted) setState(() => _loading = false);
+        },
+      ))
+      ..loadRequest(Uri.parse(widget.url));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('amTips'),
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_loading) const Center(child: CircularProgressIndicator()),
+        ],
+      ),
     );
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -9,15 +8,10 @@ import '../../../../core/errors/exceptions.dart';
 /// AfriPay integration service.
 ///
 /// Flow:
-///   1. [buildCheckoutUrl] → builds a signed URL / HTML form params.
-///   2. [launchCheckout]   → opens AfriPay checkout in the system browser.
+///   1. [buildCheckoutUri] → builds the amTips web checkout-redirect URL.
+///   2. AfriPay checkout runs inside the app WebView via checkout-redirect page.
 ///   3. AfriPay POSTs the result to our Supabase Edge Function callback.
-///   4. [pollPaymentStatus] → app polls Supabase `payments` table until done.
-///
-/// API details (from AfriPay, marcellin@afriregister.com):
-///   POST https://www.afripay.africa/checkout/index.php
-///   Fields: amount, currency, comment, client_token, return_url, app_id, app_secret
-///   Callback POST: status, amount, currency, transaction_ref, payment_method, client_token
+///   4. [getPaymentStatus] → app polls Supabase `payments` table until done.
 class AfriPayService {
   final SupabaseClient _db;
   final _uuid = const Uuid();
@@ -55,57 +49,28 @@ class AfriPayService {
     return 'tip_${tipId}_$short';
   }
 
-  /// Builds the AfriPay checkout URL as a Uri with all parameters embedded.
-  /// AfriPay uses a POST form but we construct a GET-compatible redirect URL
-  /// so we can open it directly without a server round-trip.
-  ///
-  /// Returns the Uri to launch in the browser.
+  /// Builds the checkout-redirect URL on the amTips web app.
+  /// The web page handles the AfriPay POST form server-side (secret stays there).
   Uri buildCheckoutUri({
     required int amount,
     required String currency,
     required String clientToken,
-    required String comment,
+    required String waiterId,
+    required String waiterName,
   }) {
-    // AfriPay expects a POST form. We use url_launcher to open their
-    // checkout page passing params as query strings — AfriPay supports this.
-    return Uri.parse(AppConstants.afriPayCheckoutUrl).replace(
-      queryParameters: {
-        'amount': amount.toString(),
-        'currency': currency,
-        'comment': comment,
-        'client_token': clientToken,
-        'return_url': AppConstants.afriPayReturnUrl,
-        'app_id': AppConstants.afriPayAppId,
-        'app_secret': AppConstants.afriPayAppSecret,
-      },
-    );
-  }
+    final returnUrl =
+        '${AppConstants.webBaseUrl}/t/$waiterId/success'
+        '?token=${Uri.encodeComponent(clientToken)}';
 
-  /// Opens the AfriPay checkout page in the device's default browser.
-  /// Throws [PaymentException] if the browser cannot be launched.
-  Future<void> launchCheckout({
-    required int amount,
-    required String currency,
-    required String clientToken,
-    required String comment,
-  }) async {
-    final uri = buildCheckoutUri(
-      amount: amount,
-      currency: currency,
-      clientToken: clientToken,
-      comment: comment,
-    );
-
-    debugPrint('[AfriPayService] Launching checkout: $uri');
-
-    final canLaunch = await canLaunchUrl(uri);
-    if (!canLaunch) {
-      throw const PaymentException(
-        message: 'Could not open the payment page. Please check your browser.',
-      );
-    }
-
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+    return Uri.parse(
+      '${AppConstants.webBaseUrl}/t/$waiterId/checkout-redirect',
+    ).replace(queryParameters: {
+      'amount': amount.toString(),
+      'currency': currency,
+      'client_token': clientToken,
+      'comment': 'Tip for $waiterName — amTips',
+      'return_url': returnUrl,
+    });
   }
 
   // ── Payment record in Supabase ─────────────────────────────────────────────

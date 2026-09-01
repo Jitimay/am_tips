@@ -54,11 +54,7 @@ class AppConstants {
   static const List<int> tipPresets = [2000, 5000, 10000, 20000];
 
   // ── AfriPay Payment Gateway ───────────────────────────────────────────────
-  static const String afriPayAppId       = AppSecrets.afriPayAppId;
-  static const String afriPayAppSecret   = AppSecrets.afriPayAppSecret;
-  static const String afriPayCheckoutUrl = AppSecrets.afriPayCheckoutUrl;
   static const String afriPayCallbackUrl = AppSecrets.afriPayCallbackUrl;
-  static const String afriPayReturnUrl   = AppSecrets.afriPayReturnUrl;
 
   /// AfriPay charges 4% on every payment.
   static const double afriPayFeePercent = 0.04;

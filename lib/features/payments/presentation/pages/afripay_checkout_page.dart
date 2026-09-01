@@ -43,70 +43,26 @@ class _AfriPayCheckoutPageState extends State<AfriPayCheckoutPage> {
   }
 
   void _initWebView() {
-    final comment = 'Tip for ${widget.waiterName} — amTips';
+    // Build the return_url the same way the web version does:
+    // /t/{waiterId}/success?token={clientToken}
+    final returnUrl =
+        '${AppConstants.webBaseUrl}/t/${widget.waiterId}/success'
+        '?token=${Uri.encodeComponent(widget.clientToken)}';
 
-    final postHtml = '''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Connecting to AfriPay</title>
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #f8f9fa;
-      color: #333333;
-    }
-    .container {
-      text-align: center;
-      padding: 24px;
-    }
-    .spinner {
-      border: 3px solid rgba(123, 95, 238, 0.15);
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border-left-color: #7B5FEE;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    p {
-      font-size: 16px;
-      font-weight: 500;
-      color: #555;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="spinner"></div>
-    <p>Connecting securely to AfriPay...</p>
-  </div>
-  <form id="afripayForm" action="${AppConstants.afriPayCheckoutUrl}" method="POST">
-    <input type="hidden" name="amount" value="${widget.amount}">
-    <input type="hidden" name="currency" value="${widget.currency}">
-    <input type="hidden" name="comment" value="$comment">
-    <input type="hidden" name="client_token" value="${widget.clientToken}">
-    <input type="hidden" name="return_url" value="${AppConstants.afriPayReturnUrl}">
-    <input type="hidden" name="app_id" value="${AppConstants.afriPayAppId}">
-    <input type="hidden" name="app_secret" value="${AppConstants.afriPayAppSecret}">
-  </form>
-  <script>
-    document.getElementById('afripayForm').submit();
-  </script>
-</body>
-</html>
-''';
+    // Use the web version's checkout-redirect page so the form submission
+    // and AfriPay secret handling is identical to what works in the browser.
+    final redirectUrl = Uri.parse(
+      '${AppConstants.webBaseUrl}/t/${widget.waiterId}/checkout-redirect',
+    ).replace(queryParameters: {
+      'amount': widget.amount.toString(),
+      'currency': widget.currency,
+      'client_token': widget.clientToken,
+      'comment': 'Tip for ${widget.waiterName} — amTips',
+      'return_url': returnUrl,
+    }).toString();
+
+    final successUrlPrefix =
+        '${AppConstants.webBaseUrl}/t/${widget.waiterId}/success';
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -117,13 +73,11 @@ class _AfriPayCheckoutPageState extends State<AfriPayCheckoutPage> {
           },
           onPageFinished: (String url) {
             debugPrint('[AfriPay WebView] Page finished: $url');
-            if (mounted) {
-              setState(() => _isLoading = false);
-            }
+            if (mounted) setState(() => _isLoading = false);
           },
           onNavigationRequest: (NavigationRequest request) {
             debugPrint('[AfriPay WebView] Navigating to: ${request.url}');
-            if (request.url.startsWith(AppConstants.afriPayReturnUrl)) {
+            if (request.url.startsWith(successUrlPrefix)) {
               _onPaymentDone();
               return NavigationDecision.prevent;
             }
@@ -131,7 +85,7 @@ class _AfriPayCheckoutPageState extends State<AfriPayCheckoutPage> {
           },
         ),
       )
-      ..loadHtmlString(postHtml);
+      ..loadRequest(Uri.parse(redirectUrl));
   }
 
   void _startPolling() {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -76,9 +77,12 @@ class _QrScannerPageState extends State<QrScannerPage>
     HapticFeedback.mediumImpact();
     _controller.stop();
 
-    // Navigate to the customer tipping page
-    context.push('/t/$waiterId').then((_) {
-      // Reset when user comes back so they can scan again
+    // Open the web tipping page in a WebView — same URL a browser would open.
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _TipWebView(url: 'https://amtips.app/t/$waiterId'),
+      ),
+    ).then((_) {
       if (mounted) {
         setState(() => _hasNavigated = false);
         _controller.start();
@@ -447,5 +451,55 @@ class _CameraErrorView extends StatelessWidget {
       default:
         return 'Could not start camera ($code).';
     }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// WebView that loads the amTips web tipping page — identical to a browser.
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _TipWebView extends StatefulWidget {
+  final String url;
+  const _TipWebView({required this.url});
+
+  @override
+  State<_TipWebView> createState() => _TipWebViewState();
+}
+
+class _TipWebViewState extends State<_TipWebView> {
+  late final WebViewController _controller;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageFinished: (_) {
+          if (mounted) setState(() => _loading = false);
+        },
+      ))
+      ..loadRequest(Uri.parse(widget.url));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('amTips'),
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_loading)
+            const Center(child: CircularProgressIndicator()),
+        ],
+      ),
+    );
   }
 }
