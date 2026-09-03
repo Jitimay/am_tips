@@ -21,7 +21,7 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<Either<Failure, List<PaymentMethod>>> getPaymentMethods() async {
     try {
-      final dtos = remoteDataSource.getPaymentMethods();
+      final dtos = await remoteDataSource.getPaymentMethods('BIF');
       final methods = dtos
           .map((d) => PaymentMethod(
                 id: d.id,

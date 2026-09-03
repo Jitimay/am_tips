@@ -1,12 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
-import '../../../core/constants/app_constants.dart';
+import '../../../core/di/injection.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../bloc/customer_tip_bloc.dart';
+import 'customer_profile_page.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -218,55 +219,11 @@ class _ResultTile extends StatelessWidget {
             )
           : null,
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => _TipWebView(
-          url: '${AppConstants.webBaseUrl}/t/$waiterId',
+        builder: (_) => BlocProvider(
+          create: (_) => sl<CustomerTipBloc>(),
+          child: CustomerProfilePage(waiterId: waiterId),
         ),
       )),
-    );
-  }
-}
-
-class _TipWebView extends StatefulWidget {
-  final String url;
-  const _TipWebView({required this.url});
-
-  @override
-  State<_TipWebView> createState() => _TipWebViewState();
-}
-
-class _TipWebViewState extends State<_TipWebView> {
-  late final WebViewController _controller;
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(NavigationDelegate(
-        onPageFinished: (_) {
-          if (mounted) setState(() => _loading = false);
-        },
-      ))
-      ..loadRequest(Uri.parse(widget.url));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('amTips'),
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-          if (_loading) const Center(child: CircularProgressIndicator()),
-        ],
-      ),
     );
   }
 }

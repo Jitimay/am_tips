@@ -21,9 +21,30 @@ class TipAmountSelected extends CustomerTipEvent {
   List<Object?> get props => [amount, currency];
 }
 
-/// Fired when the customer taps "Pay" — inserts tip row then opens AfriPay.
+/// Fired when the customer taps "Pay" — inserts tip row then calls AfriPay API.
+/// [phone] — customer's mobile money number.
+/// [paymentMethod] — selected AfriPay method id.
+/// [otp] — optional OTP for methods that require it.
 class AfriPayCheckoutStarted extends CustomerTipEvent {
-  const AfriPayCheckoutStarted();
+  final String phone;
+  final String paymentMethod;
+  final String? otp;
+  const AfriPayCheckoutStarted({
+    required this.phone,
+    required this.paymentMethod,
+    this.otp,
+  });
+  @override
+  List<Object?> get props => [phone, paymentMethod, otp];
+}
+
+/// Fired when customer requests OTP before paying (e.g. LumiCash).
+class OtpRequested extends CustomerTipEvent {
+  final String phone;
+  final String paymentMethod;
+  const OtpRequested({required this.phone, required this.paymentMethod});
+  @override
+  List<Object?> get props => [phone, paymentMethod];
 }
 
 /// Fired periodically while polling for payment confirmation.

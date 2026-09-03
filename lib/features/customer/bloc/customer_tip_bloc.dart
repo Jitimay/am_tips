@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../payments/data/datasources/payment_remote_datasource.dart';
+import '../../payments/data/services/afripay_service.dart';
 import '../../profile/domain/entities/waiter_profile.dart';
-import '../../tips/domain/entities/tip.dart';
 import '../domain/customer_tip_repository.dart';
 
 part 'customer_tip_event.dart';
@@ -13,7 +13,6 @@ part 'customer_tip_state.dart';
 class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
   final CustomerTipRepository repository;
 
-  // In-flight state kept in the BLoC — not in the UI
   PublicWaiterProfile? _profile;
   String? _waiterId;
   int? _tipAmount;
@@ -25,13 +24,14 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
       : super(const CustomerTipInitial()) {
     on<CustomerProfileRequested>(_onProfileRequested);
     on<TipAmountSelected>(_onAmountSelected);
+    on<OtpRequested>(_onOtpRequested);
     on<AfriPayCheckoutStarted>(_onCheckoutStarted);
     on<PaymentStatusPolled>(_onStatusPolled);
     on<PaymentCompleted>(_onPaymentCompleted);
     on<CustomerTipReset>(_onReset);
   }
 
-  // ── Profile ───────────────────────────────────────────────────────────────
+  List<AfriPayMethodDto> _lastMethods = [];
 
   Future<void> _onProfileRequested(
     CustomerProfileRequested event,
@@ -39,22 +39,21 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
   ) async {
     emit(const CustomerTipLoading());
     _waiterId = event.waiterId;
-
-    final result = await repository.getWaiterPublicProfile(event.waiterId);
-    result.fold(
+    final results = await Future.wait([
+      repository.getWaiterPublicProfile(event.waiterId),
+      repository.getPaymentMethods(AppConstants.defaultCurrency),
+    ]);
+    final profileResult = results[0] as dynamic;
+    final methods = results[1] as List<AfriPayMethodDto>;
+    profileResult.fold(
       (failure) => emit(CustomerTipError(failure.message)),
       (profile) {
         _profile = profile;
-        final methods = repository.getPaymentMethods();
-        emit(CustomerProfileLoaded(
-          profile: profile,
-          paymentMethods: methods,
-        ));
+        _lastMethods = methods;
+        emit(CustomerProfileLoaded(profile: profile, paymentMethods: methods));
       },
     );
   }
-
-  // ── Amount selected → compute fee immediately (local, no network) ─────────
 
   void _onAmountSelected(
     TipAmountSelected event,
@@ -63,14 +62,16 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
     _tipAmount = event.amount;
     _currency = event.currency;
     if (_profile == null) return;
-
-    final feeResult = repository.getFeeBreakdown(
+    final fee = repository.getFeeBreakdown(
       tipAmount: event.amount,
       currency: event.currency,
-    );
-    final fee = feeResult.fold((_) => null, (f) => f);
-    final methods = repository.getPaymentMethods();
-
+    ).fold((_) => null, (f) => f);
+    final methods = state is CustomerProfileLoaded
+        ? (state as CustomerProfileLoaded).paymentMethods
+        : state is CustomerTipAmountSelected
+            ? (state as CustomerTipAmountSelected).paymentMethods
+            : <AfriPayMethodDto>[];
+    if (methods.isNotEmpty) _lastMethods = methods;
     emit(CustomerTipAmountSelected(
       profile: _profile!,
       amount: event.amount,
@@ -80,8 +81,53 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
     ));
   }
 
-  // ── Checkout: insert tip → open AfriPay browser ───────────────────────────
+  /// Requests OTP for methods that require it (e.g. LumiCash).
+  Future<void> _onOtpRequested(
+    OtpRequested event,
+    Emitter<CustomerTipState> emit,
+  ) async {
+    if (_profile == null || _tipAmount == null) return;
 
+    final result = await repository.requestOtp(
+      phone: event.phone,
+      paymentMethod: event.paymentMethod,
+    );
+
+    result.fold(
+      (failure) => _emitError(emit, failure.message),
+      (response) {
+        if (response['status'] == 'error') {
+          _emitError(emit, response['message'] as String? ?? 'OTP request failed.');
+        } else {
+          final fee = repository
+              .getFeeBreakdown(
+                tipAmount: _tipAmount!,
+                currency: _currency ?? AppConstants.defaultCurrency,
+              )
+              .fold((_) => null, (f) => f);
+          final feeBreakdown = fee ??
+              AfriPayFeeDto(
+                tipAmount: _tipAmount!,
+                gatewayFee: AfriPayService.gatewayFee(_tipAmount!),
+                platformFee: AfriPayService.platformFee(_tipAmount!),
+                totalFee: AfriPayService.totalFee(_tipAmount!),
+                customerPays: AfriPayService.customerPays(_tipAmount!),
+                waiterReceives: AfriPayService.waiterReceives(_tipAmount!),
+                currency: _currency ?? AppConstants.defaultCurrency,
+              );
+          emit(CustomerOtpSent(
+            profile: _profile!,
+            feeBreakdown: feeBreakdown,
+            paymentMethods: _lastMethods,
+            phone: event.phone,
+            paymentMethod: event.paymentMethod,
+          ));
+        }
+      },
+    );
+  }
+
+  /// Inserts tip row → creates pending payment → calls AfriPay C2B API.
   Future<void> _onCheckoutStarted(
     AfriPayCheckoutStarted event,
     Emitter<CustomerTipState> emit,
@@ -91,31 +137,29 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
 
     emit(const CustomerTipLoading());
 
-    // 1. Calculate net amount for waiter after 4% AfriPay + 6% amTips fee
-    final feeResult = repository.getFeeBreakdown(
-      tipAmount: _tipAmount!,
-      currency: currency,
-    );
-    final fee = feeResult.fold((_) => null, (f) => f);
+    final fee = repository
+        .getFeeBreakdown(tipAmount: _tipAmount!, currency: currency)
+        .fold((_) => null, (f) => f);
     final netAmount = fee?.waiterReceives ?? (_tipAmount! * 0.9).round();
 
-    // Insert pending tip row in Supabase
+    // 1. Insert pending tip
     final tipResult = await repository.insertTip(
       waiterId: _waiterId!,
       amount: netAmount,
       currency: currency,
       isAnonymous: true,
     );
-
-    final failureOrTip = tipResult.fold<_Either>((f) => _Left(f), (t) => _Right(t));
-    if (failureOrTip is _Left) {
-      emit(CustomerTipError((failureOrTip).failure.message));
+    if (tipResult.isLeft()) {
+      tipResult.fold(
+        (f) => _emitError(emit, f.message),
+        (_) {},
+      );
       return;
     }
-    final tip = (failureOrTip as _Right).tip;
+    final tip = tipResult.getOrElse(() => throw Exception());
     _tipId = tip.id;
 
-    // 2. Launch AfriPay checkout (browser opens, user pays)
+    // 2. Create pending payment row in Supabase → get clientToken
     final checkoutResult = await repository.initiateAfriPayCheckout(
       tipId: tip.id,
       waiterId: _waiterId!,
@@ -123,32 +167,53 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
       tipAmount: _tipAmount!,
       currency: currency,
     );
+    if (checkoutResult.isLeft()) {
+      checkoutResult.fold(
+        (f) => _emitError(emit, f.message),
+        (_) {},
+      );
+      return;
+    }
+    final checkout = checkoutResult.getOrElse(() => throw Exception());
+    _clientToken = checkout.clientToken;
 
-    checkoutResult.fold(
-      (failure) => emit(CustomerTipError(failure.message)),
-      (checkout) {
-        _clientToken = checkout.clientToken;
-        emit(CustomerAwaitingPayment(
-          tipId: tip.id,
-          clientToken: checkout.clientToken,
-          feeBreakdown: checkout.feeBreakdown,
-          profile: _profile!,
-        ));
+    // 3. Call AfriPay C2B API directly — sends USSD push to customer's phone
+    final c2bResult = await repository.sendC2BRequest(
+      clientToken: checkout.clientToken,
+      amount: _tipAmount!,
+      currency: currency,
+      paymentMethod: event.paymentMethod,
+      phone: event.phone,
+      waiterName: _profile!.fullName.split(' ').first,
+      otp: event.otp,
+    );
+
+    c2bResult.fold(
+      (failure) => _emitError(emit, failure.message),
+      (response) {
+        if (response['status'] == 'error') {
+          _emitError(emit, response['message'] as String? ?? 'Payment failed. Try again.');
+        } else {
+          // status == 'success' → USSD push sent, waiting for customer to confirm
+          emit(CustomerAwaitingPayment(
+            tipId: tip.id,
+            clientToken: checkout.clientToken,
+            feeBreakdown: checkout.feeBreakdown,
+            profile: _profile!,
+          ));
+        }
       },
     );
   }
-
-  // ── Poll Supabase until AfriPay callback updates the payment row ──────────
 
   Future<void> _onStatusPolled(
     PaymentStatusPolled event,
     Emitter<CustomerTipState> emit,
   ) async {
     if (_clientToken == null || _profile == null || _tipId == null) return;
-
     final result = await repository.pollPaymentStatus(_clientToken!);
     result.fold(
-      (_) {}, // network blip — keep polling
+      (_) {},
       (status) {
         switch (status) {
           case 'completed':
@@ -161,18 +226,15 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
             ));
             break;
           case 'failed':
-            emit(const CustomerTipError(
-                'Your payment was not completed. Please try again.'));
+          case 'cancelled':
+            _emitError(emit, 'Your payment was not completed. Please try again.');
             break;
           default:
-            // Still pending — do nothing, let timer continue
             break;
         }
       },
     );
   }
-
-  // ── Submit optional feedback after success ────────────────────────────────
 
   Future<void> _onPaymentCompleted(
     PaymentCompleted event,
@@ -186,7 +248,26 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
     );
   }
 
-  // ── Reset for new tip flow ────────────────────────────────────────────────
+  void _emitError(Emitter<CustomerTipState> emit, String message) {
+    if (_profile == null || _tipAmount == null) {
+      emit(CustomerTipError(message));
+      return;
+    }
+    final fee = repository
+        .getFeeBreakdown(
+          tipAmount: _tipAmount!,
+          currency: _currency ?? AppConstants.defaultCurrency,
+        )
+        .fold((_) => null, (f) => f);
+    emit(CustomerTipAmountSelected(
+      profile: _profile!,
+      amount: _tipAmount!,
+      currency: _currency ?? AppConstants.defaultCurrency,
+      feeBreakdown: fee,
+      paymentMethods: _lastMethods,
+      errorMessage: message,
+    ));
+  }
 
   void _onReset(CustomerTipReset event, Emitter<CustomerTipState> emit) {
     _profile = null;
@@ -197,15 +278,4 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
     _clientToken = null;
     emit(const CustomerTipInitial());
   }
-}
-
-// Simple local sum type to avoid nested fold
-abstract class _Either {}
-class _Left extends _Either {
-  final dynamic failure;
-  _Left(this.failure);
-}
-class _Right extends _Either {
-  final Tip tip;
-  _Right(this.tip);
 }

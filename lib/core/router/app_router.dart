@@ -19,10 +19,11 @@ import '../../features/qr_code/presentation/pages/qr_page.dart';
 import '../../features/qr_code/presentation/pages/qr_scanner_page.dart';
 import '../../features/qr_code/presentation/pages/campaign_card_page.dart';
 import '../../features/settings/presentation/pages/settings_page.dart';
+import '../../features/settings/presentation/pages/privacy_policy_page.dart';
+import '../../features/settings/presentation/pages/terms_of_service_page.dart';
 import '../../features/tips/presentation/pages/tip_detail_page.dart';
 import '../../features/tips/presentation/pages/tips_page.dart';
 import '../../features/tips/presentation/pages/analytics_page.dart';
-import '../../features/payments/presentation/pages/afripay_checkout_page.dart';
 import '../../features/wallet/presentation/pages/wallet_page.dart';
 import '../../features/withdrawals/presentation/pages/withdrawal_page.dart';
 import '../../app/app_shell.dart';
@@ -52,6 +53,8 @@ class AppRoutes {
   static const editProfile = '/profile/edit';
   static const notifications = '/notifications';
   static const settings = '/settings';
+  static const privacy = '/privacy';
+  static const terms = '/terms';
   static const search = '/search';
   static const analytics = '/analytics';
 
@@ -204,6 +207,14 @@ class AppRouter {
         path: AppRoutes.settings,
         builder: (_, _) => const SettingsPage(),
       ),
+      GoRoute(
+        path: AppRoutes.privacy,
+        builder: (_, _) => const PrivacyPolicyPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.terms,
+        builder: (_, _) => const TermsOfServicePage(),
+      ),
 
       // ── Public customer tipping flow ──────────────────────────────────────
       GoRoute(
@@ -217,20 +228,6 @@ class AppRouter {
               waiterId: state.pathParameters['waiterId']!,
               extra: state.extra as Map<String, dynamic>? ?? {},
             ),
-          ),
-          GoRoute(
-            path: 'checkout',
-            builder: (_, state) {
-              final extra = state.extra as Map<String, dynamic>? ?? {};
-              return AfriPayCheckoutPage(
-                amount: extra['amount'] as int? ?? 0,
-                currency: extra['currency'] as String? ?? 'BIF',
-                clientToken: extra['clientToken'] as String? ?? '',
-                waiterName: extra['waiterName'] as String? ?? '',
-                waiterId: state.pathParameters['waiterId']!,
-                tipId: extra['tipId'] as String? ?? '',
-              );
-            },
           ),
           GoRoute(
             path: 'success',

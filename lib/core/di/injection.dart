@@ -232,6 +232,7 @@ Future<void> configureDependencies() async {
     () => PushNotificationService(
       notificationRepository: sl<NotificationRepository>(),
       secureStorage: sl<SecureStorage>(),
+      isarDb: sl<IsarDatabaseService>(),
     ),
   );
 

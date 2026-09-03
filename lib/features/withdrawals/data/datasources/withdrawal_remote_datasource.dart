@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/exceptions.dart';
@@ -64,7 +65,13 @@ class WithdrawalRemoteDataSourceImpl implements WithdrawalRemoteDataSource {
       });
 
       final row = (rows as List).first as Map<String, dynamic>;
-      return WithdrawalModel.fromJson(row);
+      final withdrawal = WithdrawalModel.fromJson(row);
+
+      // Trigger AfriPay disbursement via Edge Function (fire-and-forget).
+      // The edge function updates the withdrawal status asynchronously.
+      _triggerDisbursement(withdrawal.id);
+
+      return withdrawal;
     } on PostgrestException catch (e) {
       if (e.message.contains('Insufficient balance')) {
         throw const ValidationException(message: 'Insufficient balance.');
@@ -77,6 +84,13 @@ class WithdrawalRemoteDataSourceImpl implements WithdrawalRemoteDataSource {
       if (e is ServerException || e is ValidationException || e is AuthenticationException) rethrow;
       throw ServerException(message: e.toString(), statusCode: null);
     }
+  }
+
+  void _triggerDisbursement(String withdrawalId) {
+    _db.functions
+        .invoke('afripay-disbursement', body: {'withdrawal_id': withdrawalId})
+        .then((_) => debugPrint('[Withdrawal] Disbursement triggered: $withdrawalId'))
+        .catchError((e) => debugPrint('[Withdrawal] Disbursement trigger failed: $e'));
   }
 
   @override

@@ -23,14 +23,30 @@ abstract class CustomerTipRepository {
     required bool isAnonymous,
   });
 
-  /// Creates a pending payment row in Supabase then opens AfriPay checkout
-  /// in the system browser.
+  /// Creates a pending payment row in Supabase.
   Future<Either<Failure, AfriPayCheckoutDto>> initiateAfriPayCheckout({
     required String tipId,
     required String waiterId,
     required String waiterName,
     required int tipAmount,
     required String currency,
+  });
+
+  /// Calls AfriPay C2B API — sends USSD push to [phone].
+  Future<Either<Failure, Map<String, dynamic>>> sendC2BRequest({
+    required String clientToken,
+    required int amount,
+    required String currency,
+    required String paymentMethod,
+    required String phone,
+    required String waiterName,
+    String? otp,
+  });
+
+  /// Requests OTP for methods that require it (e.g. lumicash).
+  Future<Either<Failure, Map<String, dynamic>>> requestOtp({
+    required String phone,
+    required String paymentMethod,
   });
 
   /// Polls Supabase payments table for current status of [clientToken].
@@ -46,6 +62,6 @@ abstract class CustomerTipRepository {
     String? message,
   });
 
-  /// Returns static list of AfriPay methods (LumiCash + BANCOBU eNoti).
-  List<AfriPayMethodDto> getPaymentMethods();
+  /// Fetches available payment methods from AfriPay API.
+  Future<List<AfriPayMethodDto>> getPaymentMethods(String currency);
 }

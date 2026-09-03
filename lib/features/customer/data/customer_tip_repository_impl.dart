@@ -4,6 +4,7 @@ import '../../../core/errors/exceptions.dart';
 import '../../../core/errors/failures.dart';
 import '../../../core/network/network_info.dart';
 import '../../payments/data/datasources/payment_remote_datasource.dart';
+import '../../payments/data/services/afripay_service.dart';
 import '../../profile/data/models/waiter_profile_model.dart';
 import '../../profile/domain/entities/waiter_profile.dart';
 import '../../tips/data/models/tip_model.dart';
@@ -101,6 +102,54 @@ class CustomerTipRepositoryImpl implements CustomerTipRepository {
   }
 
   @override
+  Future<Either<Failure, Map<String, dynamic>>> sendC2BRequest({
+    required String clientToken,
+    required int amount,
+    required String currency,
+    required String paymentMethod,
+    required String phone,
+    required String waiterName,
+    String? otp,
+  }) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      final result = await dataSource.sendC2BRequest(
+        clientToken: clientToken,
+        amount: amount,
+        currency: currency,
+        paymentMethod: paymentMethod,
+        phone: phone,
+        waiterName: waiterName,
+        otp: otp,
+      );
+      return Right(result);
+    } on PaymentException catch (e) {
+      return Left(PaymentFailure(message: e.message));
+    } catch (e) {
+      return Left(PaymentFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Map<String, dynamic>>> requestOtp({
+    required String phone,
+    required String paymentMethod,
+  }) async {
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure());
+    try {
+      final result = await dataSource.requestOtp(
+        phone: phone,
+        paymentMethod: paymentMethod,
+      );
+      return Right(result);
+    } on PaymentException catch (e) {
+      return Left(PaymentFailure(message: e.message));
+    } catch (e) {
+      return Left(PaymentFailure(message: e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, String>> pollPaymentStatus(
       String clientToken) async {
     try {
@@ -138,7 +187,11 @@ class CustomerTipRepositoryImpl implements CustomerTipRepository {
   }
 
   @override
-  List<AfriPayMethodDto> getPaymentMethods() {
-    return dataSource.getPaymentMethods();
+  Future<List<AfriPayMethodDto>> getPaymentMethods(String currency) async {
+    try {
+      return await dataSource.getPaymentMethods(currency);
+    } catch (e) {
+      return AfriPayService.fallbackMethods();
+    }
   }
 }

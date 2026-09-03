@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_constants.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
@@ -89,14 +89,14 @@ class SettingsPage extends StatelessWidget {
                 ListTile(
                   leading: const Icon(Icons.privacy_tip_outlined),
                   title: const Text('Privacy Policy'),
-                  trailing: const Icon(Icons.open_in_new_rounded, size: 16),
-                  onTap: () => _launchUrl(AppConstants.privacyPolicyUrl),
+                  trailing: const Icon(Icons.chevron_right_rounded, size: 16),
+                  onTap: () => context.push(AppRoutes.privacy),
                 ),
                 ListTile(
                   leading: const Icon(Icons.article_outlined),
                   title: const Text('Terms of Service'),
-                  trailing: const Icon(Icons.open_in_new_rounded, size: 16),
-                  onTap: () => _launchUrl(AppConstants.termsOfServiceUrl),
+                  trailing: const Icon(Icons.chevron_right_rounded, size: 16),
+                  onTap: () => context.push(AppRoutes.terms),
                 ),
                 const SizedBox(height: 32),
               ],
@@ -107,12 +107,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  void _launchUrl(String url) async {
-    final uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      debugPrint('[Settings] Could not launch $url');
-    }
-  }
+
 
   void _showChangePasswordSheet(BuildContext context) {
     final currentCtrl = TextEditingController();

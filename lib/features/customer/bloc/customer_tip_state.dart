@@ -17,10 +17,7 @@ class CustomerTipLoading extends CustomerTipState {
 class CustomerProfileLoaded extends CustomerTipState {
   final PublicWaiterProfile profile;
   final List<AfriPayMethodDto> paymentMethods;
-  const CustomerProfileLoaded({
-    required this.profile,
-    required this.paymentMethods,
-  });
+  const CustomerProfileLoaded({required this.profile, required this.paymentMethods});
   @override
   List<Object?> get props => [profile, paymentMethods];
 }
@@ -31,19 +28,38 @@ class CustomerTipAmountSelected extends CustomerTipState {
   final String currency;
   final AfriPayFeeDto? feeBreakdown;
   final List<AfriPayMethodDto> paymentMethods;
+  final String? errorMessage;
   const CustomerTipAmountSelected({
     required this.profile,
     required this.amount,
     required this.currency,
     this.feeBreakdown,
     required this.paymentMethods,
+    this.errorMessage,
   });
   @override
-  List<Object?> get props => [profile, amount, currency, feeBreakdown];
+  List<Object?> get props => [profile, amount, currency, feeBreakdown, errorMessage];
 }
 
-/// AfriPay checkout has been launched in the browser.
-/// App is now waiting for the callback to update Supabase.
+/// OTP was sent to the customer's phone — waiting for them to enter it.
+class CustomerOtpSent extends CustomerTipState {
+  final PublicWaiterProfile profile;
+  final AfriPayFeeDto feeBreakdown;
+  final List<AfriPayMethodDto> paymentMethods;
+  final String phone;
+  final String paymentMethod;
+  const CustomerOtpSent({
+    required this.profile,
+    required this.feeBreakdown,
+    required this.paymentMethods,
+    required this.phone,
+    required this.paymentMethod,
+  });
+  @override
+  List<Object?> get props => [phone, paymentMethod];
+}
+
+/// AfriPay C2B request sent — USSD push delivered, waiting for customer to confirm.
 class CustomerAwaitingPayment extends CustomerTipState {
   final String tipId;
   final String clientToken;

@@ -1,36 +1,15 @@
+import '../models/afripay_method_dto.dart';
 import '../services/afripay_service.dart';
 
-/// Available payment methods on AfriPay for Burundi.
-/// These are static — AfriPay does not expose a dynamic methods endpoint.
-const List<Map<String, dynamic>> kAfriPayMethods = [
-  {
-    'id': 'lumicash',
-    'name': 'LumiCash',
-    'provider': 'afripay',
-    'type': 'mobile_money',
-    'description': 'Pay with your LumiCash mobile wallet',
-    'is_available': true,
-    'emoji': '📱',
-  },
-  {
-    'id': 'bancobu_enoti',
-    'name': 'BANCOBU eNoti',
-    'provider': 'afripay',
-    'type': 'mobile_money',
-    'description': 'Pay via BANCOBU eNoti mobile banking',
-    'is_available': true,
-    'emoji': '🏦',
-  },
-];
+export '../models/afripay_method_dto.dart';
 
 abstract class PaymentRemoteDataSource {
-  /// Returns the hardcoded AfriPay payment methods (LumiCash + BANCOBU eNoti).
-  List<AfriPayMethodDto> getPaymentMethods();
+  /// Fetches available payment methods from AfriPay API dynamically.
+  Future<List<AfriPayMethodDto>> getPaymentMethods(String currency);
 
-  /// Calculates fee breakdown for the given tip amount.
   AfriPayFeeDto getFeeBreakdown({required int tipAmount, required String currency});
 
-  /// Creates a pending payment record in Supabase and launches AfriPay checkout.
+  /// Creates a pending payment record in Supabase.
   /// Returns a [AfriPayCheckoutDto] containing the clientToken for polling.
   Future<AfriPayCheckoutDto> initiateCheckout({
     required String tipId,
@@ -40,44 +19,50 @@ abstract class PaymentRemoteDataSource {
     required String currency,
   });
 
-  /// Polls Supabase for payment status by [clientToken].
-  /// Returns 'pending' | 'completed' | 'failed'.
+  /// Calls AfriPay C2B API directly — sends USSD push to [phone].
+  /// Returns AfriPay's response {status, message, transaction_ref}.
+  Future<Map<String, dynamic>> sendC2BRequest({
+    required String clientToken,
+    required int amount,
+    required String currency,
+    required String paymentMethod,
+    required String phone,
+    required String waiterName,
+    String? otp,
+  });
+
+  /// Requests OTP for methods that require it (e.g. lumicash).
+  Future<Map<String, dynamic>> requestOtp({
+    required String phone,
+    required String paymentMethod,
+  });
+
   Future<String> pollPaymentStatus(String clientToken);
 
-  /// Fetches the full completed payment row (used to build success screen).
   Future<Map<String, dynamic>?> getCompletedPayment(String clientToken);
 }
 
 class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
   final AfriPayService afriPayService;
 
-  PaymentRemoteDataSourceImpl({
-    AfriPayService? afriPayService,
-  })  : afriPayService = afriPayService ?? AfriPayService();
+  PaymentRemoteDataSourceImpl({AfriPayService? afriPayService})
+      : afriPayService = afriPayService ?? AfriPayService();
 
   @override
-  List<AfriPayMethodDto> getPaymentMethods() {
-    return kAfriPayMethods
-        .map((m) => AfriPayMethodDto.fromMap(m))
-        .toList();
-  }
+  Future<List<AfriPayMethodDto>> getPaymentMethods(String currency) =>
+      afriPayService.fetchPaymentMethods(currency);
 
   @override
-  AfriPayFeeDto getFeeBreakdown({
-    required int tipAmount,
-    required String currency,
-  }) {
+  AfriPayFeeDto getFeeBreakdown({required int tipAmount, required String currency}) {
     final gateway = AfriPayService.gatewayFee(tipAmount);
     final platform = AfriPayService.platformFee(tipAmount);
-    final totalFee = gateway + platform;
-    final waiterReceives = tipAmount - totalFee;
     return AfriPayFeeDto(
       tipAmount: tipAmount,
       gatewayFee: gateway,
       platformFee: platform,
-      totalFee: totalFee,
+      totalFee: gateway + platform,
       customerPays: tipAmount,
-      waiterReceives: waiterReceives,
+      waiterReceives: tipAmount - gateway - platform,
       currency: currency,
     );
   }
@@ -93,9 +78,6 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
     final fee = getFeeBreakdown(tipAmount: tipAmount, currency: currency);
     final clientToken = afriPayService.generateClientToken(tipId);
 
-    // 1. Insert pending payment row into Supabase
-    // tip_amount = net amount (e.g. 9,000 BIF) to credit to waiter's wallet
-    // customer_pays = gross amount (e.g. 10,000 BIF) charged via LumiCash
     await afriPayService.createPendingPayment(
       tipId: tipId,
       clientToken: clientToken,
@@ -106,61 +88,54 @@ class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
       currency: currency,
     );
 
-    return AfriPayCheckoutDto(
-      clientToken: clientToken,
-      feeBreakdown: fee,
-    );
+    return AfriPayCheckoutDto(clientToken: clientToken, feeBreakdown: fee);
   }
 
   @override
-  Future<String> pollPaymentStatus(String clientToken) {
-    return afriPayService.getPaymentStatus(clientToken);
-  }
+  Future<Map<String, dynamic>> sendC2BRequest({
+    required String clientToken,
+    required int amount,
+    required String currency,
+    required String paymentMethod,
+    required String phone,
+    required String waiterName,
+    String? otp,
+  }) =>
+      afriPayService.initiateC2B(
+        amount: amount,
+        currency: currency,
+        clientToken: clientToken,
+        paymentMethod: paymentMethod,
+        phone: phone,
+        waiterName: waiterName,
+        otp: otp,
+      );
 
   @override
-  Future<Map<String, dynamic>?> getCompletedPayment(String clientToken) {
-    return afriPayService.getCompletedPayment(clientToken);
-  }
+  Future<Map<String, dynamic>> requestOtp({
+    required String phone,
+    required String paymentMethod,
+  }) =>
+      afriPayService.getOtp(phone: phone, paymentMethod: paymentMethod);
+
+  @override
+  Future<String> pollPaymentStatus(String clientToken) =>
+      afriPayService.getPaymentStatus(clientToken);
+
+  @override
+  Future<Map<String, dynamic>?> getCompletedPayment(String clientToken) =>
+      afriPayService.getCompletedPayment(clientToken);
 }
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
-
-class AfriPayMethodDto {
-  final String id;
-  final String name;
-  final String provider;
-  final String type;
-  final String description;
-  final bool isAvailable;
-  final String emoji;
-
-  const AfriPayMethodDto({
-    required this.id,
-    required this.name,
-    required this.provider,
-    required this.type,
-    required this.description,
-    required this.isAvailable,
-    required this.emoji,
-  });
-
-  factory AfriPayMethodDto.fromMap(Map<String, dynamic> m) => AfriPayMethodDto(
-        id: m['id'] as String,
-        name: m['name'] as String,
-        provider: m['provider'] as String,
-        type: m['type'] as String,
-        description: m['description'] as String,
-        isAvailable: m['is_available'] as bool,
-        emoji: m['emoji'] as String,
-      );
-}
+// AfriPayMethodDto is defined in ../models/afripay_method_dto.dart
 
 class AfriPayFeeDto {
   final int tipAmount;
-  final int gatewayFee;    // AfriPay 4%
-  final int platformFee;   // amTips cut (default 0%)
+  final int gatewayFee;
+  final int platformFee;
   final int totalFee;
-  final int customerPays;  // tipAmount + totalFee
+  final int customerPays;
   final int waiterReceives;
   final String currency;
 

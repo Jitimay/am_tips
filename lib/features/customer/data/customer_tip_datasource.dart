@@ -33,6 +33,21 @@ abstract class CustomerTipDataSource {
     required String currency,
   });
 
+  Future<Map<String, dynamic>> sendC2BRequest({
+    required String clientToken,
+    required int amount,
+    required String currency,
+    required String paymentMethod,
+    required String phone,
+    required String waiterName,
+    String? otp,
+  });
+
+  Future<Map<String, dynamic>> requestOtp({
+    required String phone,
+    required String paymentMethod,
+  });
+
   Future<String> pollPaymentStatus(String clientToken);
 
   Future<Map<String, dynamic>?> getCompletedPayment(String clientToken);
@@ -43,7 +58,7 @@ abstract class CustomerTipDataSource {
     String? message,
   });
 
-  List<AfriPayMethodDto> getPaymentMethods();
+  Future<List<AfriPayMethodDto>> getPaymentMethods(String currency);
 }
 
 class CustomerTipDataSourceImpl implements CustomerTipDataSource {
@@ -152,6 +167,33 @@ class CustomerTipDataSourceImpl implements CustomerTipDataSource {
     );
   }
 
+  @override
+  Future<Map<String, dynamic>> sendC2BRequest({
+    required String clientToken,
+    required int amount,
+    required String currency,
+    required String paymentMethod,
+    required String phone,
+    required String waiterName,
+    String? otp,
+  }) =>
+      _paymentDs.sendC2BRequest(
+        clientToken: clientToken,
+        amount: amount,
+        currency: currency,
+        paymentMethod: paymentMethod,
+        phone: phone,
+        waiterName: waiterName,
+        otp: otp,
+      );
+
+  @override
+  Future<Map<String, dynamic>> requestOtp({
+    required String phone,
+    required String paymentMethod,
+  }) =>
+      _paymentDs.requestOtp(phone: phone, paymentMethod: paymentMethod);
+
   // ── Status polling ────────────────────────────────────────────────────────
 
   @override
@@ -188,7 +230,6 @@ class CustomerTipDataSourceImpl implements CustomerTipDataSource {
   // ── Payment methods ───────────────────────────────────────────────────────
 
   @override
-  List<AfriPayMethodDto> getPaymentMethods() {
-    return _paymentDs.getPaymentMethods();
-  }
+  Future<List<AfriPayMethodDto>> getPaymentMethods(String currency) =>
+      _paymentDs.getPaymentMethods(currency);
 }

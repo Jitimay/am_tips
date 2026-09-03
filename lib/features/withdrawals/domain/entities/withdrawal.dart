@@ -3,7 +3,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'withdrawal.freezed.dart';
 part 'withdrawal.g.dart';
 
-enum WithdrawalStatus { requested, processing, completed, failed }
+enum WithdrawalStatus { requested, processing, completed, failed, cancelled }
 
 @freezed
 abstract class Withdrawal with _$Withdrawal {

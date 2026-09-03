@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
@@ -26,11 +28,14 @@ class CustomerPaymentPage extends StatefulWidget {
   State<CustomerPaymentPage> createState() => _CustomerPaymentPageState();
 }
 
-class _CustomerPaymentPageState extends State<CustomerPaymentPage>
-    with WidgetsBindingObserver {
+class _CustomerPaymentPageState extends State<CustomerPaymentPage> {
   String? _selectedMethodId;
+  bool _requiresOtp = false;
+  bool _requestingOtp = false;
+  final _phoneCtrl = TextEditingController();
+  final _otpCtrl = TextEditingController();
   Timer? _pollTimer;
-  bool _browserLaunched = false;
+  List<AfriPayMethodDto> _methods = [];
 
   int get _amount => widget.extra['amount'] as int? ?? 0;
   String get _currency => widget.extra['currency'] as String? ?? 'BIF';
@@ -38,9 +43,12 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-
-    // Pre-compute fee immediately — local calculation, no network
+    final currentState = context.read<CustomerTipBloc>().state;
+    if (currentState is CustomerProfileLoaded && currentState.paymentMethods.isNotEmpty) {
+      _methods = currentState.paymentMethods;
+    } else if (currentState is CustomerTipAmountSelected && currentState.paymentMethods.isNotEmpty) {
+      _methods = currentState.paymentMethods;
+    }
     context.read<CustomerTipBloc>().add(
           TipAmountSelected(amount: _amount, currency: _currency),
         );
@@ -49,16 +57,9 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
   @override
   void dispose() {
     _pollTimer?.cancel();
-    WidgetsBinding.instance.removeObserver(this);
+    _phoneCtrl.dispose();
+    _otpCtrl.dispose();
     super.dispose();
-  }
-
-  /// When the user returns from the AfriPay browser tab, start polling.
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _browserLaunched) {
-      _startPolling();
-    }
   }
 
   void _startPolling() {
@@ -70,37 +71,84 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
     });
   }
 
-  void _pay() {
-    if (_selectedMethodId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a payment method.'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+  void _requestOtp() {
+    final phone = _phoneCtrl.text.trim();
+    if (phone.isEmpty) {
+      _showSnack('Please enter your phone number first.');
       return;
     }
-    setState(() => _browserLaunched = false);
-    context.read<CustomerTipBloc>().add(const AfriPayCheckoutStarted());
+    if (_selectedMethodId == null) {
+      _showSnack('Please select a payment method.');
+      return;
+    }
+    setState(() => _requestingOtp = true);
+    context.read<CustomerTipBloc>().add(OtpRequested(
+          phone: phone,
+          paymentMethod: _selectedMethodId!,
+        ));
+  }
+
+  void _pay() {
+    final phone = _phoneCtrl.text.trim();
+    if (phone.isEmpty) {
+      _showSnack('Please enter your phone number.');
+      return;
+    }
+    if (_selectedMethodId == null) {
+      _showSnack('Please select a payment method.');
+      return;
+    }
+    if (_requiresOtp && _otpCtrl.text.trim().isEmpty) {
+      _showSnack('Please enter the OTP sent to your phone.');
+      return;
+    }
+    context.read<CustomerTipBloc>().add(AfriPayCheckoutStarted(
+          phone: phone,
+          paymentMethod: _selectedMethodId!,
+          otp: _requiresOtp ? _otpCtrl.text.trim() : null,
+        ));
+  }
+
+  void _showSnack(String msg) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg), behavior: SnackBarBehavior.floating),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<CustomerTipBloc, CustomerTipState>(
       listener: (context, state) {
+        // Cache methods into local state so rebuilds don't re-read from bloc
+        if (state is CustomerTipAmountSelected && state.paymentMethods.isNotEmpty) {
+          setState(() {
+            _methods = state.paymentMethods;
+            _requestingOtp = false;
+          });
+        } else if (state is CustomerProfileLoaded && state.paymentMethods.isNotEmpty) {
+          setState(() {
+            _methods = state.paymentMethods;
+            _requestingOtp = false;
+          });
+        } else if (state is CustomerOtpSent && state.paymentMethods.isNotEmpty) {
+          setState(() {
+            _methods = state.paymentMethods;
+            _requestingOtp = false;
+          });
+        }
         if (state is CustomerAwaitingPayment) {
-          setState(() => _browserLaunched = true);
-          context.push(
-            '/t/${widget.waiterId}/checkout',
-            extra: {
-              'tipId': state.tipId,
-              'amount': state.feeBreakdown.customerPays,
-              'currency': _currency,
-              'clientToken': state.clientToken,
-              'waiterName': state.profile.fullName.split(' ').first,
-              'waiterId': widget.waiterId,
-            },
-          );
+          _startPolling();
+        } else if (state is CustomerOtpSent) {
+          setState(() => _requestingOtp = false);
+          _showSnack('OTP sent! Check your phone and enter it below.');
+        } else if (state is CustomerTipAmountSelected && state.errorMessage != null) {
+          setState(() => _requestingOtp = false);
+          _pollTimer?.cancel();
+          _showSnack(state.errorMessage!);
+        } else if (state is CustomerTipError) {
+          setState(() => _requestingOtp = false);
+          _showSnack(state.message);
         } else if (state is CustomerTipSuccess) {
           _pollTimer?.cancel();
           context.go(
@@ -114,47 +162,30 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
               'transactionRef': state.transactionRef,
             },
           );
-        } else if (state is CustomerTipError) {
-          _pollTimer?.cancel();
-          setState(() => _browserLaunched = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
         }
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('Pay your tip')),
+        resizeToAvoidBottomInset: true,
         body: BlocBuilder<CustomerTipBloc, CustomerTipState>(
+          // Only rebuild for loading/awaiting states — NOT for poll ticks
+          buildWhen: (prev, curr) =>
+              curr is CustomerTipLoading ||
+              curr is CustomerAwaitingPayment ||
+              curr is CustomerTipAmountSelected ||
+              curr is CustomerProfileLoaded ||
+              curr is CustomerOtpSent ||
+              curr is CustomerTipSuccess ||
+              curr is CustomerTipError,
           builder: (context, state) {
-            // While inserting tip / launching browser
             if (state is CustomerTipLoading) {
-              return const _LoadingView(
-                message: 'Opening payment page…',
-              );
+              return const Center(child: CircularProgressIndicator());
             }
 
-            // Browser launched — user is paying — show waiting screen
             if (state is CustomerAwaitingPayment) {
-              return _AwaitingView(
+              return _AwaitingConfirmationView(
                 feeBreakdown: state.feeBreakdown,
                 currency: _currency,
-                onOpenAgain: () {
-                  context.push(
-                    '/t/${widget.waiterId}/checkout',
-                    extra: {
-                      'tipId': state.tipId,
-                      'amount': state.feeBreakdown.customerPays,
-                      'currency': _currency,
-                      'clientToken': state.clientToken,
-                      'waiterName': state.profile.fullName.split(' ').first,
-                      'waiterId': widget.waiterId,
-                    },
-                  );
-                },
                 onCancel: () {
                   _pollTimer?.cancel();
                   context.pop();
@@ -162,18 +193,13 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
               );
             }
 
-            // Normal state — show method selector + fee breakdown
             AfriPayFeeDto? fee;
-            List<AfriPayMethodDto> methods = [];
-
             if (state is CustomerTipAmountSelected) {
               fee = state.feeBreakdown;
-              methods = state.paymentMethods;
-            } else if (state is CustomerProfileLoaded) {
-              methods = state.paymentMethods;
+            } else if (state is CustomerOtpSent) {
+              fee = state.feeBreakdown;
             }
 
-            // Compute fee locally if not yet available
             fee ??= AfriPayFeeDto(
               tipAmount: _amount,
               gatewayFee: AfriPayService.gatewayFee(_amount),
@@ -185,72 +211,99 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
             );
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 48),
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Fee breakdown card ──────────────────────────────
                   _FeeBreakdownCard(fee: fee, currency: _currency),
                   const SizedBox(height: 28),
 
-                  // ── Payment method selection ───────────────────────
-                  Text('Pay with', style: AppTextStyles.h3),
+                  Text('Select payment method', style: AppTextStyles.h3),
                   const SizedBox(height: 14),
-                  ...methods.map(
-                    (m) => _MethodTile(
-                      method: m,
-                      isSelected: _selectedMethodId == m.id,
-                      onTap: () =>
-                          setState(() => _selectedMethodId = m.id),
+                  ...(_methods).map((m) => _MethodTile(
+                        method: m,
+                        selected: _selectedMethodId == m.id,
+                        onTap: () {
+                          setState(() {
+                            _selectedMethodId = m.id;
+                            _requiresOtp = m.requiresOtp;
+                            _otpCtrl.clear();
+                          });
+                        },
+                      )),
+
+                  const SizedBox(height: 24),
+
+                  // Phone number input
+                  Text('Your mobile money number', style: AppTextStyles.h3),
+                  const SizedBox(height: 10),
+                  TextField(
+                    controller: _phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      hintText: 'e.g. 25761234567',
+                      prefixIcon: Icon(Icons.phone_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(12)),
+                      ),
                     ),
                   ),
-                  if (methods.isEmpty) ...[
-                    _MethodTile(
-                      method: const AfriPayMethodDto(
-                        id: 'lumicash',
-                        name: 'LumiCash',
-                        provider: 'afripay',
-                        type: 'mobile_money',
-                        description: 'Pay with your LumiCash mobile wallet',
-                        isAvailable: true,
-                        emoji: '📱',
+
+                  // OTP section
+                  if (_requiresOtp) ...[
+                    const SizedBox(height: 20),
+                    Text('One-Time Password (OTP)', style: AppTextStyles.h3),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _otpCtrl,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        hintText: 'Enter OTP',
+                        prefixIcon: const Icon(Icons.lock_outline_rounded),
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: _requestingOtp
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : TextButton(
+                                  onPressed: _requestOtp,
+                                  child: const Text(
+                                    'Get OTP',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                        border: const OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12)),
+                        ),
                       ),
-                      isSelected: _selectedMethodId == 'lumicash',
-                      onTap: () =>
-                          setState(() => _selectedMethodId = 'lumicash'),
-                    ),
-                    _MethodTile(
-                      method: const AfriPayMethodDto(
-                        id: 'bancobu_enoti',
-                        name: 'BANCOBU eNoti',
-                        provider: 'afripay',
-                        type: 'mobile_money',
-                        description: 'Pay via BANCOBU eNoti mobile banking',
-                        isAvailable: true,
-                        emoji: '🏦',
-                      ),
-                      isSelected: _selectedMethodId == 'bancobu_enoti',
-                      onTap: () => setState(
-                          () => _selectedMethodId = 'bancobu_enoti'),
                     ),
                   ],
-                  const SizedBox(height: 32),
 
-                  // ── Pay button ─────────────────────────────────────
+                  const SizedBox(height: 32),
                   AppButton(
                     label:
-                        'Pay ${CurrencyFormatter.format(fee.customerPays, _currency)}',
-                    onPressed: _selectedMethodId != null ? _pay : null,
+                        'Pay ${CurrencyFormatter.format(_amount, _currency)}',
+                    onPressed: _pay,
                   ),
-                  const SizedBox(height: 16),
-
-                  // ── Security note ──────────────────────────────────
-                  const _SecurityNote(),
-                  const SizedBox(height: 8),
-
-                  // ── AfriPay branding ───────────────────────────────
-                  const _AfriPayBadge(),
-                  const SizedBox(height: 24),
                 ],
               ),
             );
@@ -261,280 +314,128 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage>
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Fee Breakdown Card — Task 4
-// Shows tip amount, AfriPay 4% fee, total customer pays, waiter receives.
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Fee breakdown card ────────────────────────────────────────────────────────
 
 class _FeeBreakdownCard extends StatelessWidget {
   final AfriPayFeeDto fee;
   final String currency;
-
   const _FeeBreakdownCard({required this.fee, required this.currency});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: AppColors.tipGradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
+        color: AppColors.primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Payment summary',
-            style: AppTextStyles.labelSmall
-                .copyWith(color: Colors.white70),
-          ),
-          const SizedBox(height: 12),
-
-          // ── Tip amount (large) ──────────────────────────────────────
-          Text(
-            CurrencyFormatter.format(fee.tipAmount, currency),
-            style: const TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 36,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Tip amount',
-            style: AppTextStyles.caption
-                .copyWith(color: Colors.white60),
-          ),
-
-          const SizedBox(height: 16),
-          Divider(color: Colors.white.withValues(alpha: 0.2)),
-          const SizedBox(height: 12),
-
-          // ── Fee rows ──────────────────────────────────────────────
-          _FeeRow(
-            label: 'AfriPay processing fee (4%)',
-            value: CurrencyFormatter.format(fee.gatewayFee, currency),
-          ),
-          if (fee.platformFee > 0) ...[
-            const SizedBox(height: 6),
-            _FeeRow(
-              label: 'amTips platform fee (6%)',
-              value: CurrencyFormatter.format(fee.platformFee, currency),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Divider(color: Colors.white.withValues(alpha: 0.15)),
-          const SizedBox(height: 10),
-
-          // ── You pay ───────────────────────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'You pay',
-                style: AppTextStyles.labelMedium
-                    .copyWith(color: Colors.white),
-              ),
-              Text(
-                CurrencyFormatter.format(fee.customerPays, currency),
-                style: const TextStyle(
-                  fontFamily: 'Poppins',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // ── Waiter receives ───────────────────────────────────────
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.check_circle_outline_rounded,
-                      color: Colors.white70, size: 14),
-                  const SizedBox(width: 5),
-                  Text(
-                    'Creator receives',
-                    style: AppTextStyles.bodySmall
-                        .copyWith(color: Colors.white70),
-                  ),
-                ],
-              ),
-              Text(
-                CurrencyFormatter.format(fee.waiterReceives, currency),
-                style: AppTextStyles.labelMedium
-                    .copyWith(color: Colors.white70),
-              ),
-            ],
-          ),
+          Text('You pay', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
+          Text(CurrencyFormatter.format(fee.customerPays, currency),
+              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
         ],
       ),
     );
   }
 }
 
-class _FeeRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _FeeRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label,
-            style: AppTextStyles.bodySmall
-                .copyWith(color: Colors.white60)),
-        Text(value,
-            style: AppTextStyles.bodySmall
-                .copyWith(color: Colors.white70)),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Method Tile
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Payment method tile ───────────────────────────────────────────────────────
 
 class _MethodTile extends StatelessWidget {
   final AfriPayMethodDto method;
-  final bool isSelected;
+  final bool selected;
   final VoidCallback onTap;
+  const _MethodTile(
+      {required this.method, required this.selected, required this.onTap});
 
-  const _MethodTile({
-    required this.method,
-    required this.isSelected,
-    required this.onTap,
-  });
+  Widget _methodInitial(String name) => Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: const TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              color: AppColors.primary),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: method.isAvailable ? onTap : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.06)
-              : Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : Theme.of(context).colorScheme.outline,
-            width: isSelected ? 2 : 1,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Material(
+        color: selected
+            ? AppColors.primary.withValues(alpha: 0.06)
+            : Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: BorderSide(
+            color: selected ? AppColors.primary : AppColors.cardBorder,
+            width: selected ? 2 : 1.5,
           ),
         ),
-        child: Row(
-          children: [
-            // Emoji icon
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primary.withValues(alpha: 0.1)
-                    : AppColors.primarySurface,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Center(
-                child: Text(
-                  method.emoji,
-                  style: const TextStyle(fontSize: 22),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                // Logo circle
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: method.iconUrl != null
+                      ? ClipOval(
+                          child: CachedNetworkImage(
+                            imageUrl: method.iconUrl!,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorWidget: (context, url, error) => _methodInitial(method.name),
+                            placeholder: (context, url) => _methodInitial(method.name),
+                          ),
+                        )
+                      : _methodInitial(method.name),
                 ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            // Name + description
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    method.name,
-                    style: AppTextStyles.labelMedium.copyWith(
-                      color: isSelected
-                          ? AppColors.primary
-                          : AppColors.textPrimary,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    method.name.toUpperCase(),
+                    style: AppTextStyles.bodyMedium.copyWith(
                       fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    method.description,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 11,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Check / unavailable indicator
-            if (!method.isAvailable)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: AppColors.textHint.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text('Unavailable',
-                    style: AppTextStyles.caption),
-              )
-            else
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: isSelected
-                    ? const Icon(Icons.check_circle_rounded,
-                        color: AppColors.primary, size: 24,
-                        key: ValueKey('checked'))
-                    : const Icon(Icons.radio_button_unchecked_rounded,
-                        color: AppColors.textHint, size: 24,
-                        key: ValueKey('unchecked')),
-              ),
-          ],
+                if (selected)
+                  const Icon(Icons.check_circle_rounded,
+                      color: AppColors.primary, size: 22),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Awaiting Payment View — shown after browser launches
-// ─────────────────────────────────────────────────────────────────────────────
+// ── Awaiting confirmation view ────────────────────────────────────────────────
 
-class _AwaitingView extends StatelessWidget {
+class _AwaitingConfirmationView extends StatelessWidget {
   final AfriPayFeeDto feeBreakdown;
   final String currency;
-  final VoidCallback onOpenAgain;
   final VoidCallback onCancel;
-
-  const _AwaitingView({
-    required this.feeBreakdown,
-    required this.currency,
-    required this.onOpenAgain,
-    required this.onCancel,
-  });
+  const _AwaitingConfirmationView(
+      {required this.feeBreakdown,
+      required this.currency,
+      required this.onCancel});
 
   @override
   Widget build(BuildContext context) {
@@ -543,198 +444,27 @@ class _AwaitingView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Animated pulse circle
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0.85, end: 1.0),
-            duration: const Duration(milliseconds: 900),
-            curve: Curves.easeInOut,
-            builder: (_, scale, child) => Transform.scale(
-              scale: scale,
-              child: child,
-            ),
-            child: Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.35),
-                    blurRadius: 24,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: const Icon(Icons.payment_rounded,
-                  color: Colors.white, size: 44),
-            ),
-          ),
-          const SizedBox(height: 28),
+          const Icon(Icons.phone_android_rounded,
+              size: 64, color: AppColors.primary),
+          const SizedBox(height: 24),
+          Text('Check your phone!',
+              style: AppTextStyles.h2, textAlign: TextAlign.center),
+          const SizedBox(height: 12),
           Text(
-            'Complete your payment',
-            style: AppTextStyles.h2,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'The AfriPay checkout page has opened in your browser.\n'
-            'Complete the payment with LumiCash or BANCOBU eNoti, '
-            'then come back here.',
+            'A payment request of ${CurrencyFormatter.format(feeBreakdown.customerPays, currency)} '
+            'was sent to your mobile money account.\n\nPlease confirm it on your phone.',
             style: AppTextStyles.bodyMedium
                 .copyWith(color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-
-          // Amount reminder
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.info_outline_rounded,
-                    color: AppColors.primary, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  'Total: ${CurrencyFormatter.format(feeBreakdown.customerPays, currency)}  '
-                  '(incl. 4% fee)',
-                  style: AppTextStyles.labelMedium
-                      .copyWith(color: AppColors.primary),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 28),
-
-          // Polling indicator
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                'Waiting for payment confirmation…',
-                style: AppTextStyles.bodySmall
-                    .copyWith(color: AppColors.textSecondary),
-              ),
-            ],
-          ),
           const SizedBox(height: 32),
-
-          AppButton(
-            label: 'Re-open Payment Page',
-            onPressed: onOpenAgain,
-            variant: AppButtonVariant.outline,
-            prefixIcon: const Icon(Icons.open_in_browser_rounded,
-                size: 18, color: AppColors.primary),
-          ),
-          const SizedBox(height: 12),
-          AppButton(
-            label: 'Cancel',
+          const CircularProgressIndicator(color: AppColors.primary),
+          const SizedBox(height: 32),
+          TextButton(
             onPressed: onCancel,
-            variant: AppButtonVariant.ghost,
+            child: const Text('Cancel'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Loading View
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _LoadingView extends StatelessWidget {
-  final String message;
-  const _LoadingView({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(color: AppColors.primary),
-            const SizedBox(height: 20),
-            Text(message,
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textSecondary),
-                textAlign: TextAlign.center),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Security note + AfriPay badge
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _SecurityNote extends StatelessWidget {
-  const _SecurityNote();
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Icon(Icons.lock_outline_rounded,
-            size: 13, color: AppColors.textHint),
-        const SizedBox(width: 5),
-        Text(
-          'Payments are processed securely by AfriPay.',
-          style: AppTextStyles.caption,
-        ),
-      ],
-    );
-  }
-}
-
-class _AfriPayBadge extends StatelessWidget {
-  const _AfriPayBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.background,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.divider),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.verified_rounded,
-                size: 14, color: AppColors.primary),
-            const SizedBox(width: 6),
-            Text(
-              'Powered by AfriPay · LumiCash · BANCOBU eNoti',
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -13,6 +13,7 @@ import '../../features/notifications/domain/entities/notification.dart';
 import '../../features/notifications/domain/repositories/notification_repository.dart';
 import '../../firebase_options.dart';
 import '../router/app_router.dart';
+import '../storage/isar_database_service.dart';
 import '../storage/secure_storage.dart';
 
 /// Top-level background message handler required by Firebase Cloud Messaging.
@@ -43,6 +44,7 @@ class PushNotificationService {
   final FlutterLocalNotificationsPlugin? _customLocalNotifications;
   final NotificationRepository notificationRepository;
   final SecureStorage secureStorage;
+  final IsarDatabaseService? isarDb;
 
   FirebaseMessaging get _messaging =>
       _customMessaging ?? FirebaseMessaging.instance;
@@ -62,6 +64,7 @@ class PushNotificationService {
     FlutterLocalNotificationsPlugin? localNotifications,
     required this.notificationRepository,
     required this.secureStorage,
+    this.isarDb,
   })  : _customMessaging = messaging,
         _customLocalNotifications = localNotifications;
 
@@ -191,7 +194,7 @@ class PushNotificationService {
     );
 
     await _localNotifications.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         final payload = response.payload;
         if (payload != null && payload.isNotEmpty) {
@@ -226,6 +229,7 @@ class PushNotificationService {
 
     final appNotification = parseRemoteMessage(message);
     _notificationStreamController.add(appNotification);
+    await isarDb?.saveNotifications([appNotification]);
 
     // Show heads-up notification in foreground
     final title = message.notification?.title ??
@@ -257,10 +261,10 @@ class PushNotificationService {
 
       final id = message.messageId.hashCode;
       await _localNotifications.show(
-        id,
-        title,
-        body,
-        notificationDetails,
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: notificationDetails,
         payload: jsonEncode(message.data),
       );
     }
