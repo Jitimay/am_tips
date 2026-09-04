@@ -21,6 +21,9 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Register background message handler BEFORE runApp — Firebase requires this.
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   // Catch all uncaught Flutter framework errors and show a friendly screen.
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
@@ -112,8 +115,7 @@ class _InitAppState extends State<_InitApp> {
         );
       }
       await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-      FirebaseMessaging.onBackgroundMessage(
-          firebaseMessagingBackgroundHandler);
+      // Note: onBackgroundMessage is registered in main() before runApp — not here.
     } catch (e, st) {
       await _recordBootstrapError('FirebaseInit', e, st, fatal: false);
     }

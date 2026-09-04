@@ -147,7 +147,9 @@ class _NotificationLifecycleWrapperState
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, authState) {
         if (authState is Authenticated) {
-          sl<PushNotificationService>().syncToken();
+          // force:true bypasses the emailVerified cache check — the user
+          // is already authenticated at this point so we always want to register.
+          sl<PushNotificationService>().syncToken(force: true);
           context.read<NotificationBloc>().add(const NotificationsLoaded());
         } else if (authState is Unauthenticated) {
           sl<PushNotificationService>().deleteToken();

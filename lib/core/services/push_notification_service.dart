@@ -18,6 +18,11 @@ import '../storage/secure_storage.dart';
 
 /// Top-level background message handler required by Firebase Cloud Messaging.
 /// This runs in an isolated background Dart execution context.
+///
+/// When the app is in the background:
+///  - Messages with a `notification` block are shown automatically by the OS.
+///  - Data-only messages (no `notification` block) are silently delivered and
+///    would otherwise be lost. We show a local notification for those here.
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -29,8 +34,58 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
   } catch (e) {
     debugPrint('[FCM Background] Initialization error: $e');
+    return;
   }
+
   debugPrint('[FCM Background] Message received: id=${message.messageId}, data=${message.data}');
+
+  // Only show a local notification for data-only messages.
+  // If there's a notification block the OS already shows it.
+  if (message.notification == null && message.data.isNotEmpty) {
+    final title = message.data['title'] as String? ?? 'amTips';
+    final body  = message.data['body']  as String? ?? '';
+
+    if (title.isNotEmpty || body.isNotEmpty) {
+      try {
+        final plugin = FlutterLocalNotificationsPlugin();
+        const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+        await plugin.initialize(
+          const InitializationSettings(android: androidInit),
+        );
+
+        // Create the channel in case it wasn't created yet in this isolate
+        await plugin
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>()
+            ?.createNotificationChannel(
+              const AndroidNotificationChannel(
+                PushNotificationService.notificationChannelId,
+                PushNotificationService.notificationChannelName,
+                description: PushNotificationService.notificationChannelDescription,
+                importance: Importance.max,
+              ),
+            );
+
+        final notifId = (message.messageId ?? const Uuid().v4()).hashCode.abs();
+        await plugin.show(
+          id: notifId,
+          title: title,
+          body: body,
+          notificationDetails: const NotificationDetails(
+            android: AndroidNotificationDetails(
+              PushNotificationService.notificationChannelId,
+              PushNotificationService.notificationChannelName,
+              importance: Importance.max,
+              priority: Priority.high,
+              icon: '@mipmap/ic_launcher',
+            ),
+          ),
+        );
+      } catch (e) {
+        debugPrint('[FCM Background] Failed to show local notification: $e');
+      }
+    }
+  }
 }
 
 /// Service managing Firebase Cloud Messaging (FCM) and local notifications.
@@ -259,7 +314,9 @@ class PushNotificationService {
         ),
       );
 
-      final id = message.messageId.hashCode;
+      // Use a stable, unique ID — messageId can be null which would cause
+      // all null-ID notifications to collide on ID 0 and replace each other.
+      final id = (message.messageId ?? const Uuid().v4()).hashCode.abs();
       await _localNotifications.show(
         id: id,
         title: title,
