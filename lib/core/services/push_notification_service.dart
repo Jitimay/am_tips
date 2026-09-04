@@ -50,10 +50,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         final plugin = FlutterLocalNotificationsPlugin();
         const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
         await plugin.initialize(
-          const InitializationSettings(android: androidInit),
+          settings: const InitializationSettings(android: androidInit),
         );
-
-        // Create the channel in case it wasn't created yet in this isolate
         await plugin
             .resolvePlatformSpecificImplementation<
                 AndroidFlutterLocalNotificationsPlugin>()
@@ -155,6 +153,14 @@ class PushNotificationService {
     try {
       // 1. Request notification permissions
       await requestPermissions();
+
+      // Force foreground notifications to be delivered to onMessage
+      // instead of being handled by the system tray automatically.
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
       // 2. Initialize local notifications
       await _initializeLocalNotifications();
@@ -280,18 +286,20 @@ class PushNotificationService {
 
   /// Handles incoming FCM messages while app is in foreground.
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    debugPrint('[FCM] Foreground message received: title=${message.notification?.title}, data=${message.data}');
+    debugPrint('[FCM] notification title=${message.notification?.title} body=${message.notification?.body}');
+    debugPrint('[FCM] data=${message.data}');
 
     final appNotification = parseRemoteMessage(message);
     _notificationStreamController.add(appNotification);
     await isarDb?.saveNotifications([appNotification]);
 
-    // Show heads-up notification in foreground
     final title = message.notification?.title ??
-        message.data['title'] ??
-        'amTips Notification';
+        message.data['title'] as String? ??
+        message.data['notification_title'] as String? ??
+        'amTips';
     final body = message.notification?.body ??
-        message.data['body'] ??
+        message.data['body'] as String? ??
+        message.data['notification_body'] as String? ??
         '';
 
     if (title.isNotEmpty || body.isNotEmpty) {
@@ -332,6 +340,7 @@ class PushNotificationService {
     try {
       final token = await _messaging.getToken();
       _lastToken = token;
+      debugPrint('[FCM] *** DEVICE TOKEN: $token ***');
       return token;
     } catch (e) {
       debugPrint('[FCM] Error getting token: $e');
@@ -388,6 +397,11 @@ class PushNotificationService {
   /// Deletes the local FCM registration token (e.g., on logout).
   Future<void> deleteToken() async {
     try {
+      // Remove from Supabase device_tokens before deleting from Firebase
+      final token = _lastToken ?? await _messaging.getToken();
+      if (token != null && token.isNotEmpty) {
+        await notificationRepository.deletePushToken(token);
+      }
       await _messaging.deleteToken();
       _lastToken = null;
       debugPrint('[FCM] FCM Token deleted.');

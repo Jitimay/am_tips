@@ -1040,7 +1040,9 @@ class _CampaignHomeCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         width: 220,
-        padding: const EdgeInsets.all(14),
+        // Fixed height so the card never overflows regardless of title length.
+        height: 130,
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: colors,
@@ -1051,11 +1053,12 @@ class _CampaignHomeCard extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
           children: [
             Row(
               children: [
                 Text(campaign.emoji,
-                    style: const TextStyle(fontSize: 20)),
+                    style: const TextStyle(fontSize: 18)),
                 const Spacer(),
                 GestureDetector(
                   onTap: onShare,
@@ -1071,15 +1074,17 @@ class _CampaignHomeCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              campaign.title,
-              style: AppTextStyles.labelMedium
-                  .copyWith(color: Colors.white),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            const SizedBox(height: 6),
+            Expanded(
+              child: Text(
+                campaign.title,
+                style: AppTextStyles.labelMedium
+                    .copyWith(color: Colors.white),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            const Spacer(),
+            const SizedBox(height: 4),
             if (hasTarget) ...[
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),
@@ -1096,6 +1101,8 @@ class _CampaignHomeCard extends StatelessWidget {
                 '${CurrencyFormatter.format(campaign.currentAmount, campaign.currency)} / ${campaign.formattedTarget}',
                 style: AppTextStyles.caption
                     .copyWith(color: Colors.white70),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ] else
               Text(

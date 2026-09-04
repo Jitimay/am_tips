@@ -1,7 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/services/push_notification_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/utils/currency_formatter.dart';
@@ -52,6 +56,38 @@ class _CustomerSuccessPageState extends State<CustomerSuccessPage>
           curve: const Interval(0.3, 1.0, curve: Curves.easeIn)),
     );
     _controller.forward();
+    // Show a local notification confirming the tip was sent.
+    _showTipSentNotification();
+  }
+
+  Future<void> _showTipSentNotification() async {
+    try {
+      final plugin = FlutterLocalNotificationsPlugin();
+      const androidInit =
+          AndroidInitializationSettings('@mipmap/ic_launcher');
+      await plugin.initialize(
+        settings: const InitializationSettings(android: androidInit),
+      );
+      await plugin.show(
+        id: 0,
+        title: '🎉 Tip sent!',
+        body: _waiterName.isNotEmpty
+            ? '${CurrencyFormatter.format(_amount, _currency)} sent to $_waiterName. Thank you!'
+            : '${CurrencyFormatter.format(_amount, _currency)} tip sent successfully!',
+        notificationDetails: const NotificationDetails(
+          android: AndroidNotificationDetails(
+            PushNotificationService.notificationChannelId,
+            PushNotificationService.notificationChannelName,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+        ),
+        payload: jsonEncode({'type': 'tip_sent'}),
+      );
+    } catch (e) {
+      debugPrint('[CustomerSuccess] Could not show local notification: $e');
+    }
   }
 
   @override

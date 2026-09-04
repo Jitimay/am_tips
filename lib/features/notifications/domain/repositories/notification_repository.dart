@@ -15,4 +15,6 @@ abstract class NotificationRepository {
   Future<Either<Failure, int>> getUnreadCount();
 
   Future<Either<Failure, void>> registerPushToken(String token);
+
+  Future<Either<Failure, void>> deletePushToken(String token);
 }

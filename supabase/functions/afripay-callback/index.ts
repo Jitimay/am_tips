@@ -135,13 +135,65 @@ Deno.serve(async (req: Request) => {
   if (updateError) {
     console.error("[afripay-callback] DB update error:", updateError.message);
     // Return 200 to AfriPay regardless — retrying won't help a DB error
-    return json(
-      { ok: false, error: updateError.message },
-      200
-    );
+    return json({ ok: false, error: updateError.message }, 200);
   }
 
   console.log(`[afripay-callback] Payment updated: ${client_token} → ${internalStatus}`);
+
+  // ── Send push notification to the waiter when a tip is completed ─────────
+  if (internalStatus === "completed") {
+    try {
+      // Look up the tip → waiter from the payment row we just updated
+      const { data: payment } = await supabase
+        .from("payments")
+        .select("tip_id, tip_amount, currency, tips(waiter_id)")
+        .eq("client_token", client_token)
+        .single();
+
+      const waiterId = (payment?.tips as { waiter_id?: string })?.waiter_id;
+      const tipAmount = payment?.tip_amount as number | undefined;
+      const tipCurrency = (payment?.currency as string | undefined) ?? "BIF";
+      const tipId = payment?.tip_id as string | undefined;
+      const formattedAmount = tipAmount
+        ? `${tipAmount.toLocaleString()} ${tipCurrency}`
+        : "";
+
+      if (waiterId) {
+        const notifTitle = "💰 You received a tip!";
+        const notifBody = formattedAmount
+          ? `${formattedAmount} just landed in your wallet.`
+          : "A new tip just landed in your wallet.";
+
+        // 1. Insert a persistent notification row so the app page shows it
+        await supabase.from("notifications").insert({
+          user_id:  waiterId,
+          type:     "new_tip",
+          title:    notifTitle,
+          body:     notifBody,
+          is_read:  false,
+          metadata: { tip_id: tipId ?? null, amount: tipAmount ?? null, currency: tipCurrency },
+        });
+
+        // 2. Send FCM push so the device gets a heads-up immediately
+        await supabase.functions.invoke("send-notification", {
+          body: {
+            waiter_id: waiterId,
+            title: notifTitle,
+            body:  notifBody,
+            data: {
+              type:   "new_tip",
+              tip_id: tipId ?? "",
+            },
+          },
+        });
+        console.log(`[afripay-callback] Notification inserted + push sent to waiter ${waiterId}`);
+      }
+    } catch (notifErr) {
+      // Non-fatal — log but don't fail the callback response
+      console.error("[afripay-callback] Failed to send push notification:", notifErr);
+    }
+  }
+
   return json({ ok: true, status: internalStatus }, 200);
 });
 

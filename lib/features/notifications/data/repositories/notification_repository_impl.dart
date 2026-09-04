@@ -23,21 +23,38 @@ class NotificationRepositoryImpl implements NotificationRepository {
     int page = 1,
     int pageSize = 20,
   }) async {
+    // Always load from Isar first — it holds both FCM-received notifications
+    // (saved by the foreground handler) and previously fetched remote ones.
+    final cached = await isarDb.getNotifications(page: 1, pageSize: 200);
+
     final online = await networkInfo.isConnected;
     if (online) {
       try {
         final models = await remoteDataSource.getNotifications(
             page: page, pageSize: pageSize);
-        final domainList = models.map((m) => m.toDomain()).toList();
-        await isarDb.saveNotifications(domainList);
-        return Right(domainList);
+        final remote = models.map((m) => m.toDomain()).toList();
+
+        // Persist remote rows to Isar so they survive offline
+        if (remote.isNotEmpty) {
+          await isarDb.saveNotifications(remote);
+        }
+
+        // Merge: remote rows + Isar-only rows (e.g. FCM-received),
+        // dedup by id, sort newest-first.
+        final remoteIds = remote.map((n) => n.id).toSet();
+        final isarOnly = cached.where((n) => !remoteIds.contains(n.id)).toList();
+        final merged = [...remote, ...isarOnly]
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+        final start = (page - 1) * pageSize;
+        final end   = (start + pageSize).clamp(0, merged.length);
+        return Right(start < merged.length ? merged.sublist(start, end) : []);
       } catch (_) {
-        final cached = await isarDb.getNotifications(page: page, pageSize: pageSize);
-        return Right(cached);
+        // Network or parse error — fall through to pure Isar
       }
     }
 
-    final cached = await isarDb.getNotifications(page: page, pageSize: pageSize);
+    // Offline or remote failed: return from Isar cache directly
     return Right(cached);
   }
 
@@ -69,17 +86,8 @@ class NotificationRepositoryImpl implements NotificationRepository {
 
   @override
   Future<Either<Failure, int>> getUnreadCount() async {
-    final online = await networkInfo.isConnected;
-    if (online) {
-      try {
-        final count = await remoteDataSource.getUnreadCount();
-        return Right(count);
-      } catch (_) {
-        final count = await isarDb.getUnreadNotificationCount();
-        return Right(count);
-      }
-    }
-
+    // Isar is always the source of truth for unread count because
+    // it holds both remote-fetched and FCM-received notifications.
     final count = await isarDb.getUnreadNotificationCount();
     return Right(count);
   }
@@ -91,6 +99,16 @@ class NotificationRepositoryImpl implements NotificationRepository {
       return const Right(null);
     } catch (_) {
       return const Right(null); // Non-critical
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deletePushToken(String token) async {
+    try {
+      await remoteDataSource.deletePushToken(token);
+      return const Right(null);
+    } catch (_) {
+      return const Right(null);
     }
   }
 }
