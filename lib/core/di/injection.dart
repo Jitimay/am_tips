@@ -266,6 +266,7 @@ Future<void> configureDependencies() async {
     () => CampaignRepositoryImpl(
       remoteDataSource: sl<CampaignRemoteDataSource>(),
       networkInfo: sl<NetworkInfo>(),
+      isarDb: sl<IsarDatabaseService>(),
     ),
   );
   sl.registerFactory<CampaignBloc>(

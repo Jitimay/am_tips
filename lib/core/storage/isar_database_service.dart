@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../features/campaigns/domain/entities/campaign.dart';
 import '../../features/notifications/domain/entities/notification.dart';
 import '../../features/profile/domain/entities/waiter_profile.dart';
 import '../../features/qr_code/domain/entities/qr_code.dart';
@@ -34,6 +35,7 @@ class IsarDatabaseService {
         CachedNotificationSchema,
         CachedQrCodeSchema,
         CachedWithdrawalSchema,
+        CachedCampaignSchema,
       ],
       directory: dir.path,
       name: 'amtips_offline_db',
@@ -677,6 +679,97 @@ class IsarDatabaseService {
     );
   }
 
+  // ── Campaigns ──────────────────────────────────────────────────────────────
+
+  Future<void> saveCampaigns(List<Campaign> campaigns) async {
+    try {
+      final isar = await db;
+      final cachedList = campaigns.map((c) => CachedCampaign()
+        ..id = c.id
+        ..waiterId = c.waiterId
+        ..title = c.title
+        ..category = c.category.name
+        ..description = c.description
+        ..emoji = c.emoji
+        ..targetAmount = c.targetAmount
+        ..currentAmount = c.currentAmount
+        ..tipsCount = c.tipsCount
+        ..currency = c.currency
+        ..isActive = c.isActive
+        ..startDate = c.startDate
+        ..endDate = c.endDate
+        ..createdAt = c.createdAt
+        ..updatedAt = c.updatedAt
+        ..cachedAt = DateTime.now()).toList();
+
+      await isar.writeTxn(() async {
+        for (final item in cachedList) {
+          await isar.cachedCampaigns.putById(item);
+        }
+      });
+    } catch (e) {
+      debugPrint('[Isar] saveCampaigns error: $e');
+    }
+  }
+
+  Future<void> saveCampaign(Campaign campaign) async => saveCampaigns([campaign]);
+
+  Future<List<Campaign>> getCampaigns({bool? activeOnly}) async {
+    try {
+      final isar = await db;
+      List<CachedCampaign> results;
+      if (activeOnly == true) {
+        results = await isar.cachedCampaigns.filter()
+            .isActiveEqualTo(true).sortByCreatedAtDesc().findAll();
+      } else {
+        results = await isar.cachedCampaigns.where()
+            .sortByCreatedAtDesc().findAll();
+      }
+      return results.map(_campaignFromCache).toList();
+    } catch (e) {
+      debugPrint('[Isar] getCampaigns error: $e');
+      return [];
+    }
+  }
+
+  Future<Campaign?> getCampaign(String id) async {
+    try {
+      final isar = await db;
+      final c = await isar.cachedCampaigns.getById(id);
+      return c == null ? null : _campaignFromCache(c);
+    } catch (e) {
+      debugPrint('[Isar] getCampaign error: $e');
+      return null;
+    }
+  }
+
+  Future<void> deleteCachedCampaign(String id) async {
+    try {
+      final isar = await db;
+      await isar.writeTxn(() => isar.cachedCampaigns.deleteById(id));
+    } catch (e) {
+      debugPrint('[Isar] deleteCachedCampaign error: $e');
+    }
+  }
+
+  Campaign _campaignFromCache(CachedCampaign c) => Campaign(
+        id: c.id,
+        waiterId: c.waiterId,
+        title: c.title,
+        category: CampaignCategory.fromString(c.category),
+        description: c.description,
+        emoji: c.emoji,
+        targetAmount: c.targetAmount,
+        currentAmount: c.currentAmount,
+        tipsCount: c.tipsCount,
+        currency: c.currency,
+        isActive: c.isActive,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        createdAt: c.createdAt,
+        updatedAt: c.updatedAt,
+      );
+
   // ── Clear Database ────────────────────────────────────────────────────────
 
   Future<void> clearAll() async {
@@ -691,6 +784,7 @@ class IsarDatabaseService {
         await isar.cachedNotifications.clear();
         await isar.cachedQrCodes.clear();
         await isar.cachedWithdrawals.clear();
+        await isar.cachedCampaigns.clear();
       });
     } catch (e) {
       debugPrint('[Isar] clearAll error: $e');

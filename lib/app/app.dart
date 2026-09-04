@@ -10,6 +10,7 @@ import '../core/services/push_notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
 import '../features/campaigns/presentation/bloc/campaign_bloc.dart';
+import '../features/campaigns/presentation/bloc/campaign_event.dart';
 import '../features/customer/bloc/customer_tip_bloc.dart';
 import '../features/notifications/domain/entities/notification.dart';
 import '../features/notifications/presentation/bloc/notification_bloc.dart';
@@ -118,6 +119,7 @@ class _NotificationLifecycleWrapperState
     context.read<WalletCubit>().refreshWallet();
     context.read<NotificationBloc>().add(const NotificationsLoaded());
     context.read<QrCubit>().loadQrCode();
+    context.read<CampaignBloc>().add(const LoadCampaigns());
   }
 
   void _handleNotification(AppNotification notif) {

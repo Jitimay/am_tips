@@ -40,4 +40,5 @@ const _$WithdrawalStatusEnumMap = {
   WithdrawalStatus.processing: 'processing',
   WithdrawalStatus.completed: 'completed',
   WithdrawalStatus.failed: 'failed',
+  WithdrawalStatus.cancelled: 'cancelled',
 };

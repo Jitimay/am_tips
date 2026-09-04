@@ -14120,6 +14120,2689 @@ extension CachedQrCodeQueryProperty
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
+extension GetCachedCampaignCollection on Isar {
+  IsarCollection<CachedCampaign> get cachedCampaigns => this.collection();
+}
+
+const CachedCampaignSchema = CollectionSchema(
+  name: r'CachedCampaign',
+  id: -5899067644255496046,
+  properties: {
+    r'cachedAt': PropertySchema(
+      id: 0,
+      name: r'cachedAt',
+      type: IsarType.dateTime,
+    ),
+    r'category': PropertySchema(
+      id: 1,
+      name: r'category',
+      type: IsarType.string,
+    ),
+    r'createdAt': PropertySchema(
+      id: 2,
+      name: r'createdAt',
+      type: IsarType.dateTime,
+    ),
+    r'currency': PropertySchema(
+      id: 3,
+      name: r'currency',
+      type: IsarType.string,
+    ),
+    r'currentAmount': PropertySchema(
+      id: 4,
+      name: r'currentAmount',
+      type: IsarType.long,
+    ),
+    r'description': PropertySchema(
+      id: 5,
+      name: r'description',
+      type: IsarType.string,
+    ),
+    r'emoji': PropertySchema(id: 6, name: r'emoji', type: IsarType.string),
+    r'endDate': PropertySchema(
+      id: 7,
+      name: r'endDate',
+      type: IsarType.dateTime,
+    ),
+    r'id': PropertySchema(id: 8, name: r'id', type: IsarType.string),
+    r'isActive': PropertySchema(id: 9, name: r'isActive', type: IsarType.bool),
+    r'startDate': PropertySchema(
+      id: 10,
+      name: r'startDate',
+      type: IsarType.dateTime,
+    ),
+    r'targetAmount': PropertySchema(
+      id: 11,
+      name: r'targetAmount',
+      type: IsarType.long,
+    ),
+    r'tipsCount': PropertySchema(
+      id: 12,
+      name: r'tipsCount',
+      type: IsarType.long,
+    ),
+    r'title': PropertySchema(id: 13, name: r'title', type: IsarType.string),
+    r'updatedAt': PropertySchema(
+      id: 14,
+      name: r'updatedAt',
+      type: IsarType.dateTime,
+    ),
+    r'waiterId': PropertySchema(
+      id: 15,
+      name: r'waiterId',
+      type: IsarType.string,
+    ),
+  },
+
+  estimateSize: _cachedCampaignEstimateSize,
+  serialize: _cachedCampaignSerialize,
+  deserialize: _cachedCampaignDeserialize,
+  deserializeProp: _cachedCampaignDeserializeProp,
+  idName: r'isarId',
+  indexes: {
+    r'id': IndexSchema(
+      id: -3268401673993471357,
+      name: r'id',
+      unique: true,
+      replace: true,
+      properties: [
+        IndexPropertySchema(
+          name: r'id',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+      ],
+    ),
+    r'waiterId': IndexSchema(
+      id: 5413859458877949780,
+      name: r'waiterId',
+      unique: false,
+      replace: false,
+      properties: [
+        IndexPropertySchema(
+          name: r'waiterId',
+          type: IndexType.hash,
+          caseSensitive: true,
+        ),
+      ],
+    ),
+  },
+  links: {},
+  embeddedSchemas: {},
+
+  getId: _cachedCampaignGetId,
+  getLinks: _cachedCampaignGetLinks,
+  attach: _cachedCampaignAttach,
+  version: '3.3.2',
+);
+
+int _cachedCampaignEstimateSize(
+  CachedCampaign object,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  var bytesCount = offsets.last;
+  bytesCount += 3 + object.category.length * 3;
+  bytesCount += 3 + object.currency.length * 3;
+  bytesCount += 3 + object.description.length * 3;
+  bytesCount += 3 + object.emoji.length * 3;
+  bytesCount += 3 + object.id.length * 3;
+  bytesCount += 3 + object.title.length * 3;
+  bytesCount += 3 + object.waiterId.length * 3;
+  return bytesCount;
+}
+
+void _cachedCampaignSerialize(
+  CachedCampaign object,
+  IsarWriter writer,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  writer.writeDateTime(offsets[0], object.cachedAt);
+  writer.writeString(offsets[1], object.category);
+  writer.writeDateTime(offsets[2], object.createdAt);
+  writer.writeString(offsets[3], object.currency);
+  writer.writeLong(offsets[4], object.currentAmount);
+  writer.writeString(offsets[5], object.description);
+  writer.writeString(offsets[6], object.emoji);
+  writer.writeDateTime(offsets[7], object.endDate);
+  writer.writeString(offsets[8], object.id);
+  writer.writeBool(offsets[9], object.isActive);
+  writer.writeDateTime(offsets[10], object.startDate);
+  writer.writeLong(offsets[11], object.targetAmount);
+  writer.writeLong(offsets[12], object.tipsCount);
+  writer.writeString(offsets[13], object.title);
+  writer.writeDateTime(offsets[14], object.updatedAt);
+  writer.writeString(offsets[15], object.waiterId);
+}
+
+CachedCampaign _cachedCampaignDeserialize(
+  Id id,
+  IsarReader reader,
+  List<int> offsets,
+  Map<Type, List<int>> allOffsets,
+) {
+  final object = CachedCampaign();
+  object.cachedAt = reader.readDateTime(offsets[0]);
+  object.category = reader.readString(offsets[1]);
+  object.createdAt = reader.readDateTime(offsets[2]);
+  object.currency = reader.readString(offsets[3]);
+  object.currentAmount = reader.readLong(offsets[4]);
+  object.description = reader.readString(offsets[5]);
+  object.emoji = reader.readString(offsets[6]);
+  object.endDate = reader.readDateTimeOrNull(offsets[7]);
+  object.id = reader.readString(offsets[8]);
+  object.isActive = reader.readBool(offsets[9]);
+  object.isarId = id;
+  object.startDate = reader.readDateTime(offsets[10]);
+  object.targetAmount = reader.readLongOrNull(offsets[11]);
+  object.tipsCount = reader.readLong(offsets[12]);
+  object.title = reader.readString(offsets[13]);
+  object.updatedAt = reader.readDateTime(offsets[14]);
+  object.waiterId = reader.readString(offsets[15]);
+  return object;
+}
+
+P _cachedCampaignDeserializeProp<P>(
+  IsarReader reader,
+  int propertyId,
+  int offset,
+  Map<Type, List<int>> allOffsets,
+) {
+  switch (propertyId) {
+    case 0:
+      return (reader.readDateTime(offset)) as P;
+    case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readDateTime(offset)) as P;
+    case 3:
+      return (reader.readString(offset)) as P;
+    case 4:
+      return (reader.readLong(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
+      return (reader.readDateTimeOrNull(offset)) as P;
+    case 8:
+      return (reader.readString(offset)) as P;
+    case 9:
+      return (reader.readBool(offset)) as P;
+    case 10:
+      return (reader.readDateTime(offset)) as P;
+    case 11:
+      return (reader.readLongOrNull(offset)) as P;
+    case 12:
+      return (reader.readLong(offset)) as P;
+    case 13:
+      return (reader.readString(offset)) as P;
+    case 14:
+      return (reader.readDateTime(offset)) as P;
+    case 15:
+      return (reader.readString(offset)) as P;
+    default:
+      throw IsarError('Unknown property with id $propertyId');
+  }
+}
+
+Id _cachedCampaignGetId(CachedCampaign object) {
+  return object.isarId;
+}
+
+List<IsarLinkBase<dynamic>> _cachedCampaignGetLinks(CachedCampaign object) {
+  return [];
+}
+
+void _cachedCampaignAttach(
+  IsarCollection<dynamic> col,
+  Id id,
+  CachedCampaign object,
+) {
+  object.isarId = id;
+}
+
+extension CachedCampaignByIndex on IsarCollection<CachedCampaign> {
+  Future<CachedCampaign?> getById(String id) {
+    return getByIndex(r'id', [id]);
+  }
+
+  CachedCampaign? getByIdSync(String id) {
+    return getByIndexSync(r'id', [id]);
+  }
+
+  Future<bool> deleteById(String id) {
+    return deleteByIndex(r'id', [id]);
+  }
+
+  bool deleteByIdSync(String id) {
+    return deleteByIndexSync(r'id', [id]);
+  }
+
+  Future<List<CachedCampaign?>> getAllById(List<String> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return getAllByIndex(r'id', values);
+  }
+
+  List<CachedCampaign?> getAllByIdSync(List<String> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return getAllByIndexSync(r'id', values);
+  }
+
+  Future<int> deleteAllById(List<String> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return deleteAllByIndex(r'id', values);
+  }
+
+  int deleteAllByIdSync(List<String> idValues) {
+    final values = idValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync(r'id', values);
+  }
+
+  Future<Id> putById(CachedCampaign object) {
+    return putByIndex(r'id', object);
+  }
+
+  Id putByIdSync(CachedCampaign object, {bool saveLinks = true}) {
+    return putByIndexSync(r'id', object, saveLinks: saveLinks);
+  }
+
+  Future<List<Id>> putAllById(List<CachedCampaign> objects) {
+    return putAllByIndex(r'id', objects);
+  }
+
+  List<Id> putAllByIdSync(
+    List<CachedCampaign> objects, {
+    bool saveLinks = true,
+  }) {
+    return putAllByIndexSync(r'id', objects, saveLinks: saveLinks);
+  }
+}
+
+extension CachedCampaignQueryWhereSort
+    on QueryBuilder<CachedCampaign, CachedCampaign, QWhere> {
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhere> anyIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(const IdWhereClause.any());
+    });
+  }
+}
+
+extension CachedCampaignQueryWhere
+    on QueryBuilder<CachedCampaign, CachedCampaign, QWhereClause> {
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause> isarIdEqualTo(
+    Id isarId,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.between(lower: isarId, upper: isarId),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause>
+  isarIdNotEqualTo(Id isarId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            )
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IdWhereClause.greaterThan(lower: isarId, includeLower: false),
+            )
+            .addWhereClause(
+              IdWhereClause.lessThan(upper: isarId, includeUpper: false),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause>
+  isarIdGreaterThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.greaterThan(lower: isarId, includeLower: include),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause>
+  isarIdLessThan(Id isarId, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.lessThan(upper: isarId, includeUpper: include),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause> isarIdBetween(
+    Id lowerIsarId,
+    Id upperIsarId, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerIsarId,
+          includeLower: includeLower,
+          upper: upperIsarId,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause> idEqualTo(
+    String id,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'id', value: [id]),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause> idNotEqualTo(
+    String id,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'id',
+                lower: [],
+                upper: [id],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'id',
+                lower: [id],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'id',
+                lower: [id],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'id',
+                lower: [],
+                upper: [id],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause>
+  waiterIdEqualTo(String waiterId) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'waiterId', value: [waiterId]),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterWhereClause>
+  waiterIdNotEqualTo(String waiterId) {
+    return QueryBuilder.apply(this, (query) {
+      if (query.whereSort == Sort.asc) {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'waiterId',
+                lower: [],
+                upper: [waiterId],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'waiterId',
+                lower: [waiterId],
+                includeLower: false,
+                upper: [],
+              ),
+            );
+      } else {
+        return query
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'waiterId',
+                lower: [waiterId],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'waiterId',
+                lower: [],
+                upper: [waiterId],
+                includeUpper: false,
+              ),
+            );
+      }
+    });
+  }
+}
+
+extension CachedCampaignQueryFilter
+    on QueryBuilder<CachedCampaign, CachedCampaign, QFilterCondition> {
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  cachedAtEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'cachedAt', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  cachedAtGreaterThan(DateTime value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'cachedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  cachedAtLessThan(DateTime value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'cachedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  cachedAtBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'cachedAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'category',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'category',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'category',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'category', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  categoryIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'category', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  createdAtEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'createdAt', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  createdAtGreaterThan(DateTime value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'createdAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  createdAtLessThan(DateTime value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'createdAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  createdAtBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'createdAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'currency',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'currency',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'currency',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'currency',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'currency',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'currency',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'currency',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'currency',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'currency', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currencyIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'currency', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currentAmountEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'currentAmount', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currentAmountGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'currentAmount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currentAmountLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'currentAmount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  currentAmountBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'currentAmount',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'description',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'description',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'description',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'description',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'description',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'description',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'description',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'description',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'description', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  descriptionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'description', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'emoji',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'emoji',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'emoji',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'emoji',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'emoji',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'emoji',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'emoji',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'emoji',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'emoji', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  emojiIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'emoji', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  endDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'endDate'),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  endDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'endDate'),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  endDateEqualTo(DateTime? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'endDate', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  endDateGreaterThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'endDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  endDateLessThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'endDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  endDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'endDate',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition> idEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'id',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  idGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  idLessThan(String value, {bool include = false, bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition> idBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  idStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'id',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  idEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'id',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  idContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'id',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition> idMatches(
+    String pattern, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'id',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  idIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  idIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'id', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  isActiveEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isActive', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  isarIdEqualTo(Id value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isarId', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  isarIdGreaterThan(Id value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'isarId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  isarIdLessThan(Id value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'isarId',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  isarIdBetween(
+    Id lower,
+    Id upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'isarId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  startDateEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'startDate', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  startDateGreaterThan(DateTime value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'startDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  startDateLessThan(DateTime value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'startDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  startDateBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'startDate',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  targetAmountIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'targetAmount'),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  targetAmountIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'targetAmount'),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  targetAmountEqualTo(int? value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'targetAmount', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  targetAmountGreaterThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'targetAmount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  targetAmountLessThan(int? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'targetAmount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  targetAmountBetween(
+    int? lower,
+    int? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'targetAmount',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  tipsCountEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'tipsCount', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  tipsCountGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'tipsCount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  tipsCountLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'tipsCount',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  tipsCountBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'tipsCount',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'title',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'title',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'title',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'title',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'title',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'title',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'title',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'title',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'title', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  titleIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'title', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  updatedAtEqualTo(DateTime value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'updatedAt', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  updatedAtGreaterThan(DateTime value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'updatedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  updatedAtLessThan(DateTime value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'updatedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  updatedAtBetween(
+    DateTime lower,
+    DateTime upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'updatedAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdEqualTo(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'waiterId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'waiterId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'waiterId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'waiterId',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdStartsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'waiterId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdEndsWith(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'waiterId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'waiterId',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'waiterId',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'waiterId', value: ''),
+      );
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterFilterCondition>
+  waiterIdIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'waiterId', value: ''),
+      );
+    });
+  }
+}
+
+extension CachedCampaignQueryObject
+    on QueryBuilder<CachedCampaign, CachedCampaign, QFilterCondition> {}
+
+extension CachedCampaignQueryLinks
+    on QueryBuilder<CachedCampaign, CachedCampaign, QFilterCondition> {}
+
+extension CachedCampaignQuerySortBy
+    on QueryBuilder<CachedCampaign, CachedCampaign, QSortBy> {
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByCachedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cachedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByCachedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cachedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByCategory() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'category', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByCategoryDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'category', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByCreatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'createdAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByCreatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByCurrency() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currency', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByCurrencyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currency', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByCurrentAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentAmount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByCurrentAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentAmount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByDescription() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByDescriptionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByEmoji() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emoji', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByEmojiDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emoji', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByEndDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'endDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByEndDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'endDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByIsActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByStartDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'startDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByStartDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'startDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByTargetAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'targetAmount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByTargetAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'targetAmount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByTipsCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tipsCount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByTipsCountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tipsCount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByTitle() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'title', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByTitleDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByUpdatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> sortByWaiterId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waiterId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  sortByWaiterIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waiterId', Sort.desc);
+    });
+  }
+}
+
+extension CachedCampaignQuerySortThenBy
+    on QueryBuilder<CachedCampaign, CachedCampaign, QSortThenBy> {
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByCachedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cachedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByCachedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'cachedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByCategory() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'category', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByCategoryDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'category', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByCreatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'createdAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByCreatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'createdAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByCurrency() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currency', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByCurrencyDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currency', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByCurrentAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentAmount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByCurrentAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'currentAmount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByDescription() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByDescriptionDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'description', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByEmoji() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emoji', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByEmojiDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'emoji', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByEndDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'endDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByEndDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'endDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenById() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'id', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByIsActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByIsarId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByIsarIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isarId', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByStartDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'startDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByStartDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'startDate', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByTargetAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'targetAmount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByTargetAmountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'targetAmount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByTipsCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tipsCount', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByTipsCountDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'tipsCount', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByTitle() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'title', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByTitleDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'title', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByUpdatedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'updatedAt', Sort.desc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy> thenByWaiterId() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waiterId', Sort.asc);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QAfterSortBy>
+  thenByWaiterIdDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'waiterId', Sort.desc);
+    });
+  }
+}
+
+extension CachedCampaignQueryWhereDistinct
+    on QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> {
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctByCachedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'cachedAt');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctByCategory({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'category', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct>
+  distinctByCreatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'createdAt');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctByCurrency({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'currency', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct>
+  distinctByCurrentAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'currentAmount');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct>
+  distinctByDescription({bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'description', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctByEmoji({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'emoji', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctByEndDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'endDate');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctById({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'id', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isActive');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct>
+  distinctByStartDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'startDate');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct>
+  distinctByTargetAmount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'targetAmount');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct>
+  distinctByTipsCount() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'tipsCount');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctByTitle({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'title', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct>
+  distinctByUpdatedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'updatedAt');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, CachedCampaign, QDistinct> distinctByWaiterId({
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'waiterId', caseSensitive: caseSensitive);
+    });
+  }
+}
+
+extension CachedCampaignQueryProperty
+    on QueryBuilder<CachedCampaign, CachedCampaign, QQueryProperty> {
+  QueryBuilder<CachedCampaign, int, QQueryOperations> isarIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isarId');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, DateTime, QQueryOperations> cachedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'cachedAt');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, String, QQueryOperations> categoryProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'category');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, DateTime, QQueryOperations> createdAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, String, QQueryOperations> currencyProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'currency');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, int, QQueryOperations> currentAmountProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'currentAmount');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, String, QQueryOperations> descriptionProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'description');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, String, QQueryOperations> emojiProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'emoji');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, DateTime?, QQueryOperations> endDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'endDate');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, String, QQueryOperations> idProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'id');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, bool, QQueryOperations> isActiveProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isActive');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, DateTime, QQueryOperations> startDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'startDate');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, int?, QQueryOperations> targetAmountProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'targetAmount');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, int, QQueryOperations> tipsCountProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'tipsCount');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, String, QQueryOperations> titleProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'title');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, DateTime, QQueryOperations> updatedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'updatedAt');
+    });
+  }
+
+  QueryBuilder<CachedCampaign, String, QQueryOperations> waiterIdProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'waiterId');
+    });
+  }
+}
+
+// coverage:ignore-file
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+
 extension GetCachedWithdrawalCollection on Isar {
   IsarCollection<CachedWithdrawal> get cachedWithdrawals => this.collection();
 }

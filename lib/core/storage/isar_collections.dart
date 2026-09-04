@@ -133,6 +133,32 @@ class CachedQrCode {
 }
 
 @collection
+class CachedCampaign {
+  Id isarId = Isar.autoIncrement;
+
+  @Index(unique: true, replace: true)
+  late String id;
+
+  @Index()
+  late String waiterId;
+
+  late String title;
+  late String category;
+  late String description;
+  late String emoji;
+  int? targetAmount;
+  late int currentAmount;
+  late int tipsCount;
+  late String currency;
+  late bool isActive;
+  late DateTime startDate;
+  DateTime? endDate;
+  late DateTime createdAt;
+  late DateTime updatedAt;
+  late DateTime cachedAt;
+}
+
+@collection
 class CachedWithdrawal {
   Id isarId = Isar.autoIncrement;
 
