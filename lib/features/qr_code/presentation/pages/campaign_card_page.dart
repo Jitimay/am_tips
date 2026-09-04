@@ -13,84 +13,52 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/app_button.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
-import '../bloc/qr_cubit.dart';
+import '../../../qr_code/presentation/bloc/qr_cubit.dart';
+import '../../../campaigns/domain/entities/campaign.dart';
 
-// ── Campaign types ─────────────────────────────────────────────────────────
-
-class _Campaign {
-  final String emoji;
-  final String label;
-  final List<Color> gradient;
-  final String defaultMessage;
-
-  const _Campaign({
-    required this.emoji,
-    required this.label,
-    required this.gradient,
-    required this.defaultMessage,
-  });
-}
-
-const _campaigns = [
-  _Campaign(
-    emoji: '🎂',
-    label: 'Birthday',
-    gradient: [Color(0xFFFF6B9D), Color(0xFFFF8E53)],
-    defaultMessage: "It's my birthday! A tip would be the best gift 🎁",
-  ),
-  _Campaign(
-    emoji: '🎄',
-    label: 'Christmas',
-    gradient: [Color(0xFF2ECC71), Color(0xFF1A8A4A)],
-    defaultMessage: 'Wishing you a Merry Christmas! 🎅 Tips are welcome!',
-  ),
-  _Campaign(
-    emoji: '🥂',
-    label: 'Anniversary',
-    gradient: [Color(0xFF6C4EE8), Color(0xFFB44FE8)],
-    defaultMessage: 'Celebrating my work anniversary! Thank you for your support 🙏',
-  ),
-  _Campaign(
-    emoji: '🎉',
-    label: 'New Year',
-    gradient: [Color(0xFFF59E0B), Color(0xFFEF4444)],
-    defaultMessage: 'Happy New Year! Start the year by spreading kindness 🌟',
-  ),
-  _Campaign(
-    emoji: '🙏',
-    label: 'Thank You',
-    gradient: [Color(0xFF3B82F6), Color(0xFF6C4EE8)],
-    defaultMessage: 'Thank you for your generosity and support! It means the world to me.',
-  ),
-  _Campaign(
-    emoji: '✨',
-    label: 'Custom',
-    gradient: [Color(0xFF8B72F0), Color(0xFF5E3DD0)],
-    defaultMessage: '',
-  ),
-];
-
-// ── Page ───────────────────────────────────────────────────────────────────
-
+/// Shareable campaign card generator.
+/// Pass a [campaign] to pre-fill from an existing campaign,
+/// or null to use the standalone occasion picker (original behaviour).
 class CampaignCardPage extends StatefulWidget {
-  const CampaignCardPage({super.key});
+  final Campaign? campaign;
+  const CampaignCardPage({super.key, this.campaign});
 
   @override
   State<CampaignCardPage> createState() => _CampaignCardPageState();
 }
 
 class _CampaignCardPageState extends State<CampaignCardPage> {
-  int _selectedIndex = 0;
-  final _msgController = TextEditingController();
-  final _customOccasionController = TextEditingController();
+  late int _selectedIndex;
+  late final TextEditingController _msgController;
+  late final TextEditingController _customOccasionController;
   final _cardKey = GlobalKey();
   bool _sharing = false;
+
+  // Maps CampaignCategory to the local _occasions list index
+  static const _occasions = [
+    _Occasion(emoji: '🎂', label: 'Birthday',    gradient: [Color(0xFFFF6B9D), Color(0xFFFF8E53)], defaultMessage: "It's my birthday! A tip would be the best gift 🎁"),
+    _Occasion(emoji: '🎄', label: 'Christmas',   gradient: [Color(0xFF2ECC71), Color(0xFF1A8A4A)], defaultMessage: 'Wishing you a Merry Christmas! 🎅 Tips are welcome!'),
+    _Occasion(emoji: '🥂', label: 'Anniversary', gradient: [Color(0xFF6C4EE8), Color(0xFFB44FE8)], defaultMessage: 'Celebrating my work anniversary! Thank you for your support 🙏'),
+    _Occasion(emoji: '🎉', label: 'New Year',    gradient: [Color(0xFFF59E0B), Color(0xFFEF4444)], defaultMessage: 'Happy New Year! Start the year by spreading kindness 🌟'),
+    _Occasion(emoji: '🙏', label: 'Thank You',   gradient: [Color(0xFF3B82F6), Color(0xFF6C4EE8)], defaultMessage: 'Thank you for your generosity and support! It means the world to me.'),
+    _Occasion(emoji: '✨', label: 'Custom',      gradient: [Color(0xFF8B72F0), Color(0xFF5E3DD0)], defaultMessage: ''),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _msgController.text = _campaigns[0].defaultMessage;
-    // ensure QR is loaded so the preview renders
+    final c = widget.campaign;
+    // Pre-fill from campaign if provided
+    _selectedIndex = c != null ? _indexForCategory(c.category) : 0;
+    _msgController = TextEditingController(
+      text: c?.description.isNotEmpty == true
+          ? c!.description
+          : _occasions[_selectedIndex].defaultMessage,
+    );
+    _customOccasionController = TextEditingController(
+      text: c?.category == CampaignCategory.other ? (c?.title ?? '') : '',
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final qrState = context.read<QrCubit>().state;
       if (qrState is QrInitial || qrState is QrError) {
@@ -106,11 +74,22 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
     super.dispose();
   }
 
-  void _selectCampaign(int i) {
+  int _indexForCategory(CampaignCategory cat) {
+    switch (cat) {
+      case CampaignCategory.birthday:    return 0;
+      case CampaignCategory.christmas:   return 1;
+      case CampaignCategory.anniversary: return 2;
+      case CampaignCategory.holiday:     return 3;
+      case CampaignCategory.other:       return 5;
+      default:                           return 5;
+    }
+  }
+
+  void _selectOccasion(int i) {
     setState(() {
       _selectedIndex = i;
-      if (_campaigns[i].defaultMessage.isNotEmpty) {
-        _msgController.text = _campaigns[i].defaultMessage;
+      if (_occasions[i].defaultMessage.isNotEmpty) {
+        _msgController.text = _occasions[i].defaultMessage;
       }
     });
   }
@@ -122,19 +101,18 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
           _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
       if (boundary == null) return;
       final image = await boundary.toImage(pixelRatio: 3.0);
-      final bytes =
-          (await image.toByteData(format: ui.ImageByteFormat.png))!
-              .buffer
-              .asUint8List();
+      final bytes = (await image.toByteData(format: ui.ImageByteFormat.png))!
+          .buffer
+          .asUint8List();
       final dir = await getTemporaryDirectory();
       final file =
           await File('${dir.path}/amtips_campaign.png').writeAsBytes(bytes);
-      final campaign = _campaigns[_selectedIndex];
+      final occ = _occasions[_selectedIndex];
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
           text:
-              '${campaign.emoji} ${_msgController.text.trim().isNotEmpty ? _msgController.text.trim() : campaign.defaultMessage}\n\nTip me on amTips!',
+              '${occ.emoji} ${_msgController.text.trim().isNotEmpty ? _msgController.text.trim() : occ.defaultMessage}\n\nTip me on amTips!',
           subject: 'Support $name on amTips',
         ),
       );
@@ -167,89 +145,71 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // ── Campaign picker ──────────────────────────────────
-                    Text('Choose occasion',
-                        style: AppTextStyles.labelMedium),
+                    // ── Occasion picker ──────────────────────────────────
+                    Text('Choose occasion', style: AppTextStyles.labelMedium),
                     const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SizedBox(
-                            height: 84,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: _campaigns.length,
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(width: 10),
-                              itemBuilder: (_, i) {
-                                final c = _campaigns[i];
-                                final selected = i == _selectedIndex;
-                                return GestureDetector(
-                                  onTap: () => _selectCampaign(i),
-                                  child: AnimatedContainer(
-                                    duration:
-                                        const Duration(milliseconds: 200),
-                                    width: 72,
-                                    height: 84,
-                                    decoration: BoxDecoration(
-                                      gradient: selected
-                                          ? LinearGradient(
-                                              colors: c.gradient,
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            )
-                                          : null,
+                    SizedBox(
+                      height: 84,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _occasions.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 10),
+                        itemBuilder: (_, i) {
+                          final occ = _occasions[i];
+                          final selected = i == _selectedIndex;
+                          return GestureDetector(
+                            onTap: () => _selectOccasion(i),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              width: 72,
+                              height: 84,
+                              decoration: BoxDecoration(
+                                gradient: selected
+                                    ? LinearGradient(
+                                        colors: occ.gradient,
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      )
+                                    : null,
+                                color: selected
+                                    ? null
+                                    : Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(16),
+                                border: selected
+                                    ? null
+                                    : Border.all(
+                                        color: AppColors.divider, width: 1.5),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(occ.emoji,
+                                      style: const TextStyle(fontSize: 24)),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    occ.label,
+                                    style: AppTextStyles.caption.copyWith(
                                       color: selected
-                                          ? null
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .surfaceContainerHighest,
-                                      borderRadius:
-                                          BorderRadius.circular(16),
-                                      border: selected
-                                          ? null
-                                          : Border.all(
-                                              color: AppColors.divider,
-                                              width: 1.5),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(c.emoji,
-                                            style: const TextStyle(
-                                                fontSize: 24)),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          c.label,
-                                          style:
-                                              AppTextStyles.caption.copyWith(
-                                            color: selected
-                                                ? Colors.white
-                                                : AppColors.textSecondary,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
+                                          ? Colors.white
+                                          : AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                );
-                              },
+                                ],
+                              ),
                             ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        const Icon(Icons.arrow_forward_ios_rounded,
-                            size: 14, color: AppColors.textHint),
-                      ],
+                          );
+                        },
+                      ),
                     ),
 
                     const SizedBox(height: 20),
 
-                    // ── Custom occasion label (only for Custom) ──────────
+                    // ── Custom occasion label ────────────────────────────
                     if (_selectedIndex == 5) ...[
-                      Text('Occasion name',
-                          style: AppTextStyles.labelMedium),
+                      Text('Occasion name', style: AppTextStyles.labelMedium),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _customOccasionController,
@@ -258,8 +218,7 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
                         decoration: InputDecoration(
                           hintText: 'e.g. Graduation, Ramadan, Work trip…',
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                              borderRadius: BorderRadius.circular(12)),
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 12),
                         ),
@@ -268,8 +227,7 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
                     ],
 
                     // ── Message ──────────────────────────────────────────
-                    Text('Your message',
-                        style: AppTextStyles.labelMedium),
+                    Text('Your message', style: AppTextStyles.labelMedium),
                     const SizedBox(height: 8),
                     TextField(
                       controller: _msgController,
@@ -279,8 +237,7 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
                       decoration: InputDecoration(
                         hintText: 'Write something heartfelt…',
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                            borderRadius: BorderRadius.circular(12)),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 14, vertical: 12),
                       ),
@@ -297,8 +254,8 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
                     else
                       RepaintBoundary(
                         key: _cardKey,
-                        child: _CampaignCard(
-                          campaign: _campaigns[_selectedIndex],
+                        child: _ShareCard(
+                          occasion: _occasions[_selectedIndex],
                           customLabel: _selectedIndex == 5
                               ? _customOccasionController.text.trim()
                               : null,
@@ -306,8 +263,9 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
                           avatarUrl: avatarUrl,
                           message: _msgController.text.trim().isNotEmpty
                               ? _msgController.text.trim()
-                              : _campaigns[_selectedIndex].defaultMessage,
+                              : _occasions[_selectedIndex].defaultMessage,
                           qrUrl: qrUrl,
+                          campaign: widget.campaign,
                         ),
                       ),
 
@@ -332,27 +290,48 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
   }
 }
 
-// ── Shareable card widget ──────────────────────────────────────────────────
+// ── Data class ────────────────────────────────────────────────────────────────
 
-class _CampaignCard extends StatelessWidget {
-  final _Campaign campaign;
+class _Occasion {
+  final String emoji;
+  final String label;
+  final List<Color> gradient;
+  final String defaultMessage;
+  const _Occasion({
+    required this.emoji,
+    required this.label,
+    required this.gradient,
+    required this.defaultMessage,
+  });
+}
+
+// ── Shareable card ────────────────────────────────────────────────────────────
+
+class _ShareCard extends StatelessWidget {
+  final _Occasion occasion;
   final String? customLabel;
   final String name;
   final String? avatarUrl;
   final String message;
   final String qrUrl;
+  final Campaign? campaign;
 
-  const _CampaignCard({
-    required this.campaign,
+  const _ShareCard({
+    required this.occasion,
     this.customLabel,
     required this.name,
     required this.avatarUrl,
     required this.message,
     required this.qrUrl,
+    this.campaign,
   });
 
   @override
   Widget build(BuildContext context) {
+    final hasGoal = campaign != null &&
+        campaign!.targetAmount != null &&
+        campaign!.targetAmount! > 0;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -369,13 +348,13 @@ class _CampaignCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Gradient banner ────────────────────────────────────────────
+          // ── Gradient banner ──────────────────────────────────────────────
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 28),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: campaign.gradient,
+                colors: occasion.gradient,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -387,12 +366,11 @@ class _CampaignCard extends StatelessWidget {
                   alignment: Alignment.bottomRight,
                   children: [
                     Container(
-                      width: 64,
-                      height: 64,
+                      width: 72,
+                      height: 72,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border:
-                            Border.all(color: Colors.white, width: 3),
+                        border: Border.all(color: Colors.white, width: 3),
                         color: Colors.white24,
                       ),
                       child: ClipOval(
@@ -400,27 +378,25 @@ class _CampaignCard extends StatelessWidget {
                             ? CachedNetworkImage(
                                 imageUrl: avatarUrl!,
                                 fit: BoxFit.cover,
-                                errorWidget: (context, url, error) =>
+                                errorWidget: (_, __, ___) =>
                                     _AvatarFallback(name: name),
                               )
                             : _AvatarFallback(name: name),
                       ),
                     ),
                     Container(
-                      width: 24,
-                      height: 24,
+                      width: 26,
+                      height: 26,
                       decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
+                          color: Colors.white, shape: BoxShape.circle),
                       child: Center(
-                        child: Text(campaign.emoji,
-                            style: const TextStyle(fontSize: 13)),
+                        child: Text(occasion.emoji,
+                            style: const TextStyle(fontSize: 14)),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 if (name.isNotEmpty)
                   Text(
                     name,
@@ -428,31 +404,79 @@ class _CampaignCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                 const SizedBox(height: 6),
-                // Show custom occasion label or default campaign label
                 Text(
                   customLabel != null && customLabel!.isNotEmpty
-                      ? '${campaign.emoji} $customLabel'
-                      : '${campaign.emoji} ${campaign.label}',
+                      ? '${occasion.emoji} $customLabel'
+                      : '${occasion.emoji} ${occasion.label}',
                   style: AppTextStyles.labelSmall.copyWith(
                     color: Colors.white.withValues(alpha: 0.80),
                     letterSpacing: 0.5,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   message,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: Colors.white.withValues(alpha: 0.92),
-                  ),
+                  style: AppTextStyles.bodyMedium
+                      .copyWith(color: Colors.white.withValues(alpha: 0.92)),
                   textAlign: TextAlign.center,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
+
+                // ── Progress bar (only when campaign has a goal) ──────────
+                if (hasGoal) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              campaign!.formattedRaised,
+                              style: AppTextStyles.labelMedium
+                                  .copyWith(color: Colors.white),
+                            ),
+                            Text(
+                              'Goal: ${campaign!.formattedTarget}',
+                              style: AppTextStyles.labelSmall
+                                  .copyWith(color: Colors.white70),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: campaign!.progress,
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.25),
+                            valueColor:
+                                const AlwaysStoppedAnimation(Colors.white),
+                            minHeight: 6,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${campaign!.progressPercentage}% reached · ${campaign!.tipsCount} tips',
+                          style: AppTextStyles.caption
+                              .copyWith(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
 
-          // ── QR section ─────────────────────────────────────────────────
+          // ── QR section ───────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
             child: Column(
@@ -468,8 +492,7 @@ class _CampaignCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border:
-                        Border.all(color: AppColors.divider, width: 1.5),
+                    border: Border.all(color: AppColors.divider, width: 1.5),
                   ),
                   child: QrImageView(
                     data: qrUrl,
@@ -478,11 +501,11 @@ class _CampaignCard extends StatelessWidget {
                     backgroundColor: Colors.white,
                     eyeStyle: QrEyeStyle(
                       eyeShape: QrEyeShape.square,
-                      color: campaign.gradient.last,
+                      color: occasion.gradient.last,
                     ),
                     dataModuleStyle: QrDataModuleStyle(
                       dataModuleShape: QrDataModuleShape.square,
-                      color: campaign.gradient.last,
+                      color: occasion.gradient.last,
                     ),
                   ),
                 ),
@@ -494,18 +517,17 @@ class _CampaignCard extends StatelessWidget {
                       width: 20,
                       height: 20,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: campaign.gradient),
+                        gradient:
+                            LinearGradient(colors: occasion.gradient),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Icon(Icons.monetization_on_rounded,
                           size: 12, color: Colors.white),
                     ),
                     const SizedBox(width: 5),
-                    Text(
-                      'amTips',
-                      style: AppTextStyles.labelSmall
-                          .copyWith(color: AppColors.textSecondary),
-                    ),
+                    Text('amTips',
+                        style: AppTextStyles.labelSmall
+                            .copyWith(color: AppColors.textSecondary)),
                   ],
                 ),
               ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/snackbar_utils.dart';
@@ -43,7 +44,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             context,
             'Reset link sent! Check your email.',
           );
-          context.pop();
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go(AppRoutes.login);
+          }
         } else if (state is AuthFailure) {
           SnackBarUtils.showError(context, state.message);
         }

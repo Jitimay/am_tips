@@ -63,7 +63,15 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Create Account'),
-          leading: BackButton(onPressed: () => context.pop()),
+          leading: BackButton(
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go(AppRoutes.login);
+              }
+            },
+          ),
         ),
         body: SafeArea(
           child: SingleChildScrollView(

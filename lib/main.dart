@@ -24,8 +24,20 @@ Future<void> main() async {
   // Catch all uncaught Flutter framework errors and show a friendly screen.
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
-    debugPrint('[FlutterError] ${details.exceptionAsString()}');
+    final errorStr = details.exceptionAsString();
+    final isOverflow = errorStr.contains('overflowed by') ||
+        (details.library == 'rendering library' && details.silent);
+    if (!isOverflow) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    } else {
+      FirebaseCrashlytics.instance.recordError(
+        details.exception,
+        details.stack,
+        reason: 'Render overflow (non-fatal UI layout clipping)',
+        fatal: false,
+      );
+    }
+    debugPrint('[FlutterError] $errorStr');
   };
 
   // Catch all uncaught async errors (Dart zone errors)
@@ -175,14 +187,17 @@ class _InitAppState extends State<_InitApp> {
       await _authSub?.cancel();
       _authSub = fb_auth.FirebaseAuth.instance.authStateChanges().listen((user) {
         try {
-          final headers = Supabase.instance.client.headers;
+          final currentHeaders =
+              Map<String, String>.from(Supabase.instance.client.headers);
           if (user != null) {
-            headers['x-firebase-uid'] = user.uid;
+            currentHeaders['x-firebase-uid'] = user.uid;
+            Supabase.instance.client.headers = currentHeaders;
             if (user.emailVerified) {
               sl<PushNotificationService>().syncToken();
             }
           } else {
-            headers.remove('x-firebase-uid');
+            currentHeaders.remove('x-firebase-uid');
+            Supabase.instance.client.headers = currentHeaders;
           }
         } catch (e, st) {
           debugPrint('[AuthStateListener] Error handling auth state change: $e\n$st');

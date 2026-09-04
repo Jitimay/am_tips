@@ -12,6 +12,10 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/avatar_widget.dart';
 import '../../../../core/widgets/error_state.dart';
 import '../../../../core/widgets/shimmer_widgets.dart';
+import '../../../campaigns/domain/entities/campaign.dart';
+import '../../../campaigns/presentation/bloc/campaign_bloc.dart';
+import '../../../campaigns/presentation/bloc/campaign_event.dart';
+import '../../../campaigns/presentation/bloc/campaign_state.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
 import '../../../profile/presentation/bloc/profile_bloc.dart';
 import '../../../tips/presentation/bloc/tips_bloc.dart';
@@ -34,6 +38,7 @@ class _HomePageState extends State<HomePage> {
     context.read<TipsBloc>().add(const LoadTips());
     context.read<WalletCubit>().loadWallet();
     context.read<NotificationBloc>().add(const NotificationsLoaded());
+    context.read<CampaignBloc>().add(const LoadCampaigns());
     _loadBalanceVisibility();
   }
 
@@ -56,6 +61,7 @@ class _HomePageState extends State<HomePage> {
     context.read<TipsBloc>().add(const LoadTips());
     context.read<WalletCubit>().refreshWallet();
     context.read<NotificationBloc>().add(const NotificationsLoaded());
+    context.read<CampaignBloc>().add(const LoadCampaigns());
   }
 
   String _greeting() {
@@ -98,10 +104,13 @@ class _HomePageState extends State<HomePage> {
                           const Icon(Icons.search_rounded,
                               color: AppColors.textHint, size: 20),
                           const SizedBox(width: 10),
-                          Text(
-                            'Search for someone to tip…',
-                            style: AppTextStyles.bodyMedium
-                                .copyWith(color: AppColors.textHint),
+                          Expanded(
+                            child: Text(
+                              'Search for someone to tip…',
+                              style: AppTextStyles.bodyMedium
+                                  .copyWith(color: AppColors.textHint),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ],
                       ),
@@ -122,6 +131,8 @@ class _HomePageState extends State<HomePage> {
                     _buildActionButtons(context),
                     const SizedBox(height: 16),
                     _buildShortcuts(context),
+                    const SizedBox(height: 16),
+                    _buildActiveCampaigns(context),
                     const SizedBox(height: 16),
                     _buildRecentTips(context),
                   ]),
@@ -653,6 +664,53 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+
+  // ── ACTIVE CAMPAIGNS ─────────────────────────────────────────────────────
+
+  Widget _buildActiveCampaigns(BuildContext context) {
+    return BlocBuilder<CampaignBloc, CampaignState>(
+      builder: (context, state) {
+        if (state is! CampaignLoaded) return const SizedBox.shrink();
+        final active = state.campaigns.where((c) => c.isActive).toList();
+        if (active.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Active Campaigns', style: AppTextStyles.labelLarge),
+                TextButton(
+                  onPressed: () => context.push(AppRoutes.campaignList),
+                  child: Text('See all',
+                      style: AppTextStyles.labelSmall
+                          .copyWith(color: AppColors.primary)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 130,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: active.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (_, i) => _CampaignHomeCard(
+                  campaign: active[i],
+                  onTap: () => context.push(AppRoutes.campaignList),
+                  onShare: () => context.push(
+                    AppRoutes.campaignCard,
+                    extra: active[i],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -959,5 +1017,95 @@ class _RecentTipRow extends StatelessWidget {
     final h = local.hour.toString().padLeft(2, '0');
     final m = local.minute.toString().padLeft(2, '0');
     return '$h:$m';
+  }
+}
+
+class _CampaignHomeCard extends StatelessWidget {
+  final Campaign campaign;
+  final VoidCallback onTap;
+  final VoidCallback onShare;
+
+  const _CampaignHomeCard({
+    required this.campaign,
+    required this.onTap,
+    required this.onShare,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = campaign.category.gradientColors;
+    final hasTarget = campaign.targetAmount != null && campaign.targetAmount! > 0;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 220,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: colors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(campaign.emoji,
+                    style: const TextStyle(fontSize: 20)),
+                const Spacer(),
+                GestureDetector(
+                  onTap: onShare,
+                  child: Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.share_rounded,
+                        size: 14, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              campaign.title,
+              style: AppTextStyles.labelMedium
+                  .copyWith(color: Colors.white),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const Spacer(),
+            if (hasTarget) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: LinearProgressIndicator(
+                  value: campaign.progress,
+                  backgroundColor: Colors.white.withValues(alpha: 0.25),
+                  valueColor:
+                      const AlwaysStoppedAnimation(Colors.white),
+                  minHeight: 4,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${CurrencyFormatter.format(campaign.currentAmount, campaign.currency)} / ${campaign.formattedTarget}',
+                style: AppTextStyles.caption
+                    .copyWith(color: Colors.white70),
+              ),
+            ] else
+              Text(
+                '${campaign.tipsCount} tips',
+                style: AppTextStyles.caption
+                    .copyWith(color: Colors.white70),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }

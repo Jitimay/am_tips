@@ -21,8 +21,8 @@ class AfriPayService {
   final SupabaseClient _db;
   final _uuid = const Uuid();
 
-  static const _apiUrl = 'https://www.api.afripay.africa';
-  // Proxy for server-side calls (Supabase Edge Functions) — static IP whitelisted by AfriPay.
+  static const _apiUrl = 'https://ygtgfqitctowlhkqomjw.supabase.co/functions/v1/afripay-proxy';
+  // Direct proxy IP — used only by Edge Functions server-side (disbursement).
   static const _proxyUrl = 'http://162.35.118.233:8080';
 
   AfriPayService({SupabaseClient? client})

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/campaigns/domain/entities/campaign.dart';
+import '../../features/campaigns/presentation/pages/campaign_form_page.dart';
+import '../../features/campaigns/presentation/pages/campaign_hub_page.dart';
+import '../../features/campaigns/presentation/pages/campaigns_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
@@ -57,6 +61,10 @@ class AppRoutes {
   static const terms = '/terms';
   static const search = '/search';
   static const analytics = '/analytics';
+
+  static const campaignForm = '/campaign/form';
+  static const campaignCard = '/campaign/card';
+  static const campaignList = '/campaign/list';
 
   static const customerProfile = '/t/:waiterId';
 }
@@ -152,7 +160,7 @@ class AppRouter {
           StatefulShellBranch(routes: [
             GoRoute(
               path: AppRoutes.campaign,
-              builder: (_, _) => const CampaignCardPage(),
+              builder: (_, _) => const CampaignHubPage(),
             ),
           ]),
           StatefulShellBranch(routes: [
@@ -183,6 +191,22 @@ class AppRouter {
       ),
 
       // ── Standalone modal routes ───────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.campaignForm,
+        builder: (_, state) => CampaignFormPage(
+          campaign: state.extra as Campaign?,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.campaignCard,
+        builder: (_, state) => CampaignCardPage(
+          campaign: state.extra as Campaign?,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.campaignList,
+        builder: (_, _) => const CampaignsPage(),
+      ),
       GoRoute(
         path: AppRoutes.qr,
         builder: (_, _) => const QrPage(),

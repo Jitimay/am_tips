@@ -49,70 +49,84 @@ class AppButton extends StatelessWidget {
           )
         else ...[
           if (prefixIcon != null) ...[prefixIcon!, const SizedBox(width: 8)],
-          Text(label, style: AppTextStyles.button),
+          Flexible(
+            child: Text(
+              label,
+              style: AppTextStyles.button,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
           if (suffixIcon != null) ...[const SizedBox(width: 8), suffixIcon!],
         ],
       ],
     );
 
-    switch (variant) {
-      case AppButtonVariant.primary:
-        return SizedBox(
-          width: fullWidth ? double.infinity : null,
-          height: h,
-          child: ElevatedButton(
-            onPressed: isLoading ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(radius),
-              ),
-            ),
-            child: child,
-          ),
-        );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool canExpand = fullWidth && constraints.maxWidth.isFinite;
+        final double? w = canExpand ? double.infinity : null;
 
-      case AppButtonVariant.outline:
-        return SizedBox(
-          width: fullWidth ? double.infinity : null,
-          height: h,
-          child: OutlinedButton(
-            onPressed: isLoading ? null : onPressed,
-            style: OutlinedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(radius),
+        switch (variant) {
+          case AppButtonVariant.primary:
+            return SizedBox(
+              width: w,
+              height: h,
+              child: ElevatedButton(
+                onPressed: isLoading ? null : onPressed,
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(radius),
+                  ),
+                ),
+                child: child,
               ),
-            ),
-            child: child,
-          ),
-        );
+            );
 
-      case AppButtonVariant.ghost:
-        return SizedBox(
-          width: fullWidth ? double.infinity : null,
-          height: h,
-          child: TextButton(
-            onPressed: isLoading ? null : onPressed,
-            child: child,
-          ),
-        );
-
-      case AppButtonVariant.danger:
-        return SizedBox(
-          width: fullWidth ? double.infinity : null,
-          height: h,
-          child: ElevatedButton(
-            onPressed: isLoading ? null : onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(radius),
+          case AppButtonVariant.outline:
+            return SizedBox(
+              width: w,
+              height: h,
+              child: OutlinedButton(
+                onPressed: isLoading ? null : onPressed,
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(radius),
+                  ),
+                ),
+                child: child,
               ),
-            ),
-            child: child,
-          ),
-        );
-    }
+            );
+
+          case AppButtonVariant.ghost:
+            return SizedBox(
+              width: w,
+              height: h,
+              child: TextButton(
+                onPressed: isLoading ? null : onPressed,
+                child: child,
+              ),
+            );
+
+          case AppButtonVariant.danger:
+            return SizedBox(
+              width: w,
+              height: h,
+              child: ElevatedButton(
+                onPressed: isLoading ? null : onPressed,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.error,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(radius),
+                  ),
+                ),
+                child: child,
+              ),
+            );
+        }
+      },
+    );
   }
 
   Color _loaderColor() {

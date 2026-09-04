@@ -9,6 +9,7 @@ import '../core/router/app_router.dart';
 import '../core/services/push_notification_service.dart';
 import '../core/theme/app_theme.dart';
 import '../features/auth/presentation/bloc/auth_bloc.dart';
+import '../features/campaigns/presentation/bloc/campaign_bloc.dart';
 import '../features/customer/bloc/customer_tip_bloc.dart';
 import '../features/notifications/domain/entities/notification.dart';
 import '../features/notifications/presentation/bloc/notification_bloc.dart';
@@ -60,6 +61,9 @@ class AmTipsApp extends StatelessWidget {
         ),
         BlocProvider<CustomerTipBloc>(
           create: (_) => sl<CustomerTipBloc>(),
+        ),
+        BlocProvider<CampaignBloc>(
+          create: (_) => sl<CampaignBloc>(),
         ),
       ],
       child: _NotificationLifecycleWrapper(

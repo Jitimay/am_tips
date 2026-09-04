@@ -64,4 +64,7 @@ abstract class CustomerTipRepository {
 
   /// Fetches available payment methods from AfriPay API.
   Future<List<AfriPayMethodDto>> getPaymentMethods(String currency);
+
+  /// Returns the waiter's most recent active campaign, or null if none.
+  Future<Map<String, dynamic>?> getActiveCampaign(String waiterId);
 }

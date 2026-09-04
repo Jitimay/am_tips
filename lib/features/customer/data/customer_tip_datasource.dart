@@ -13,6 +13,8 @@ import '../../tips/data/models/tip_model.dart';
 abstract class CustomerTipDataSource {
   Future<PublicWaiterProfileModel> getWaiterPublicProfile(String waiterId);
 
+  Future<Map<String, dynamic>?> getActiveCampaign(String waiterId);
+
   AfriPayFeeDto getFeeBreakdown({
     required int tipAmount,
     required String currency,
@@ -98,6 +100,23 @@ class CustomerTipDataSourceImpl implements CustomerTipDataSource {
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException(message: e.toString(), statusCode: null);
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getActiveCampaign(String waiterId) async {
+    try {
+      final rows = await _db
+          .from('campaigns')
+          .select('id, title, description, emoji, target_amount, current_amount, tips_count, currency, category, end_date')
+          .eq('waiter_id', waiterId)
+          .eq('is_active', true)
+          .order('created_at', ascending: false)
+          .limit(1);
+      if (rows.isNotEmpty) return Map<String, dynamic>.from(rows.first);
+      return null;
+    } catch (_) {
+      return null; // non-critical — don't break the tipping flow
     }
   }
 

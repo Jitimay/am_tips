@@ -60,6 +60,11 @@ import '../../features/customer/data/customer_tip_datasource.dart';
 import '../../features/customer/data/customer_tip_repository_impl.dart';
 import '../../features/customer/domain/customer_tip_repository.dart';
 
+import '../../features/campaigns/data/datasources/campaign_remote_datasource.dart';
+import '../../features/campaigns/data/repositories/campaign_repository_impl.dart';
+import '../../features/campaigns/domain/repositories/campaign_repository.dart';
+import '../../features/campaigns/presentation/bloc/campaign_bloc.dart';
+
 final sl = GetIt.instance;
 
 Future<void> configureDependencies() async {
@@ -251,5 +256,19 @@ Future<void> configureDependencies() async {
   );
   sl.registerFactory<CustomerTipBloc>(
     () => CustomerTipBloc(repository: sl<CustomerTipRepository>()),
+  );
+
+  // ── Campaigns ─────────────────────────────────────────────────────────────
+  sl.registerLazySingleton<CampaignRemoteDataSource>(
+    () => CampaignRemoteDataSourceImpl(),
+  );
+  sl.registerLazySingleton<CampaignRepository>(
+    () => CampaignRepositoryImpl(
+      remoteDataSource: sl<CampaignRemoteDataSource>(),
+      networkInfo: sl<NetworkInfo>(),
+    ),
+  );
+  sl.registerFactory<CampaignBloc>(
+    () => CampaignBloc(campaignRepository: sl<CampaignRepository>()),
   );
 }

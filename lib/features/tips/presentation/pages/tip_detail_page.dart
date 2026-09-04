@@ -182,11 +182,19 @@ class _DetailRow extends StatelessWidget {
           Text(label,
               style: AppTextStyles.bodySmall
                   .copyWith(color: AppColors.textSecondary)),
-          child ??
-              Text(
-                value ?? '—',
-                style: AppTextStyles.labelMedium,
-              ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: child ??
+                  Text(
+                    value ?? '—',
+                    style: AppTextStyles.labelMedium,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.end,
+                  ),
+            ),
+          ),
         ],
       ),
     );

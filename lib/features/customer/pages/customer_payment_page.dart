@@ -183,12 +183,21 @@ class _CustomerPaymentPageState extends State<CustomerPaymentPage> {
             }
 
             if (state is CustomerAwaitingPayment) {
+              final steps = _methods
+                  .firstWhere((m) => m.id == _selectedMethodId,
+                      orElse: () => const AfriPayMethodDto(id: '', name: '', provider: '', type: '', description: '', isAvailable: true, emoji: ''))
+                  .description;
               return _AwaitingConfirmationView(
                 feeBreakdown: state.feeBreakdown,
                 currency: _currency,
+                steps: steps,
                 onCancel: () {
                   _pollTimer?.cancel();
-                  context.pop();
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/t/${widget.waiterId}');
+                  }
                 },
               );
             }
@@ -431,10 +440,12 @@ class _MethodTile extends StatelessWidget {
 class _AwaitingConfirmationView extends StatelessWidget {
   final AfriPayFeeDto feeBreakdown;
   final String currency;
+  final String steps;
   final VoidCallback onCancel;
   const _AwaitingConfirmationView(
       {required this.feeBreakdown,
       required this.currency,
+      required this.steps,
       required this.onCancel});
 
   @override
@@ -453,10 +464,25 @@ class _AwaitingConfirmationView extends StatelessWidget {
           Text(
             'A payment request of ${CurrencyFormatter.format(feeBreakdown.customerPays, currency)} '
             'was sent to your mobile money account.\n\nPlease confirm it on your phone.',
-            style: AppTextStyles.bodyMedium
-                .copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
+          if (steps.isNotEmpty) ...[
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                steps.replaceAll('\r\n', '\n'),
+                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+                textAlign: TextAlign.left,
+              ),
+            ),
+          ],
           const SizedBox(height: 32),
           const CircularProgressIndicator(color: AppColors.primary),
           const SizedBox(height: 32),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -174,7 +175,13 @@ class _QrScannerPageState extends State<QrScannerPage>
                   // Close
                   _CircleButton(
                     icon: Icons.close_rounded,
-                    onTap: () => context.pop(),
+                    onTap: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go(AppRoutes.home);
+                      }
+                    },
                   ),
                   // Title
                   Container(
@@ -426,7 +433,13 @@ class _CameraErrorView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             TextButton(
-              onPressed: () => context.pop(),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.home);
+                }
+              },
               child: const Text('Go back',
                   style: TextStyle(color: AppColors.primaryLight)),
             ),

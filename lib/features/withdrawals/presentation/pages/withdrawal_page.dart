@@ -287,7 +287,7 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
@@ -325,8 +325,14 @@ class _WithdrawalPageState extends State<WithdrawalPage> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              context.pop();
+              Navigator.of(dialogCtx).pop();
+              if (context.mounted) {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.wallet);
+                }
+              }
             },
             child: const Text('Done'),
           ),

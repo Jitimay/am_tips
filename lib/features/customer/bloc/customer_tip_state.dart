@@ -17,9 +17,14 @@ class CustomerTipLoading extends CustomerTipState {
 class CustomerProfileLoaded extends CustomerTipState {
   final PublicWaiterProfile profile;
   final List<AfriPayMethodDto> paymentMethods;
-  const CustomerProfileLoaded({required this.profile, required this.paymentMethods});
+  final Map<String, dynamic>? activeCampaign;
+  const CustomerProfileLoaded({
+    required this.profile,
+    required this.paymentMethods,
+    this.activeCampaign,
+  });
   @override
-  List<Object?> get props => [profile, paymentMethods];
+  List<Object?> get props => [profile, paymentMethods, activeCampaign];
 }
 
 class CustomerTipAmountSelected extends CustomerTipState {

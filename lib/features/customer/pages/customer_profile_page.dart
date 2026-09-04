@@ -85,6 +85,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
             final profile = state is CustomerProfileLoaded
                 ? state.profile
                 : (state as CustomerTipAmountSelected).profile;
+            final activeCampaign = state is CustomerProfileLoaded
+                ? state.activeCampaign
+                : null;
             _currency = AppConstants.defaultCurrency;
 
             return SafeArea(
@@ -95,6 +98,9 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
                     padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
+                        if (activeCampaign != null)
+                          _CampaignBanner(campaign: activeCampaign),
+                        if (activeCampaign != null) const SizedBox(height: 20),
                         _buildPresetAmounts(),
                         const SizedBox(height: 16),
                         _buildCustomAmount(),
@@ -367,21 +373,23 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
   // ── CTA ───────────────────────────────────────────────────────────────────
 
   Widget _buildContinueButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _proceed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
-        ),
-        child: Text(
-          'Continue',
-          style: AppTextStyles.button.copyWith(fontSize: 18),
+    return LayoutBuilder(
+      builder: (context, constraints) => SizedBox(
+        width: constraints.maxWidth.isFinite ? double.infinity : null,
+        height: 56,
+        child: ElevatedButton(
+          onPressed: _proceed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+          ),
+          child: Text(
+            'Continue',
+            style: AppTextStyles.button.copyWith(fontSize: 18),
+          ),
         ),
       ),
     );
@@ -401,3 +409,105 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
     );
   }
 }
+
+// ── Active campaign banner shown to customers ─────────────────────────────
+
+class _CampaignBanner extends StatelessWidget {
+  final Map<String, dynamic> campaign;
+  const _CampaignBanner({required this.campaign});
+
+  @override
+  Widget build(BuildContext context) {
+    final emoji = campaign['emoji'] as String? ?? '🎉';
+    final title = campaign['title'] as String? ?? '';
+    final description = campaign['description'] as String? ?? '';
+    final target = (campaign['target_amount'] as num?)?.toInt();
+    final current = (campaign['current_amount'] as num?)?.toInt() ?? 0;
+    final tipsCount = (campaign['tips_count'] as num?)?.toInt() ?? 0;
+    final currency = campaign['currency'] as String? ?? 'BIF';
+    final endDateStr = campaign['end_date'] as String?;
+    final daysLeft = endDateStr != null
+        ? DateTime.parse(endDateStr).difference(DateTime.now()).inDays
+        : null;
+    final progress = (target != null && target > 0)
+        ? (current / target).clamp(0.0, 1.0)
+        : null;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF8B72F0), Color(0xFF5E3DD0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 22)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTextStyles.labelMedium.copyWith(color: Colors.white),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (daysLeft != null && daysLeft >= 0)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '$daysLeft days left',
+                    style: AppTextStyles.caption.copyWith(color: Colors.white),
+                  ),
+                ),
+            ],
+          ),
+          if (description.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              description,
+              style: AppTextStyles.bodySmall
+                  .copyWith(color: Colors.white.withValues(alpha: 0.85)),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          if (progress != null) ...[
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: Colors.white.withValues(alpha: 0.25),
+                valueColor: const AlwaysStoppedAnimation(Colors.white),
+                minHeight: 6,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${CurrencyFormatter.format(current, currency)} raised · $tipsCount tips',
+              style: AppTextStyles.caption.copyWith(color: Colors.white70),
+            ),
+          ] else ...[
+            const SizedBox(height: 6),
+            Text(
+              '$tipsCount tips so far',
+              style: AppTextStyles.caption.copyWith(color: Colors.white70),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+

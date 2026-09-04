@@ -169,22 +169,74 @@ class TipsRemoteDataSourceImpl implements TipsRemoteDataSource {
   }) async {
     try {
       final waiterId = await _profileId;
-      final list = await _db
-          .from('tips')
-          .select('id, amount, currency, created_at, status')
-          .eq('waiter_id', waiterId)
-          .eq('status', 'completed')
-          .order('created_at', ascending: false)
-          .range((page - 1) * pageSize, page * pageSize - 1);
 
-      return list.map((e) => WalletTransactionModel.fromJson({
-        'id': e['id'],
-        'type': 'tip',
-        'amount': e['amount'],
-        'currency': e['currency'] ?? 'BIF',
-        'is_credit': true,
-        'created_at': e['created_at'],
-      })).toList();
+      // Fetch tips (credits) and withdrawals (debits) in parallel
+      final results = await Future.wait([
+        _db
+            .from('tips')
+            .select('id, amount, currency, created_at, status')
+            .eq('waiter_id', waiterId)
+            .eq('status', 'completed')
+            .order('created_at', ascending: false)
+            .limit(pageSize * 2), // fetch more to have enough after merge
+        _db
+            .from('withdrawals')
+            .select('id, amount, currency, created_at, status, provider_reference')
+            .eq('waiter_id', waiterId)
+            .inFilter('status', ['completed', 'processing', 'requested', 'failed'])
+            .order('created_at', ascending: false)
+            .limit(pageSize * 2),
+      ]);
+
+      final tips = (results[0] as List).map((e) => WalletTransactionModel.fromJson({
+            'id': e['id'],
+            'type': 'tip_received', // _toCamel converts to 'tipReceived'
+            'amount': e['amount'],
+            'currency': e['currency'] ?? 'BIF',
+            'is_credit': true,
+            'description': 'Tip received',
+            'created_at': e['created_at'],
+          }));
+
+      final withdrawals = (results[1] as List).map((e) {
+        final status = e['status'] as String? ?? '';
+        String description;
+        switch (status) {
+          case 'completed':
+            description = 'Withdrawal sent';
+            break;
+          case 'processing':
+            description = 'Withdrawal processing…';
+            break;
+          case 'requested':
+            description = 'Withdrawal pending…';
+            break;
+          case 'failed':
+            description = 'Withdrawal failed (refunded)';
+            break;
+          default:
+            description = 'Withdrawal';
+        }
+        return WalletTransactionModel.fromJson({
+          'id': e['id'],
+          'type': 'withdrawal',
+          'amount': e['amount'],
+          'currency': e['currency'] ?? 'BIF',
+          // failed withdrawals are shown as credit because balance was restored
+          'is_credit': status == 'failed',
+          'reference': e['provider_reference'],
+          'description': description,
+          'created_at': e['created_at'],
+        });
+      });
+
+      // Merge and sort by date descending, then paginate
+      final all = [...tips, ...withdrawals].toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      final start = (page - 1) * pageSize;
+      if (start >= all.length) return [];
+      return all.sublist(start, (start + pageSize).clamp(0, all.length));
     } on PostgrestException catch (e) {
       throw ServerException(
         message: e.message,

@@ -194,4 +194,8 @@ class CustomerTipRepositoryImpl implements CustomerTipRepository {
       return AfriPayService.fallbackMethods();
     }
   }
+
+  @override
+  Future<Map<String, dynamic>?> getActiveCampaign(String waiterId) =>
+      dataSource.getActiveCampaign(waiterId);
 }

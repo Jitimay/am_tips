@@ -42,15 +42,21 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
     final results = await Future.wait([
       repository.getWaiterPublicProfile(event.waiterId),
       repository.getPaymentMethods(AppConstants.defaultCurrency),
+      repository.getActiveCampaign(event.waiterId),
     ]);
     final profileResult = results[0] as dynamic;
     final methods = results[1] as List<AfriPayMethodDto>;
+    final campaign = results[2] as Map<String, dynamic>?;
     profileResult.fold(
       (failure) => emit(CustomerTipError(failure.message)),
       (profile) {
         _profile = profile;
         _lastMethods = methods;
-        emit(CustomerProfileLoaded(profile: profile, paymentMethods: methods));
+        emit(CustomerProfileLoaded(
+          profile: profile,
+          paymentMethods: methods,
+          activeCampaign: campaign,
+        ));
       },
     );
   }
