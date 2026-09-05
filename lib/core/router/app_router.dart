@@ -243,8 +243,10 @@ class AppRouter {
       // ── Public customer tipping flow ──────────────────────────────────────
       GoRoute(
         path: '/t/:waiterId',
-        builder: (_, state) =>
-            CustomerProfilePage(waiterId: state.pathParameters['waiterId']!),
+        builder: (_, state) => CustomerProfilePage(
+          waiterId: state.pathParameters['waiterId']!,
+          campaignId: state.uri.queryParameters['campaign'],
+        ),
         routes: [
           GoRoute(
             path: 'payment',

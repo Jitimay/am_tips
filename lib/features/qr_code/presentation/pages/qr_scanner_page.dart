@@ -67,8 +67,8 @@ class _QrScannerPageState extends State<QrScannerPage>
     final rawValue = barcode?.rawValue;
     if (rawValue == null || rawValue.isEmpty) return;
 
-    final waiterId = _extractWaiterId(rawValue);
-    if (waiterId == null) {
+    final result = _extractWaiterInfo(rawValue);
+    if (result == null) {
       _showInvalidQrSnackbar(rawValue);
       return;
     }
@@ -77,7 +77,11 @@ class _QrScannerPageState extends State<QrScannerPage>
     HapticFeedback.mediumImpact();
     _controller.stop();
 
-    context.push('/t/$waiterId').then((_) {
+    final path = result['campaignId'] != null
+        ? '/t/${result['waiterId']}?campaign=${result['campaignId']}'
+        : '/t/${result['waiterId']}';
+
+    context.push(path).then((_) {
       if (mounted) {
         setState(() => _hasNavigated = false);
         _controller.start();
@@ -85,30 +89,38 @@ class _QrScannerPageState extends State<QrScannerPage>
     });
   }
 
-  /// Extracts the waiter ID from various QR URL formats:
-  ///   https://amtips.app/t/{id}
-  ///   amtips://t/{id}
-  ///   {id}  (raw UUID — fallback)
-  String? _extractWaiterId(String raw) {
+  /// Returns a map with 'waiterId' and optionally 'campaignId'.
+  Map<String, String?>? _extractWaiterInfo(String raw) {
     final trimmed = raw.trim();
 
-    // https://amtips.app/t/{id}
+    // https://amtips.app/t/{id}?campaign={campaignId}
     final webPattern = RegExp(
       r'https?://(?:www\.)?amtips\.app/t/([a-zA-Z0-9\-_]+)',
     );
     final webMatch = webPattern.firstMatch(trimmed);
-    if (webMatch != null) return webMatch.group(1);
+    if (webMatch != null) {
+      final waiterId = webMatch.group(1)!;
+      String? campaignId;
+      try {
+        campaignId = Uri.parse(trimmed).queryParameters['campaign'];
+      } catch (_) {}
+      return {'waiterId': waiterId, 'campaignId': campaignId};
+    }
 
     // amtips://t/{id}
     final deepLinkPattern = RegExp(r'amtips://t/([a-zA-Z0-9\-_]+)');
     final deepMatch = deepLinkPattern.firstMatch(trimmed);
-    if (deepMatch != null) return deepMatch.group(1);
+    if (deepMatch != null) {
+      return {'waiterId': deepMatch.group(1)!, 'campaignId': null};
+    }
 
-    // Raw UUID (36 chars)
+    // Raw UUID
     final uuidPattern = RegExp(
       r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
     );
-    if (uuidPattern.hasMatch(trimmed)) return trimmed;
+    if (uuidPattern.hasMatch(trimmed)) {
+      return {'waiterId': trimmed, 'campaignId': null};
+    }
 
     return null;
   }

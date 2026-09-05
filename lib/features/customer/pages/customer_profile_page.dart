@@ -13,7 +13,8 @@ import '../bloc/customer_tip_bloc.dart';
 
 class CustomerProfilePage extends StatefulWidget {
   final String waiterId;
-  const CustomerProfilePage({super.key, required this.waiterId});
+  final String? campaignId;
+  const CustomerProfilePage({super.key, required this.waiterId, this.campaignId});
 
   @override
   State<CustomerProfilePage> createState() => _CustomerProfilePageState();
@@ -29,7 +30,7 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
   void initState() {
     super.initState();
     context.read<CustomerTipBloc>().add(
-          CustomerProfileRequested(widget.waiterId),
+          CustomerProfileRequested(widget.waiterId, campaignId: widget.campaignId),
         );
   }
 

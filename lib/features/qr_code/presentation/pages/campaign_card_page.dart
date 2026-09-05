@@ -264,7 +264,9 @@ class _CampaignCardPageState extends State<CampaignCardPage> {
                           message: _msgController.text.trim().isNotEmpty
                               ? _msgController.text.trim()
                               : _occasions[_selectedIndex].defaultMessage,
-                          qrUrl: qrUrl,
+                          qrUrl: widget.campaign != null
+                              ? '$qrUrl?campaign=${widget.campaign!.id}'
+                              : qrUrl,
                           campaign: widget.campaign,
                         ),
                       ),

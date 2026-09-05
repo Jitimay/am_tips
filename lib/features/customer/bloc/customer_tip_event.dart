@@ -8,9 +8,10 @@ abstract class CustomerTipEvent extends Equatable {
 
 class CustomerProfileRequested extends CustomerTipEvent {
   final String waiterId;
-  const CustomerProfileRequested(this.waiterId);
+  final String? campaignId;
+  const CustomerProfileRequested(this.waiterId, {this.campaignId});
   @override
-  List<Object?> get props => [waiterId];
+  List<Object?> get props => [waiterId, campaignId];
 }
 
 class TipAmountSelected extends CustomerTipEvent {

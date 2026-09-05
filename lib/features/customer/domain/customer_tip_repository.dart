@@ -67,4 +67,7 @@ abstract class CustomerTipRepository {
 
   /// Returns the waiter's most recent active campaign, or null if none.
   Future<Map<String, dynamic>?> getActiveCampaign(String waiterId);
+
+  /// Returns a specific campaign by ID, or null if not found/inactive.
+  Future<Map<String, dynamic>?> getCampaignById(String campaignId);
 }

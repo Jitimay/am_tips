@@ -198,4 +198,8 @@ class CustomerTipRepositoryImpl implements CustomerTipRepository {
   @override
   Future<Map<String, dynamic>?> getActiveCampaign(String waiterId) =>
       dataSource.getActiveCampaign(waiterId);
+
+  @override
+  Future<Map<String, dynamic>?> getCampaignById(String campaignId) =>
+      dataSource.getCampaignById(campaignId);
 }

@@ -15,6 +15,8 @@ abstract class CustomerTipDataSource {
 
   Future<Map<String, dynamic>?> getActiveCampaign(String waiterId);
 
+  Future<Map<String, dynamic>?> getCampaignById(String campaignId);
+
   AfriPayFeeDto getFeeBreakdown({
     required int tipAmount,
     required String currency,
@@ -116,7 +118,22 @@ class CustomerTipDataSourceImpl implements CustomerTipDataSource {
       if (rows.isNotEmpty) return Map<String, dynamic>.from(rows.first);
       return null;
     } catch (_) {
-      return null; // non-critical — don't break the tipping flow
+      return null;
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getCampaignById(String campaignId) async {
+    try {
+      final row = await _db
+          .from('campaigns')
+          .select('id, title, description, emoji, target_amount, current_amount, tips_count, currency, category, end_date')
+          .eq('id', campaignId)
+          .eq('is_active', true)
+          .single();
+      return Map<String, dynamic>.from(row);
+    } catch (_) {
+      return null;
     }
   }
 

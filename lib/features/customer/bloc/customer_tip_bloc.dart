@@ -39,10 +39,13 @@ class CustomerTipBloc extends Bloc<CustomerTipEvent, CustomerTipState> {
   ) async {
     emit(const CustomerTipLoading());
     _waiterId = event.waiterId;
+    final campaignFuture = event.campaignId != null
+        ? repository.getCampaignById(event.campaignId!)
+        : repository.getActiveCampaign(event.waiterId);
     final results = await Future.wait([
       repository.getWaiterPublicProfile(event.waiterId),
       repository.getPaymentMethods(AppConstants.defaultCurrency),
-      repository.getActiveCampaign(event.waiterId),
+      campaignFuture,
     ]);
     final profileResult = results[0] as dynamic;
     final methods = results[1] as List<AfriPayMethodDto>;
