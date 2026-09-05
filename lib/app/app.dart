@@ -124,14 +124,20 @@ class _NotificationLifecycleWrapperState
 
   void _handleNotification(AppNotification notif) {
     if (!mounted) return;
+    // Always add to the notification list regardless of type
     context.read<NotificationBloc>().add(NotificationReceived(notif));
 
-    if (notif.type == NotificationType.newTip) {
-      context.read<TipsBloc>().add(const LoadTips());
-      context.read<WalletCubit>().refreshWallet();
-    } else if (notif.type == NotificationType.withdrawalCompleted ||
-        notif.type == NotificationType.withdrawalFailed) {
-      context.read<WalletCubit>().refreshWallet();
+    switch (notif.type) {
+      case NotificationType.newTip:
+        context.read<TipsBloc>().add(const LoadTips());
+        context.read<WalletCubit>().refreshWallet();
+        break;
+      case NotificationType.withdrawalCompleted:
+      case NotificationType.withdrawalFailed:
+        context.read<WalletCubit>().refreshWallet();
+        break;
+      default:
+        break;
     }
   }
 

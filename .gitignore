@@ -50,3 +50,7 @@ lib/core/constants/app_secrets.dart
 # Firebase config files (contain API keys)
 google-services.json
 GoogleService-Info.plist
+
+# Firebase service account keys — never commit
+*adminsdk*.json
+*service-account*.json
